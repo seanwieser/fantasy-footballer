@@ -44,7 +44,7 @@ def _evaluate_draft_value(player: Player, pick: Pick):
 
 
 if __name__ == '__main__':
-    with open('../resources/league_sw_onethree.json',
+    with open('../../resources/league_sw_onethree.json',
               encoding='utf-8') as league_file:
         creds = json.loads(league_file.read())
     leagues = [

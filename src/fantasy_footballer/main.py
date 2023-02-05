@@ -1,4 +1,4 @@
-"""Source code main file to be called by containerized run file."""
+"""Source code main file to be called by containerized run file"""
 import json
 from typing import List
 

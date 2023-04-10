@@ -1,3 +1,6 @@
+"""Analytics helper functions."""
+import json
+
 import matplotlib.pyplot as plt
 from espn_api.football import League, Pick, Player
 
@@ -9,7 +12,7 @@ def _get_bid_amounts(draft: list[Pick]):
     return team_stats
 
 
-def _get_pick_order(draft: List[Pick]):
+def _get_pick_order(draft: list[Pick]):
     team_stats = {k: [] for k in [pick.team.owner for pick in draft]}
     num_players = len(team_stats)
     for pick in draft:
@@ -47,8 +50,8 @@ def _output_owners(league: League) -> None:
 
 
 def _analyze_draft_value(league: dict):
-    D = _get_pick_scores(league)
-    sort = dict(sorted(D.items(), key=lambda item: item[1]))
+    pick_scores = _get_pick_scores(league)
+    sort = dict(sorted(pick_scores.items(), key=lambda item: item[1]))
     plt.bar(range(len(sort)), list(sort.values()), align='center')
     plt.xticks(range(len(sort)),
                list(sort.keys()),

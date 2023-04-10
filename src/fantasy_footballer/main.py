@@ -1,7 +1,5 @@
 """Source code main file to be called by containerized run file."""
 import json
-
-<<<<<<< HEAD
 import os
 
 import requests
@@ -12,6 +10,7 @@ def _get_groupme_endpoint(collection: str = '') -> str:
     access_token = '?token=' + os.getenv('ACCESS_TOKEN')
     base_url = 'https://api.groupme.com/v3/'
     return base_url + collection + access_token
+
 
 if __name__ == '__main__':
     with open('../../resources/league_sw_onethree.json',

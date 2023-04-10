@@ -27,7 +27,7 @@ repos:
       - id: pylint
         name: pylint
         language: system
-        entry: bash -c 'cd ./backend && poetry run python3 -m pylint.__main__ fantasy_footballer'
+        entry: bash -c 'cd ./backend && python3 -m pylint.__main__ fantasy_footballer'
         types: [python]
         exclude: (__init__|setup|(docs?|examples?|tests?|utils?)/.*)\.py$
   - repo: "https://github.com/pre-commit/mirrors-yapf"

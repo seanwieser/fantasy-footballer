@@ -21,3 +21,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pylint.MASTER]
 init-hook = "import sys; sys.path.append('.venv/lib/python3.10/site-packages/')"
+
+[tool.pylint."MESSAGE CONTROL"]
+disable = ["import-error", "no-member"]

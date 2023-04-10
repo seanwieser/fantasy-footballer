@@ -29,7 +29,7 @@ repos:
         exclude: (__init__|setup|(docs?|examples?|tests?|utils?)/.*)\.py$
         args: 
           [
-            "--disable=import-error"
+            "--rcfile=./backend/pyproject.toml"
           ]
 
   - repo: "https://github.com/pre-commit/mirrors-yapf"

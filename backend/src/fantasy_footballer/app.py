@@ -12,7 +12,7 @@ def _get_groupme_endpoint(collection: str = '') -> str:
     return base_url + collection + access_token
 
 
-if __name__ == '__main__':
+def run_app():
     with open('../../resources/league_sw_onethree.json',
               encoding='utf-8') as league_file:
         creds = json.loads(league_file.read())

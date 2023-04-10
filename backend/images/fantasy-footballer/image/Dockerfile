@@ -17,6 +17,6 @@ ADD README.md .
 RUN poetry install
 
 ADD ./images/commons-table-creator/image/extra_docker_pip_requirements.txt .
-ADD ./images/commons-table-creator/image/run.py .
+ADD ./images/fantasy-footballer/image/run.py .
 RUN python -m pip install -r extra_docker_pip_requirements.txt
 ENTRYPOINT ["python", "run.py"]

@@ -1,5 +1,5 @@
-from espn_api.football import League, Pick, Player
 import matplotlib.pyplot as plt
+from espn_api.football import League, Pick, Player
 
 
 def _get_bid_amounts(draft: list[Pick]):

@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.10"
 espn-api = "^0.29.2"
 matplotlib = "^3.6.3"
+requests = "2.28.2"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.0.3"

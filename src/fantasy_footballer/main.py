@@ -1,9 +1,9 @@
 """Source code main file to be called by containerized run file"""
 import json
-import requests
 from typing import List
 
 import matplotlib.pyplot as plt
+import requests
 from espn_api.football import League, Pick, Player
 
 
@@ -43,9 +43,11 @@ def _get_pick_scores(league: League):
 def _evaluate_draft_value(player: Player, pick: Pick):
     return float(player.total_points) / float(pick.bid_amount)
 
+
 def _output_owners(league: League) -> None:
     owners = [team.owner for team in league.teams]
-    with open('../../resources/results.json', 'a', encoding='utf-8') as out_file:
+    with open('../../resources/results.json', 'a',
+              encoding='utf-8') as out_file:
         out_file.write(json.dumps(owners))
 
 
@@ -60,17 +62,16 @@ def _analyze_draft_value(league: dict):
     plt.savefig('./visualizations/draft_value_bar.png')
 
 
-
-
 if __name__ == '__main__':
     # with open('../../resources/league_sw_onethree.json', encoding='utf-8') as league_file:
     #     creds = json.loads(league_file.read())
     # league = League(league_id=creds['league_id'], year=2022, espn_s2=creds['espn_s2'], swid=creds['swid'])
     # _output_owners(league)
 
-    r = requests.get('https://api.groupme.com/v3/groups/93229120/messages?token=vBYhYTUNjfrzF78ZgYiallxe8F98jLLsCA0k43fD')
+    r = requests.get(
+        'https://api.groupme.com/v3/groups/93229120/messages?token=vBYhYTUNjfrzF78ZgYiallxe8F98jLLsCA0k43fD'
+    )
     print(r.status_code)
     print(r.json()['response'])
 
-# 
-    
+#

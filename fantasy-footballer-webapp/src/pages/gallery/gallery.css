@@ -1,0 +1,38 @@
+:root {
+  --nav-color: #5fad06;
+}
+
+.body {
+    background-color: #282c34;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: calc(100px);
+    color: white;
+  }
+
+.nav {
+  display: flex;
+  align-items: center;
+  background-color: var(--nav-color);
+  height: 30px;
+  padding: 30px 25px;
+}
+
+.nav--h3 {
+  margin: 0;
+  margin-right: auto;
+}
+
+.nav--button {
+  padding: 10px 60px;
+  margin: 100px 0px;
+  width: auto;
+  height: max-content ;
+  color: black;
+  background-color: var(--nav-color);
+  border-color: var(--nav-color);
+  border-radius: 5px;
+  cursor: pointer;
+}

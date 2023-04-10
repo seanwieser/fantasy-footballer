@@ -1,13 +1,13 @@
 """Source code main file to be called by containerized run file."""
 import json
-import os
+from os import environ
 
 import requests
 from espn_api.football import League
 
 
 def _get_groupme_endpoint(collection: str = '') -> str:
-    access_token = '?token=' + os.environ('ACCESS_TOKEN')
+    access_token = '?token=' + environ('ACCESS_TOKEN')
     base_url = 'https://api.groupme.com/v3/'
     return base_url + collection + access_token
 

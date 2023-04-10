@@ -11,7 +11,7 @@ run-pytest:
 	poetry run pytest -vvv tests/
 
 run-pre-commit:
-	poetry run pre-commit run --all-files
+	poetry run pre-commit run --all-files;
 
 # ------------------------------------------------------------------------------------------
 #Containerized tools commands

@@ -13,6 +13,7 @@ def _get_groupme_endpoint(collection: str = '') -> str:
 
 
 def run_app():
+    """Python app's top level method."""
     with open('../../resources/league_sw_onethree.json',
               encoding='utf-8') as league_file:
         creds = json.loads(league_file.read())
@@ -20,7 +21,10 @@ def run_app():
                     year=2022,
                     espn_s2=creds['espn_s2'],
                     swid=creds['swid'])
+    if league:
+        pass
 
-    r = requests.get(_get_groupme_endpoint('groups/93229120/messages'))
-    print(r.status_code)
-    print(r.json()['response'])
+    req = requests.get(_get_groupme_endpoint('groups/93229120/messages'),
+                       timeout=120)
+    print(req.status_code)
+    print(req.json()['response'])

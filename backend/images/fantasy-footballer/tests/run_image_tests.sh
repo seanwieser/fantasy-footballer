@@ -5,4 +5,4 @@
 set -e
 
 echo "RUNNING TEST"
-docker run fantasy_footballer
+docker run fantasy-footballer

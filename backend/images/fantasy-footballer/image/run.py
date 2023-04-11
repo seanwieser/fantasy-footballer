@@ -1,11 +1,9 @@
 """Call to main to be containerized."""
 
-from fantasy_footballer import run_app
-
 
 def main():
     """Docker image's top level method."""
-    run_app()
+    print("Im an image")
 
 
 if __name__ == "__main__":

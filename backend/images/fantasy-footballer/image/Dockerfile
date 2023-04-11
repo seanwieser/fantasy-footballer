@@ -13,6 +13,5 @@ ADD ./backend/src .
 ADD ./backend/README.md .
 ADD ./backend/images/fantasy-footballer/image/run.py .
 
-
 RUN python -m pip install "poetry==${POETRY_VERSION}"
 RUN poetry install --no-interaction --no-ansi

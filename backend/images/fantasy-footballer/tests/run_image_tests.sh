@@ -4,5 +4,5 @@
 # exit when any command fails
 set -e
 
-echo "RUNNING TEST"
-docker run fantasy_footballer
+echo "NO TESTS ARE WRITTEN"
+echo "EXITING"

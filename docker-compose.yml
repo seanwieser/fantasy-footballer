@@ -1,0 +1,14 @@
+---
+services:
+  backend:
+    environment:
+      ACCESS_TOKEN: "${ACCESS_TOKEN}"
+      LEAGUE_ID: "${LEAGUE_ID}"
+      SWID: "${SWID}"
+      ESPN_S2: "${ESPN_S2}"
+    
+    entrypoint: ["python", "run.py"]
+
+    build: 
+      dockerfile: ./backend/images/fantasy-footballer/image/Dockerfile
+      

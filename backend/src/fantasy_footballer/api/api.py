@@ -20,6 +20,6 @@ def read_test():
 
 
 @app.get("/members/{year}")
-async def read_page(year: int) -> dict:
+async def read_page(year: int) -> list[str]:
     """Path parameter example."""
-    return {"members": fetch_members(year)}
+    return fetch_members(year)

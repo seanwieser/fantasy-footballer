@@ -16,9 +16,6 @@ repos:
         name: check-line-endings
         args: ['--fix=no']
 
-      - id: check-yaml
-        exclude: 'cfn\.ya?ml$'
-
   - repo: https://github.com/pycqa/pydocstyle
     rev: 6.1.1
     hooks:
@@ -30,6 +27,11 @@ repos:
     hooks:
       - id: pylint
         exclude: (__init__|setup|(docs?|examples?|tests?|utils?)/.*)\.py$
+        args: 
+          [
+            "--rcfile=./backend/pyproject.toml"
+          ]
+
   - repo: "https://github.com/pre-commit/mirrors-yapf"
     rev: v0.32.0
     hooks:

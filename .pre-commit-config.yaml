@@ -7,7 +7,7 @@ default_language_version:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.2.0
+    rev: v4.4.0
     hooks:
       - id: check-added-large-files
 
@@ -17,13 +17,13 @@ repos:
         args: ['--fix=no']
 
   - repo: https://github.com/pycqa/pydocstyle
-    rev: 6.1.1
+    rev: 6.3.0
     hooks:
       - id: pydocstyle
         exclude: (__init__|setup|(docs?|examples?|tests?|utils?)/.*)\.py$
         additional_dependencies: ["toml"]
   - repo: "https://github.com/PyCQA/pylint"
-    rev: v2.13.8
+    rev: v3.0.0a6
     hooks:
       - id: pylint
         exclude: (__init__|setup|(docs?|examples?|tests?|utils?)/.*)\.py$
@@ -37,8 +37,8 @@ repos:
     hooks:
       - id: yapf
         additional_dependencies: [toml]
-  - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.10.1
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
     hooks:
       - id: isort
         additional_dependencies: [toml]

@@ -1,6 +1,5 @@
 """Module that contains the backend API."""
 
-from data import DB
 from fantasy_footballer.fetcher.fetcher import fetch_members
 from fastapi import FastAPI
 
@@ -11,12 +10,6 @@ app = FastAPI()
 def read_root():
     """Root of API."""
     return {"First": "Hello World"}
-
-
-@app.get("/simpletest")
-def read_test():
-    """Return example of simple test."""
-    return DB
 
 
 @app.get("/members/{year}")

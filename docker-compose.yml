@@ -6,9 +6,17 @@ services:
       LEAGUE_ID: "${LEAGUE_ID}"
       SWID: "${SWID}"
       ESPN_S2: "${ESPN_S2}"
+    ports:
+      - 8000:8000
     
-    entrypoint: ["python", "run.py"]
+    entrypoint: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
 
     build: 
       dockerfile: ./backend/images/fantasy-footballer/image/Dockerfile
+  frontend:
+    ports: 
+      - 3000:3000
+    entrypoint: ["npm", "start"]
+    build:
+      dockerfile: ./frontend/image/Dockerfile
       

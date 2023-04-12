@@ -13,5 +13,5 @@ run-pytest:
 # ------------------------------------------------------------------------------------------
 #Containerized tools commands
 
-test-image: build-image
+test-image:
 	@make -C images test-image

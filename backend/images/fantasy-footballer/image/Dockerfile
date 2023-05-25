@@ -9,15 +9,12 @@ ENV POETRY_HOME="/opt/poetry" \
 ENV PATH="$PATH:$POETRY_HOME/bin"
 
 ADD ./backend/pyproject.toml .
-ADD ./backend/src .
+ADD ./backend/src/fantasy_footballer .
 ADD ./backend/README.md .
-
-ADD ./backend/images/fantasy-footballer/image/extra_docker_pip_requirements.txt .
-ADD ./backend/images/fantasy-footballer/image/api.py .
 
 RUN python -m pip install "poetry==${POETRY_VERSION}"
 RUN poetry install --no-interaction --no-ansi
 
-RUN python -m pip install -r extra_docker_pip_requirements.txt
-
 EXPOSE 8000
+
+ENTRYPOINT ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

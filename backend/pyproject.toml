@@ -10,6 +10,10 @@ python = "^3.10"
 espn-api = "^0.29.2"
 matplotlib = "^3.6.3"
 requests = "2.28.2"
+sqlalchemy = "^2.0.9"
+fastapi = "0.95.0"
+uvicorn = "0.21.1"
+psycopg2-binary = "2.9.6"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^3.0.3"

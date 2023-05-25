@@ -6,17 +6,40 @@ services:
       LEAGUE_ID: "${LEAGUE_ID}"
       SWID: "${SWID}"
       ESPN_S2: "${ESPN_S2}"
+      NODE_ENV: production
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: postgres
+    depends_on:
+      - db
     ports:
       - 8000:8000
-    
-    entrypoint: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
-
+    links:
+      - db
     build: 
+      context: .
       dockerfile: ./backend/images/fantasy-footballer/image/Dockerfile
-  frontend:
+  db:
+    image: postgres:14.8-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     ports: 
-      - 3000:3000
-    entrypoint: ["npm", "start"]
-    build:
-      dockerfile: ./frontend/image/Dockerfile
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+      - ./backend/src/fantasy_footballer/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+volumes:
+  db:
+    driver: local
+  # frontend:
+  #   ports: 
+  #     - 3000:3000
+  #   entrypoint: ["npm", "start"]
+  #   build:
+  #     context: .
+  #     dockerfile: ./frontend/image/Dockerfile
       

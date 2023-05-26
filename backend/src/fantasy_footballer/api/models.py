@@ -12,20 +12,19 @@ class Player():
 
     name = Column(String)
     playerId = Column(Integer)
-    posRank = Column(Integer)  # players positional rank
-    eligibleSlots = Column[ARRAY(String)]  # example ['WR', 'WR/TE/RB']
+    posRank = Column(Integer)
+    eligibleSlots = Column[ARRAY(String)]
     acquisitionType = Column(String)
-    proTeam = Column(String)  # 'PIT' or 'LAR'
-    onTeamId = Column(Integer)  # id of fantasy team
-    position = Column(String)  # main position like 'TE' or 'QB'
+    proTeam = Column(String)
+    onTeamId = Column(Integer)
+    position = Column(String)
     injuryStatus = Column(String)
     injured = Column(Boolean)
-    total_points = Column(Integer)  # players total points during the season
-    projected_total_points = Column(
-        Integer)  # projected player points for the season
-    percent_owned = Column(Integer)  # percentage player is rostered
-    percent_started = Column(Integer)  # percentage player is started
-    stats: Column(JSONB)  # holds each week stats, actual and projected points.
+    total_points = Column(Integer)
+    projected_total_points = Column(Integer)
+    percent_owned = Column(Integer)
+    percent_started = Column(Integer)
+    stats: Column(JSONB)
 
 
 class Teams():
@@ -42,20 +41,19 @@ class Teams():
     wins = Column(Integer)
     losses = Column(Integer)
     ties = Column(Integer)
-    points_for = Column(Integer)  # total points for through out the season
-    points_against = Column(
-        Integer)  # total points against through out the season
-    acquisitions = Column(Integer)  # number of acquisitions made by the team
-    acquisition_budget_spent = Column(Integer)  # budget spent on acquisitions
-    drops = Column(Integer)  # number of drops made by the team
-    trades = Column(Integer)  # number of trades made by the team
+    points_for = Column(Integer)
+    points_against = Column(Integer)
+    acquisitions = Column(Integer)
+    acquisition_budget_spent = Column(Integer)
+    drops = Column(Integer)
+    trades = Column(Integer)
     owner = Column(String)
-    streak_type = Column(String)  # string of either WIN or LOSS
-    streak_length = Column(Integer)  # how long the streak is for streak type
-    standing = Column(Integer)  # standing before playoffs
-    final_standing = Column(Integer)  # final standing at end of season
-    draft_projected_rank = Column(Integer)  # projected rank after draft
-    playoff_pct = Column(Integer)  # teams projected chance to make playoffs
+    streak_type = Column(String)
+    streak_length = Column(Integer)
+    standing = Column(Integer)
+    final_standing = Column(Integer)
+    draft_projected_rank = Column(Integer)
+    playoff_pct = Column(Integer)
     logo_url = Column(String)
     roster = Column(ARRAY(JSONB))
 

@@ -1,7 +1,9 @@
 """Module that contains the backend API."""
 
-from fantasy_footballer.fetcher.fetcher import fetch_members
+# import api.models
+# from api.database import engine
 from fastapi import FastAPI
+from fetcher.fetcher import fetch_members
 
 app = FastAPI()
 

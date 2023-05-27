@@ -3,31 +3,33 @@
 # from api.database import Base
 from sqlalchemy import ARRAY, Boolean, Column, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
+
+from .database import Base
+
+# class Player(Base):
+#     """Definition of all fields of players table."""
+
+#     __tablename__ = 'players'
+
+#     name = Column(String)
+#     playerId = Column(Integer)
+#     posRank = Column(Integer)
+#     eligibleSlots = Column[ARRAY(String)]
+#     acquisitionType = Column(String)
+#     proTeam = Column(String)
+#     onTeamId = Column(Integer)
+#     position = Column(String)
+#     injuryStatus = Column(String)
+#     injured = Column(Boolean)
+#     total_points = Column(Integer)
+#     projected_total_points = Column(Integer)
+#     percent_owned = Column(Integer)
+#     percent_started = Column(Integer)
+#     stats: Column(JSONB)
 
 
-class Player():
-    """Definition of all fields of players table."""
-
-    __tablename__ = 'players'
-
-    name = Column(String)
-    playerId = Column(Integer)
-    posRank = Column(Integer)
-    eligibleSlots = Column[ARRAY(String)]
-    acquisitionType = Column(String)
-    proTeam = Column(String)
-    onTeamId = Column(Integer)
-    position = Column(String)
-    injuryStatus = Column(String)
-    injured = Column(Boolean)
-    total_points = Column(Integer)
-    projected_total_points = Column(Integer)
-    percent_owned = Column(Integer)
-    percent_started = Column(Integer)
-    stats: Column(JSONB)
-
-
-class Teams():
+class Team(Base):
     """Definition of all fields of teams table."""
 
     __tablename__ = 'teams'
@@ -54,10 +56,5 @@ class Teams():
     final_standing = Column(Integer)
     draft_projected_rank = Column(Integer)
     playoff_pct = Column(Integer)
-    logo_url = Column(String)
-    roster = Column(ARRAY(JSONB))
-
-    # These 3 variables will have the same index and match on those indexes
-    schedule: Column(ARRAY(JSONB))
-    scores = Column(ARRAY(Integer))
-    outcomes = Column(ARRAY(JSONB))
+    # roster = relationship("Player", back_populates="teams")
+    schedule = Column(ARRAY(JSONB))

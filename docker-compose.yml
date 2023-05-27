@@ -31,7 +31,8 @@ services:
       - '5432:5432'
     volumes:
       - db:/var/lib/postgresql/data
-      - ./backend/src/fantasy_footballer/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend/src/fantasy_footballer/database/initialize_tables.sql:/docker-entrypoint-initdb.d/initialize_tables.sql
+      - ./backend/src/fantasy_footballer/database/fill_tables.py:/docker-entrypoint-initdb.d/fill_tables.py
 volumes:
   db:
     driver: local

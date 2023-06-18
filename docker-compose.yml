@@ -27,15 +27,22 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
     ports: 
       - '5432:5432'
     volumes:
-      - db:/var/lib/postgresql/data
-      - ./backend/src/fantasy_footballer/database/initialize_tables.sql:/docker-entrypoint-initdb.d/initialize_tables.sql
-      - ./backend/src/fantasy_footballer/database/fill_tables.py:/docker-entrypoint-initdb.d/fill_tables.py
+      - ./backend/src/fantasy_footballer/database_init/init_db.sql:/docker-entrypoint-initdb.d/1-init-db.sql
+      - ./backend/src/fantasy_footballer/database_init/data/league_2018.json.csv:/team_data/league_2018.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/league_2019.json.csv:/team_data/league_2019.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/league_2020.json.csv:/team_data/league_2020.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/league_2021.json.csv:/team_data/league_2021.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/league_2022.json.csv:/team_data/league_2022.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/league_2023.json.csv:/team_data/league_2023.json.csv
+      - db:/var/lib/postgresql/data/
 volumes:
   db:
     driver: local
+  
   # frontend:
   #   ports: 
   #     - 3000:3000

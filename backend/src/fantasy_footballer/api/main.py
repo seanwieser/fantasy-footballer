@@ -25,11 +25,12 @@ def get_db():
 #     """Root of API."""
 #     return crud.get_team_by_name(db=db, name='cmag')
 
-# @app.get("/teams/")
-# def read_teams(skip: int = 0, limit: int = 0, db: Session = Depends(get_db)):
-#     """"""
-#     teams = crud.get_teams(db, skip=skip, limit=limit)
-#     return teams
+
+@app.get("/teams/")
+def read_teams(skip: int = 0, limit: int = 0, db: Session = Depends(get_db)):
+    """Get list of all teams."""
+    teams = crud.get_teams(db, skip=skip, limit=limit)
+    return teams
 
 
 @app.get("/teams/{name}/")
@@ -39,12 +40,12 @@ def read_team(name: str, db: Session = Depends(get_db)):
     return team
 
 
-@app.post("/teams/{id}", response_model=TeamSchema)
-def create_team(team: TeamSchema, db: Session = Depends(get_db)):
+@app.post("/teams/")
+def create_team(team: dict, db: Session = Depends(get_db)):
     """Create team post."""
-    db_team = crud.get_team_by_id(db, id=team.team_id)
-    if db_team:
-        raise HTTPException(status_code=400, detail="Team already registered")
+    # db_team = crud.get_team_by_id(db, id=team.team_id)
+    # if db_team:
+    #     raise HTTPException(status_code=400, detail="Team already registered")
     return crud.create_team(db=db, team=team)
 
 

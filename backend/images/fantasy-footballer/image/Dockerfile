@@ -9,7 +9,7 @@ ENV POETRY_HOME="/opt/poetry" \
 ENV PATH="$PATH:$POETRY_HOME/bin"
 
 ADD ./backend/pyproject.toml .
-ADD ./backend/src/fantasy_footballer .
+ADD ./backend/src/fantasy_footballer /fantasy_footballer/
 ADD ./backend/README.md .
 
 RUN python -m pip install "poetry==${POETRY_VERSION}"

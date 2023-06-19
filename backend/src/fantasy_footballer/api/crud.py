@@ -5,12 +5,11 @@ from api.schemas import TeamSchema
 from sqlalchemy.orm import Session
 
 
-def create_team(db: Session, team: TeamSchema):
+def create_team(db: Session, team: dict):
     """Add Team row to database."""
     db_team = Team(**team)
     db.add(db_team)
     db.commit()
-    db.refresh()
     return db_team
 
 

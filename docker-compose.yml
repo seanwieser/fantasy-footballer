@@ -31,7 +31,7 @@ services:
     ports: 
       - '5432:5432'
     volumes:
-      - ./backend/src/fantasy_footballer/database_init/init_db.sql:/docker-entrypoint-initdb.d/1-init-db.sql
+      - ./backend/src/fantasy_footballer/database_init/teams_init.sql:/docker-entrypoint-initdb.d/1-init-db.sql
       - ./backend/src/fantasy_footballer/database_init/data/league_2018.json.csv:/team_data/league_2018.json.csv
       - ./backend/src/fantasy_footballer/database_init/data/league_2019.json.csv:/team_data/league_2019.json.csv
       - ./backend/src/fantasy_footballer/database_init/data/league_2020.json.csv:/team_data/league_2020.json.csv

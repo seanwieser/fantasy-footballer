@@ -34,8 +34,9 @@ class Team(Base):
 
     __tablename__ = 'teams'
 
-    team_id = Column(Integer, primary_key=True)
+    team_id = Column(String, primary_key=True)
 
+    year = Column(String)
     team_abbrev = Column(String)
     team_name = Column(String)
     division_id = Column(String)

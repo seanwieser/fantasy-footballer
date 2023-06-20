@@ -42,9 +42,10 @@ class RequestPlayer(BaseModel):
 class TeamSchema(BaseModel):
     """Definition of all fields of teams table."""
 
-    team_id: int
+    team_id: str
 
     team_abbrev: Optional[str] | None = None
+    year: Optional[str] | None = None
     team_name: Optional[str] | None = None
     division_id: Optional[str] | None = None
     division_name: Optional[str] | None = None

@@ -17,4 +17,4 @@ RUN poetry install --no-interaction --no-ansi
 
 EXPOSE 8000
 
-ENTRYPOINT ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["uvicorn", "fantasy_footballer.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

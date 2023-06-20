@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS public.teams (
     team_id text PRIMARY KEY,
 
     team_abbrev text,
-    year integer,
+    year text,
     team_name text,
     division_id text,
     division_name text,
@@ -38,7 +38,7 @@ WITH stage_flat AS (
     select 
         md5(replace(lower(cast(val->'team_abbrev'  as text)), '"', '')  || '_' || cast(val->'year' as text))   as team_id,
         replace(lower(cast(val->'team_abbrev'      as text)), '"', '')      as team_abbrev,
-        cast(val->'year'                           as integer)   as year,
+        replace(cast(val->'year'                           as text), '"', '')   as year,
         replace(cast(val->'team_name'              as text), '"', '')      as team_name,
         replace(cast(val->'division_id'            as text), '"', '')      as division_id,
         replace(cast(val->'division_name'          as text), '"', '')      as division_name,

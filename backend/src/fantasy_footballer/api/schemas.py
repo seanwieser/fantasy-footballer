@@ -12,14 +12,15 @@ class PlayerSchema(BaseModel):
     """Schema containing all fields of a row in the Players table."""
 
     name: Optional[str] = None
-    playerId: Optional[int] = None
-    posRank: Optional[int] = None
-    eligibleSlots: Optional[list[str]] = None
-    acquisitionType: Optional[str] = None
-    proTeam: Optional[str] = None
-    onTeamId: Optional[int] = None
+    year: Optional[str] = None
+    player_id: Optional[int] = None
+    pos_rank: Optional[int] = None
+    eligible_slots: Optional[list[str]] = None
+    acquisition_type: Optional[str] = None
+    pro_team: Optional[str] = None
+    on_team_id: Optional[int] = None
     position: Optional[str] = None
-    injuryStatus: Optional[str] = None
+    injury_status: Optional[str] = None
     injured: Optional[bool] = None
     total_points: Optional[int] = None
     projected_total_points: Optional[int] = None
@@ -66,7 +67,7 @@ class TeamSchema(BaseModel):
     draft_projected_rank: Optional[int] | None = None
     playoff_pct: Optional[int] | None = None
     logo_url: Optional[str] | None = None
-    roster: Optional[list[dict]] | None = None
+    roster: Optional[list[int]] | None = None
     schedule: Optional[list[dict]] | None = None
 
     class Config:

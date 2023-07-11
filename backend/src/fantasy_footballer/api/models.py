@@ -7,26 +7,29 @@ from sqlalchemy.orm import relationship
 
 from .database import Base
 
-# class Player(Base):
-#     """Definition of all fields of players table."""
 
-#     __tablename__ = 'players'
+class Player(Base):
+    """Definition of all fields of players table."""
 
-#     name = Column(String)
-#     playerId = Column(Integer)
-#     posRank = Column(Integer)
-#     eligibleSlots = Column[ARRAY(String)]
-#     acquisitionType = Column(String)
-#     proTeam = Column(String)
-#     onTeamId = Column(Integer)
-#     position = Column(String)
-#     injuryStatus = Column(String)
-#     injured = Column(Boolean)
-#     total_points = Column(Integer)
-#     projected_total_points = Column(Integer)
-#     percent_owned = Column(Integer)
-#     percent_started = Column(Integer)
-#     stats: Column(JSONB)
+    __tablename__ = 'players'
+
+    player_id = Column(Integer, primary_key=True)
+
+    name = Column(String)
+    year = Column(String)
+    pos_rank = Column(Integer)
+    eligible_slots = Column[ARRAY(String)]
+    acquisition_type = Column(String)
+    pro_team = Column(String)
+    on_team_id = Column(Integer)
+    position = Column(String)
+    injury_status = Column(String)
+    injured = Column(Boolean)
+    total_points = Column(Integer)
+    projected_total_points = Column(Integer)
+    percent_owned = Column(Integer)
+    percent_started = Column(Integer)
+    stats = Column(JSONB)
 
 
 class Team(Base):
@@ -57,5 +60,5 @@ class Team(Base):
     final_standing = Column(Integer)
     draft_projected_rank = Column(Integer)
     playoff_pct = Column(Integer)
-    # roster = relationship("Player", back_populates="teams")
+    roster = Column(Integer)  # relationship("Player", back_populates="teams")
     schedule = Column(ARRAY(JSONB))

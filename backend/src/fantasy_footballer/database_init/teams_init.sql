@@ -27,21 +27,21 @@ CREATE TABLE IF NOT EXISTS public.teams (
 );
 
 CREATE TABLE public.teams_stage (val jsonb);
-COPY teams_stage from '/team_data/league_2018.json.csv' csv quote e'\x01' delimiter e'\x02';
-COPY teams_stage from '/team_data/league_2020.json.csv' csv quote e'\x01' delimiter e'\x02';
-COPY teams_stage from '/team_data/league_2021.json.csv' csv quote e'\x01' delimiter e'\x02';
-COPY teams_stage from '/team_data/league_2022.json.csv' csv quote e'\x01' delimiter e'\x02';
-COPY teams_stage from '/team_data/league_2023.json.csv' csv quote e'\x01' delimiter e'\x02';
+COPY teams_stage from '/team_data/teams_2018.json.csv' csv quote e'\x01' delimiter e'\x02';
+COPY teams_stage from '/team_data/teams_2020.json.csv' csv quote e'\x01' delimiter e'\x02';
+COPY teams_stage from '/team_data/teams_2021.json.csv' csv quote e'\x01' delimiter e'\x02';
+COPY teams_stage from '/team_data/teams_2022.json.csv' csv quote e'\x01' delimiter e'\x02';
+COPY teams_stage from '/team_data/teams_2023.json.csv' csv quote e'\x01' delimiter e'\x02';
 
 
 WITH stage_flat AS (
     select 
-        md5(replace(lower(cast(val->'team_abbrev'  as text)), '"', '')  || '_' || cast(val->'year' as text))   as team_id,
-        replace(lower(cast(val->'team_abbrev'      as text)), '"', '')      as team_abbrev,
-        replace(cast(val->'year'                           as text), '"', '')   as year,
-        replace(cast(val->'team_name'              as text), '"', '')      as team_name,
-        replace(cast(val->'division_id'            as text), '"', '')      as division_id,
-        replace(cast(val->'division_name'          as text), '"', '')      as division_name,
+        md5(val->>'team_abbrev' || '_' || cast(val->'year' as text))   as team_id,
+        lower(val->>'team_abbrev')      as team_abbrev,
+        val->>'year'     as year,
+        val->>'team_name'          as team_name,
+        val->>'division_id'        as division_id,
+        val->>'division_name'      as division_name,
         cast(val->'wins'                           as integer)   as wins,
         cast(val->'losses'                         as integer)   as losses,
         cast(val->'ties'                           as integer)   as ties,
@@ -51,8 +51,8 @@ WITH stage_flat AS (
         cast(val->'acquisition_budget_spent'       as integer)   as acquisition_budget_spent,
         cast(val->'drops'                          as integer)   as drops, 
         cast(val->'trades'                         as integer)   as trades,
-        replace(cast(val->'owner'                  as text), '"', '')      as owner,
-        replace(cast(val->'streak_type'            as text), '"', '')      as streak_type,
+        val->>'owner'               as owner,
+        val->>'streak_type'         as streak_type,
         cast(val->'streak_length'                  as integer)   as streak_length,
         cast(val->'standing'                       as integer)   as standing,
         cast(val->'final_standing'                 as integer)   as final_standing,

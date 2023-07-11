@@ -160,3 +160,5 @@ dmypy.json
 */yarn-error.log*
 
 league_*
+teams_*
+players_*

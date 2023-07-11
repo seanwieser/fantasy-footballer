@@ -31,13 +31,15 @@ services:
     ports: 
       - '5432:5432'
     volumes:
-      - ./backend/src/fantasy_footballer/database_init/teams_init.sql:/docker-entrypoint-initdb.d/1-init-db.sql
-      - ./backend/src/fantasy_footballer/database_init/data/league_2018.json.csv:/team_data/league_2018.json.csv
-      - ./backend/src/fantasy_footballer/database_init/data/league_2019.json.csv:/team_data/league_2019.json.csv
-      - ./backend/src/fantasy_footballer/database_init/data/league_2020.json.csv:/team_data/league_2020.json.csv
-      - ./backend/src/fantasy_footballer/database_init/data/league_2021.json.csv:/team_data/league_2021.json.csv
-      - ./backend/src/fantasy_footballer/database_init/data/league_2022.json.csv:/team_data/league_2022.json.csv
-      - ./backend/src/fantasy_footballer/database_init/data/league_2023.json.csv:/team_data/league_2023.json.csv
+      - ./backend/src/fantasy_footballer/database_init/teams_init.sql:/docker-entrypoint-initdb.d/teams_init.sql
+      - ./backend/src/fantasy_footballer/database_init/players_init.sql:/docker-entrypoint-initdb.d/players_init.sql
+      - ./backend/src/fantasy_footballer/database_init/data/teams/teams_2018.json.csv:/team_data/teams_2018.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/teams/teams_2019.json.csv:/team_data/teams_2019.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/teams/teams_2020.json.csv:/team_data/teams_2020.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/teams/teams_2021.json.csv:/team_data/teams_2021.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/teams/teams_2022.json.csv:/team_data/teams_2022.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/teams/teams_2023.json.csv:/team_data/teams_2023.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/players/players_2018.json.csv:/player_data/players_2018.json.csv
       - db:/var/lib/postgresql/data/
 volumes:
   db:

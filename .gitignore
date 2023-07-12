@@ -159,6 +159,7 @@ dmypy.json
 */yarn-debug.log*
 */yarn-error.log*
 
-league_*
-teams_*
-players_*
+# data
+league_20*
+teams_20*
+players_20*

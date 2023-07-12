@@ -82,25 +82,24 @@ def extract_transform_players(league: League, year: str) -> list[dict]:
         player = league.player_info(playerId=pick["playerId"])
         player = player.__dict__
         player["year"] = year
+        stats = {}
+
         for week in player["stats"].keys():
-            player['stats'][week] = {
-                k: v
-                for k, v in player['stats'][week].items()
-                if k in ['breakdown', 'points']
-            }
-            player['stats'][week]['breakdown'] = {
-                k: v
-                for k, v in player['stats'][week]['breakdown'].items()
-                if k in player_stat_fields
-            }
+            stats[week] = {}
+            stats[week]['points'] = player['stats'][week]['points']
+            for field in player_stat_fields:
+                if field in player['stats'][week]['breakdown'].keys():
+                    stats[week][field] = player['stats'][week]['breakdown'][
+                        field]
+        player["stats"] = stats
+
         pick = {
             k: v
             for k, v in pick.items()
             if k in ["round_num", "round_pick", "bid_amount"]
         }
         players.append(player | pick)
-
-        print(player["name"])
+        print(player['name'])
     return players
 
 
@@ -114,7 +113,7 @@ def write_data(data: list[dict], kind: str, year: str) -> None:
 
 
 if __name__ == '__main__':
-    for file_year in [2018, 2019, 2020, 2021, 2022, 2023]:
+    for file_year in [2022]:  #, 2019, 2020, 2021, 2022, 2023]:
         lg = extract_year(file_year)
 
         transformed_teams = transform_teams(lg.teams, file_year)

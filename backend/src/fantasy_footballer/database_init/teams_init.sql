@@ -31,12 +31,11 @@ COPY teams_stage from '/team_data/teams_2018.json.csv' csv quote e'\x01' delimit
 COPY teams_stage from '/team_data/teams_2020.json.csv' csv quote e'\x01' delimiter e'\x02';
 COPY teams_stage from '/team_data/teams_2021.json.csv' csv quote e'\x01' delimiter e'\x02';
 COPY teams_stage from '/team_data/teams_2022.json.csv' csv quote e'\x01' delimiter e'\x02';
-COPY teams_stage from '/team_data/teams_2023.json.csv' csv quote e'\x01' delimiter e'\x02';
 
 
 WITH stage_flat AS (
     select 
-        md5(val->>'team_abbrev' || '_' || cast(val->'year' as text))   as team_id,
+        lower(replace(replace(cast(val->'owner' as text), ' ', '_'), '"', '')) || '_' || cast(val->'year' as text)   as team_id,
         lower(val->>'team_abbrev')      as team_abbrev,
         val->>'year'     as year,
         val->>'team_name'          as team_name,

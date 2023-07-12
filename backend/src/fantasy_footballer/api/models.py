@@ -1,7 +1,7 @@
 """SQLAlchemy models for querying postgres database."""
 
 # from api.database import Base
-from sqlalchemy import ARRAY, Boolean, Column, Integer, String
+from sqlalchemy import ARRAY, Boolean, Column, Float, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
@@ -13,22 +13,22 @@ class Player(Base):
 
     __tablename__ = 'players'
 
-    player_id = Column(Integer, primary_key=True)
+    player_id = Column(String, primary_key=True)
 
     name = Column(String)
     year = Column(String)
     pos_rank = Column(Integer)
-    eligible_slots = Column[ARRAY(String)]
+    eligible_slots = Column(ARRAY(String))
     acquisition_type = Column(String)
     pro_team = Column(String)
     on_team_id = Column(Integer)
     position = Column(String)
     injury_status = Column(String)
     injured = Column(Boolean)
-    total_points = Column(Integer)
-    projected_total_points = Column(Integer)
-    percent_owned = Column(Integer)
-    percent_started = Column(Integer)
+    total_points = Column(Float)
+    projected_total_points = Column(Float)
+    percent_owned = Column(Float)
+    percent_started = Column(Float)
     stats = Column(JSONB)
 
 

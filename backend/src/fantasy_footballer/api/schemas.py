@@ -13,7 +13,7 @@ class PlayerSchema(BaseModel):
 
     name: Optional[str] = None
     year: Optional[str] = None
-    player_id: Optional[int] = None
+    player_id: Optional[str] = None
     pos_rank: Optional[int] = None
     eligible_slots: Optional[list[str]] = None
     acquisition_type: Optional[str] = None
@@ -22,10 +22,10 @@ class PlayerSchema(BaseModel):
     position: Optional[str] = None
     injury_status: Optional[str] = None
     injured: Optional[bool] = None
-    total_points: Optional[int] = None
-    projected_total_points: Optional[int] = None
-    percent_owned: Optional[int] = None
-    percent_started: Optional[int] = None
+    total_points: Optional[float] = None
+    projected_total_points: Optional[float] = None
+    percent_owned: Optional[float] = None
+    percent_started: Optional[float] = None
     stats: Optional[dict] = None
 
     class Config:

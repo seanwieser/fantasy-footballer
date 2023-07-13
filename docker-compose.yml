@@ -6,17 +6,54 @@ services:
       LEAGUE_ID: "${LEAGUE_ID}"
       SWID: "${SWID}"
       ESPN_S2: "${ESPN_S2}"
+      NODE_ENV: production
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: postgres
+    depends_on:
+      - db
     ports:
       - 8000:8000
-    
-    entrypoint: ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
-
+    links:
+      - db
     build: 
+      context: .
       dockerfile: ./backend/images/fantasy-footballer/image/Dockerfile
-  frontend:
+  db:
+    image: postgres:14.8-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
     ports: 
-      - 3000:3000
-    entrypoint: ["npm", "start"]
-    build:
-      dockerfile: ./frontend/image/Dockerfile
+      - '5432:5432'
+    volumes:
+      - ./backend/src/fantasy_footballer/database_init/teams_init.sql:/docker-entrypoint-initdb.d/teams_init.sql
+      - ./backend/src/fantasy_footballer/database_init/players_init.sql:/docker-entrypoint-initdb.d/players_init.sql
+      - ./backend/src/fantasy_footballer/database_init/data/teams/teams_2018.json.csv:/team_data/teams_2018.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/teams/teams_2019.json.csv:/team_data/teams_2019.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/teams/teams_2020.json.csv:/team_data/teams_2020.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/teams/teams_2021.json.csv:/team_data/teams_2021.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/teams/teams_2022.json.csv:/team_data/teams_2022.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/players/players_2018.json.csv:/player_data/players_2018.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/players/players_2019.json.csv:/player_data/players_2019.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/players/players_2020.json.csv:/player_data/players_2020.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/players/players_2021.json.csv:/player_data/players_2021.json.csv
+      - ./backend/src/fantasy_footballer/database_init/data/players/players_2022.json.csv:/player_data/players_2022.json.csv
+
+      - db:/var/lib/postgresql/data/
+volumes:
+  db:
+    driver: local
+  
+  # frontend:
+  #   ports: 
+  #     - 3000:3000
+  #   entrypoint: ["npm", "start"]
+  #   build:
+  #     context: .
+  #     dockerfile: ./frontend/image/Dockerfile
       

@@ -1,7 +1,7 @@
 """CRUD commands to postgres database."""
 
-from fantasy_footballer.api.models import Player, Team
-from fantasy_footballer.api.schemas import TeamSchema
+from database.models import Player, Team
+from database.schemas import TeamSchema
 from sqlalchemy.orm import Session
 
 

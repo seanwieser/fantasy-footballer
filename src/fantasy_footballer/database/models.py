@@ -1,11 +1,11 @@
 """SQLAlchemy models for querying postgres database."""
 
-# from api.database import Base
 from sqlalchemy import ARRAY, Boolean, Column, Float, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from .database import Base
+Base = declarative_base()
 
 
 class Player(Base):

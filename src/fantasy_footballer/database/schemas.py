@@ -1,4 +1,5 @@
 """Pydantic schemas for FastAPI inputs and outputs."""
+from __future__ import annotations
 
 from typing import Generic, Optional, TypeVar
 

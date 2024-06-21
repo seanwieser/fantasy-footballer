@@ -1,25 +1,15 @@
 """Module that contains the backend API."""
 
-from fantasy_footballer.api import crud, models, schemas
-from fantasy_footballer.api.database import SessionLocal, engine
-from fantasy_footballer.api.models import Team
-from fantasy_footballer.api.schemas import PlayerSchema, Response, TeamSchema
+import api.crud as crud
+from database.engine import get_db
+from database.schemas import PlayerSchema, Response, TeamSchema
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
-app = FastAPI()
+api_app = FastAPI()
 
 
-def get_db():
-    """Yield db."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-@app.get("/teams/by_name_year/", response_model=TeamSchema)
+@api_app.get("/teams/by_name_year/", response_model=TeamSchema)
 def read_team_by_name_year(name: str = "",
                            year: str = "",
                            db: Session = Depends(get_db)):
@@ -28,21 +18,21 @@ def read_team_by_name_year(name: str = "",
     return team
 
 
-@app.get("/teams/by_year/{year}/", response_model=list[TeamSchema])
+@api_app.get("/teams/by_year/{year}/", response_model=list[TeamSchema])
 def read_teams_by_year(year: str, db: Session = Depends(get_db)):
     """Get all fantasy teams for a particular year."""
     teams = crud.get_teams_by_year(db=db, year=year)
     return teams
 
 
-@app.get("/players/by_year/{year}/", response_model=list[PlayerSchema])
+@api_app.get("/players/by_year/{year}/", response_model=list[PlayerSchema])
 def read_players_by_year(year: str, db: Session = Depends(get_db)):
     """Get all players for a particular year."""
     player = crud.get_players_by_year(db=db, year=year)
     return player
 
 
-@app.get("/players/by_name_year/", response_model=PlayerSchema)
+@api_app.get("/players/by_name_year/", response_model=PlayerSchema)
 def read_player_by_name_year(name: str = "",
                              year: str = "",
                              db: Session = Depends(get_db)):
@@ -51,11 +41,21 @@ def read_player_by_name_year(name: str = "",
     return player
 
 
-@app.get("/players/by_name_year_week/")
+@api_app.get("/players/by_name_year_week/")
 def read_player_by_name_year_week(name: str = "",
                                   year: str = "",
                                   week: str = "",
                                   db: Session = Depends(get_db)):
     """Get player data by name, year, and week."""
     player = crud.get_player_by_name_year(db=db, name=name, year=year)
+    return player.stats[week]
+
+
+@api_app.get("/credatabase./")
+def create_players_table(name: str = "",
+                         year: str = "",
+                         week: str = "",
+                         db: Session = Depends(get_db)):
+    """Get player data by name, year, and week."""
+    player = crud.create_table(db=db, name=name, year=year)
     return player.stats[week]

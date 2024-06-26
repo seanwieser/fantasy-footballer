@@ -2,7 +2,7 @@
 .ONESHELL:
 
 run-pre-commit:
-	pre-commit run --all-files
+	poetry run pre-commit run --all-files
 
 up:
 	docker-compose up --remove-orphans --build
@@ -12,3 +12,6 @@ down:
 
 build:
 	docker-compose build
+
+fetch-local:
+	cd src/fantasy_footballer && poetry run python3 backend/fetch.py

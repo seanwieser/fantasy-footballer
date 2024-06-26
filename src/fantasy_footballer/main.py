@@ -1,16 +1,15 @@
-from api.api import api_app
-from fastapi import FastAPI
-from nicegui import ui
+"""Main entry point for the application."""
 
+from backend.db_init import DbInit
+from backend.io_utils import MEDIA_PATH_TEMPLATE
+from frontend.home.page import home_page
+from frontend.leaderboard.page import leaderboard_page
+from frontend.owners.page import owner_page, owners_page
+from frontend.players.page import players_page
+from nicegui import app, ui
 
-def init(fastapi_app: FastAPI) -> None:
-
-    @ui.page('/')
-    def show():
-        ui.label('Hellod, FastAPI!')
-        ui.link("Link", "/leaderboard")
-
-    ui.run_with(fastapi_app, storage_secret="")
-
-
-init(api_app)
+app.on_startup(DbInit.init_tables)
+ui.run(title="Sco Chos",
+       favicon=MEDIA_PATH_TEMPLATE.substitute(sub_path="favicons/football",
+                                              file_name="favicon.ico"),
+       dark=None)

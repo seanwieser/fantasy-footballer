@@ -14,12 +14,12 @@ services:
     depends_on:
       - db
     ports:
-      - 8000:8000
+      - 8080:8080
     expose:
-      - 8000
+      - 8080
     links:
       - db
-    build: 
+    build:
       context: .
       dockerfile: ./images/fantasy-footballer/image/Dockerfile
   db:

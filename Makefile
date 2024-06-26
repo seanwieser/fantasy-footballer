@@ -12,3 +12,6 @@ down:
 
 build:
 	docker-compose build
+
+fetch-local:
+	cd src/fantasy_footballer && poetry run python3 backend/fetch.py

@@ -14,7 +14,8 @@ ADD ./pyproject.toml .
 RUN poetry install --no-interaction --no-ansi
 
 ADD ./images/fantasy-footballer/data ./data
+ADD ./images/fantasy-footballer/media ./media
 ADD ./src/fantasy_footballer .
 ADD ./README.md .
 
-ENTRYPOINT ["uvicorn", "main:api_app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["poetry", "run", "python3", "main.py"]

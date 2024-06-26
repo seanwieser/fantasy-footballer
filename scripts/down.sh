@@ -7,4 +7,3 @@ if [[ $(docker ps -a -q) ]]; then
 fi
 
 docker volume rm $(docker volume ls -q) || echo "No volumes to remove"
-sudo pkill -u postgres || echo "No postgres port to kill"

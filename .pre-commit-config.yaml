@@ -23,7 +23,7 @@ repos:
         exclude: (__init__|setup|(docs?|examples?|tests?|utils?)/.*)\.py$
         additional_dependencies: ["tomli"]
   - repo: "https://github.com/PyCQA/pylint"
-    rev: v3.0.0a6
+    rev: v3.2.4
     hooks:
       - id: pylint
         exclude: (__init__|setup|(docs?|examples?|tests?|utils?)/.*)\.py$

@@ -1,4 +1,4 @@
-# """Analytics helper functions."""
+"""Analytics helper functions."""
 # import json
 #
 # import matplotlib.pyplot as plt

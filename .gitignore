@@ -163,3 +163,9 @@ dmypy.json
 league_20*
 teams_20*
 players_20*
+player_stats_20*
+*.jpg
+*favicon*
+data
+media
+resources_old

@@ -13,3 +13,5 @@ ui.run(title="Sco Chos",
        favicon=MEDIA_PATH_TEMPLATE.substitute(sub_path="favicons/football",
                                               file_name="favicon.ico"),
        dark=None)
+
+

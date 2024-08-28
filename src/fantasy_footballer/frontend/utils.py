@@ -4,7 +4,7 @@ import json
 
 from backend.engine import async_session
 from inflection import humanize
-from nicegui import context, ui
+from nicegui import ui, context
 
 PAGES = ["owners", "players", "leaderboard"]
 
@@ -61,11 +61,10 @@ def common_header():
     current_page = context.client.page.path.replace("/", "")
     with ui.header().classes(replace='row items-center'):
         color = "red" if current_page == "" else "primary"
-        ui.button(on_click=lambda: ui.navigate.to("/"),
-                  icon='home').props(f"square color={color}")
+        ui.button(on_click=lambda: ui.navigate.to("/"), icon='home').props(f"square color={color}")
         for page in PAGES:
             color = "red" if page == current_page else "primary"
             ui.button(
                 humanize(page),
-                on_click=lambda page=page: ui.navigate.to(f"/{page}")).props(
-                    f"square color={color}")
+                on_click=lambda page=page: ui.navigate.to(f"/{page}")).props(f"square color={color}"
+                )

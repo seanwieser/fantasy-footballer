@@ -22,6 +22,5 @@ async def players_page():
 
     common_header()
     await players_table_and_dropdowns()
-    with ui.right_drawer(
-            fixed=False).style('background-color: #ebf1fa').props('width=500'):
+    with ui.right_drawer(fixed=False).style('background-color: #ebf1fa').props('width=500'):
         await right_drawer_content(window_size)

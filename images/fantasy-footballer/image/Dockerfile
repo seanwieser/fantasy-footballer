@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.12.5-slim-bullseye
 
 ENV PYTHONUNBUFFERED=true
 ENV POETRY_HOME="/opt/poetry" \

@@ -8,8 +8,9 @@ ENV POETRY_HOME="/opt/poetry" \
     POETRY_VERSION=1.8.3
 ENV PATH="$PATH:$POETRY_HOME/bin"
 
-RUN python -m pip install "poetry==${POETRY_VERSION}"
+RUN pip install "poetry==${POETRY_VERSION}"
 ADD ./pyproject.toml .
+ADD ./poetry.lock .
 
 RUN poetry install --no-interaction --no-ansi
 

@@ -47,7 +47,7 @@ class DbInit:
                 continue
             re_files = DATA_PATH_TEMPLATE.substitute(
                 table_name=cls.__tablename__, year="*", root_path=".")
-            print(f"Reading files: {re_files}")
+            print(f"Reading files {re_files} to populate table '{cls.__tablename__}'")
             years = [
                 int(re.search(r'\d+', file_name).group())
                 for file_name in glob.glob(re_files)
@@ -56,6 +56,7 @@ class DbInit:
                 data = read_data(cls.__tablename__, year)
                 DbInit.load(data, cls)
                 print(f"Populated year: {year}")
+            print(f"Populated table: {cls.__tablename__}")
 
     @staticmethod
     def init_tables():

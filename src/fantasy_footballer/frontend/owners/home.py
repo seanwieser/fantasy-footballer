@@ -12,32 +12,19 @@ from nicegui import events, ui
 from sqlalchemy import func, select
 
 
-@ui.page("/owners/{owner}")
-async def owner_page(owner):
-    """Owner page for each owner."""
-    common_header()
-    ui.label(owner)
-    img_path = MEDIA_PATH_TEMPLATE.substitute(sub_path="owners",
-                                              file_name=f"{owner}.jpg")
-    ui.image(img_path).props('fit=scale-down')
-
-
 def mouse_handler(event: events.MouseEventArguments):
     """Mouse event handler for Owners page images."""
-    color = "SkyBlue" if event.type == "mousedown" else "SteelBlue"
     owner_full_name = image_path_to_owner_name(event.sender.source)
-    if event.type == "mousedown":
-        event.sender.props(f"opacity=0.5 background={color}")
-    elif event.type == "mouseup":
+    if event.type == "mouseup":
         ui.navigate.to(f"/owners/{owner_full_name}")
     elif event.type == "mouseover" and owner_full_name == "jack_hayes":
-        ui.notify("Dick sucks at fantasy football", duration=2)
+        ui.notify("Dick sucks at fantasy football")
 
 
 def owners_grid(img_paths):
     """Grid component for each tab."""
-    with ui.grid(columns=4).classes('h-100 gap-1'):
-        for img_path in img_paths:
+    with ui.grid(rows=2, columns=6).classes("h-100 gap-1"):
+        for img_path in sorted(img_paths):
             label_text = titleize(image_path_to_owner_name(img_path))
             with ui.interactive_image(
                     img_path,
@@ -67,7 +54,7 @@ async def get_img_paths_by_year():
 
 
 @ui.page("/owners")
-async def owners_page():
+async def page():
     """Owners page with tabs for each year."""
     common_header()
     img_paths_by_year = await get_img_paths_by_year()
@@ -78,7 +65,7 @@ async def owners_page():
         for year in range(START_YEAR, current_year + 1):
             tab_panels[year] = ui.tab(str(year))
 
-    with ui.tab_panels(tabs, value=str(current_year)).classes('w-full'):
+    with ui.tab_panels(tabs, value=str(current_year)).classes("w-full"):
         for year in range(START_YEAR, current_year + 1):
             with ui.tab_panel(tab_panels[year]):
                 owners_grid(img_paths_by_year[year])

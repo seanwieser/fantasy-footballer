@@ -21,7 +21,7 @@ def run_app():
 
     print(req.status_code)
 
-    with open(f"output_{GROUP_ID}.json", "w") as f:
+    with open(f"output_{GROUP_ID}.json", "w", encoding="utf-8") as f:
         json.dump(req.json()["response"], f)
 
 

@@ -6,7 +6,7 @@ from backend.engine import async_session
 from inflection import humanize
 from nicegui import context, ui
 
-PAGES = ["owners", "players", "leaderboard"]
+PAGES = ["owners", "players"]
 
 
 class WindowSize:
@@ -61,11 +61,29 @@ def common_header():
     current_page = context.client.page.path.replace("/", "")
     with ui.header().classes(replace='row items-center'):
         color = "red" if current_page == "" else "primary"
-        ui.button(on_click=lambda: ui.navigate.to("/"),
-                  icon='home').props(f"square color={color}")
+        ui.button(on_click=lambda: ui.navigate.to("/"), icon='home').props(f"square color={color}")
         for page in PAGES:
             color = "red" if page == current_page else "primary"
             ui.button(
                 humanize(page),
-                on_click=lambda page=page: ui.navigate.to(f"/{page}")).props(
-                    f"square color={color}")
+                on_click=lambda page=page: ui.navigate.to(f"/{page}")).props(f"square color={color}"
+                )
+
+async def table(data, title= "", classes = "", props = "", pagination = None):
+    """Create a standard table element."""
+    fields = set()
+    for row in data:
+        for field in row.keys():
+            fields.add(field)
+
+    columns = []
+    for col in fields:
+        col_dict = {
+            "name": col,
+            "label": humanize(col),
+            "field": col,
+            "sortable": True
+        }
+        columns.append(col_dict)
+
+    ui.table(title=title, columns=columns, rows=data, pagination=pagination).classes(classes).props(props)

@@ -65,7 +65,7 @@ async def players_table(selection):
         with ui.table(columns=columns,
                       rows=rows_ordered,
                       row_key="name",
-                      pagination=25).props("selection=single") as table:
+                      pagination=25).classes("w-full").props("selection=single") as table:
             table.on("selection", lambda e: ui.notify(e.args))
 
 

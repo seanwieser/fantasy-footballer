@@ -5,7 +5,7 @@ from backend.models import Team
 from frontend.utils import common_header, table, query_data
 from inflection import titleize
 from nicegui import ui
-from sqlalchemy import select
+from sqlalchemy import select, text, cast, String, func
 from datetime import datetime
 
 CARD_INFOS = {
@@ -77,18 +77,18 @@ async def page():
             ]
             await table(data, classes="no-shadow w-full")
 
-        # News
-        with ui.card().classes("no-shadow border-[1px]"):
-            with ui.card_section().classes("mx-auto").classes("p-1"):
-                ui.label("News").classes("text-weight-bold underline text-xl text-center")
-                ui.label("Under Construction...").classes("text-center italic")
-
 
         # Current Standings
-        with ui.card().classes("no-shadow border-[1px] col-span-2"):
+        with ui.card().classes("no-shadow border-[1px] col-span-3"):
             ui.label("Current Standings").classes("text-weight-bold underline text-xl text-center w-full")
             executable = select(
-                Team.team_name, Team.wins, Team.losses, Team.points_for, Team.points_against
+                Team.team_name,
+                Team.display_name.label("Owner"),
+                Team.wins,
+                Team.losses,
+                Team.points_for,
+                Team.points_against,
+                (func.substr(Team.streak_type, 1, 1) + cast(Team.streak_length, String)).label("Streak"),
             ).where(
                 Team.year == datetime.now().year
             ).order_by(

@@ -3,10 +3,17 @@
 import json
 
 from backend.engine import async_session
+from backend.models import Team
 from inflection import humanize
 from nicegui import context, ui
+from sqlalchemy import select
 
 PAGES = ["owners", "players"]
+
+async def get_fantasy_years():
+    """Get all years that have fantasy data."""
+    year_results = await query_data(select(Team.year).distinct().order_by(Team.year))
+    return [row["year"] for row in year_results]
 
 
 def image_path_to_owner_name(image_path):

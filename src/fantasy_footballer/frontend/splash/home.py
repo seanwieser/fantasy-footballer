@@ -82,6 +82,7 @@ async def page():
         with ui.card().classes("no-shadow border-[1px] col-span-3"):
             ui.label("Current Standings").classes("text-weight-bold underline text-xl text-center w-full")
             executable = select(
+                Team.standing,
                 Team.team_name,
                 Team.display_name.label("Owner"),
                 Team.wins,

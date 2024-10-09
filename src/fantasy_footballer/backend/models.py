@@ -4,7 +4,6 @@ from string import Template
 from espn_api.football import League
 from inflection import underscore, titleize
 from sqlalchemy import ARRAY, Boolean, Column, Float, Integer, String
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -237,6 +236,7 @@ class TeamSchedules(Base):
     score_for = Column(Float)
     opponent_schedule_week_key = Column(String)
     opponent_team_key = Column(String)
+    playoff = Column(Boolean)
 
     # TODO: Add lineup field
 
@@ -262,6 +262,8 @@ class TeamSchedules(Base):
                 schedule_row["year"] = league.year
                 schedule_row["outcome"] = team["outcomes"][week_num]
                 schedule_row["score_for"] = round(team["scores"][week_num], 4)
+                schedule_row["playoff"] = ((schedule_row["year"] < 2021 and schedule_row["week"] >= 14) or
+                                           (schedule_row["year"] >= 2021 and schedule_row["week"] >= 15))
 
                 opponent = team["schedule"][week_num].__dict__
                 schedule_row["opponent_team_key"] = TEAM_KEY.substitute(

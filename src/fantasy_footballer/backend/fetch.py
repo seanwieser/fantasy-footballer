@@ -2,14 +2,15 @@
 
 import datetime
 import os
+import pickle
 import sys
 
 import click
-import pickle
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from backend.io_utils import DATA_PATH_TEMPLATE, PICKLE_PATH_TEMPLATE, write_data
+from backend.io_utils import (DATA_PATH_TEMPLATE, PICKLE_PATH_TEMPLATE,
+                              write_data)
 from backend.models import Base
 from espn_api.football import League, Team
 

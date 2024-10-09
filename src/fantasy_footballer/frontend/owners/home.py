@@ -5,7 +5,8 @@ import datetime
 from backend.fetch import START_YEAR
 from backend.io_utils import MEDIA_PATH_TEMPLATE
 from backend.models import Team
-from frontend.utils import common_header, image_path_to_owner_name, query_data, get_fantasy_years
+from frontend.utils import (common_header, get_fantasy_years,
+                            image_path_to_owner_name, query_data)
 from inflection import titleize
 from nicegui import events, ui
 from sqlalchemy import func, select

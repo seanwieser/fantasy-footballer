@@ -2,7 +2,8 @@
 from datetime import datetime
 
 from backend.io_utils import MEDIA_PATH_TEMPLATE
-from frontend.utils import common_header, image_path_to_owner_name, query_data, table, get_fantasy_years
+from frontend.utils import (common_header, get_fantasy_years,
+                            image_path_to_owner_name, query_data, table)
 from inflection import titleize
 from nicegui import ui
 from sqlalchemy import text

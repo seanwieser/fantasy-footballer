@@ -2,7 +2,7 @@
 from string import Template
 
 from espn_api.football import League
-from inflection import underscore, titleize
+from inflection import titleize, underscore
 from sqlalchemy import ARRAY, Boolean, Column, Float, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 

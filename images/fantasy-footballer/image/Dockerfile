@@ -14,8 +14,7 @@ ADD ./poetry.lock .
 
 RUN poetry install --no-interaction --no-ansi
 
-ADD ./images/fantasy-footballer/data ./data
-ADD ./images/fantasy-footballer/media ./media
+ADD ./resources ./resources
 ADD ./src/fantasy_footballer .
 ADD ./README.md .
 

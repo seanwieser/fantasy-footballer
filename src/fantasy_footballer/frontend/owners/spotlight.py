@@ -8,7 +8,6 @@ from nicegui import ui
 from sqlalchemy import text
 
 
-
 @ui.page("/owners/{owner}/{year}")
 async def page(owner: str, year: int):
     """Owner page for each owner."""
@@ -25,7 +24,23 @@ async def page(owner: str, year: int):
         img_path = MEDIA_PATH_TEMPLATE.substitute(sub_path="owners", file_name=f"{owner}.jpg")
         ui.image(img_path).classes("border p-1")
 
-        # Season stats
+        # Season Overview
+        with ui.card().classes("no-shadow border-[0px] col-span-2"):
+            with ui.card_section().classes("mx-auto").classes("p-0"):
+                ui.label("Season Overview").classes("text-weight-bold underline text-xl text-center")
+            data = [
+                {"week": "casey_magid", "reason": "1", "link": "1"},
+                {"week": "adam_barrett", "reason": "1", "link": "1"},
+            ]
+            with ui.scroll_area().classes("w-full"):
+                await table(data, classes="no-shadow border-[0px] w-full virtual-scroll")
+
+        # Bio
+        with ui.card().classes("no-shadow border-[0px]"):
+            with ui.card_section().classes("mx-auto").classes("p-0"):
+                ui.label("Bio").classes("text-weight-bold underline text-xl text-center")
+
+        # Shotgun Tracker
         with ui.card().classes("no-shadow border-[0px]"):
             with ui.card_section().classes("mx-auto").classes("p-0"):
                 ui.label("Shotgun Tracker").classes("text-weight-bold underline text-xl text-center")
@@ -34,7 +49,7 @@ async def page(owner: str, year: int):
                 {"week": "adam_barrett", "reason": "1", "link": "1"},
             ]
             with ui.scroll_area().classes("w-full"):
-                await table(data, classes="no-shadow border-[0px] w-full virtual-scroll")
+                await table(data, classes="no-shadow border-[0px] w-full")
 
         # Schedule
         sql = text(f"""
@@ -54,18 +69,4 @@ async def page(owner: str, year: int):
         schedule_data = await query_data(sql)
         await table(schedule_data, title="Season Schedule", classes="no-shadow border-[0px] w-full", props="dense")
 
-        # Bio
-        with ui.card().classes("no-shadow border-[0px]"):
-            with ui.card_section().classes("mx-auto").classes("p-0"):
-                ui.label("Bio").classes("text-weight-bold underline text-xl text-center")
 
-        # Shotgun Tracker
-        with ui.card().classes("no-shadow border-[0px] col-span-2"):
-            with ui.card_section().classes("mx-auto").classes("p-0"):
-                ui.label("Season Overview").classes("text-weight-bold underline text-xl text-center")
-            data = [
-                {"week": "casey_magid", "reason": "1", "link": "1"},
-                {"week": "adam_barrett", "reason": "1", "link": "1"},
-            ]
-            with ui.scroll_area().classes("w-full"):
-                await table(data, classes="no-shadow border-[0px] w-full virtual-scroll")

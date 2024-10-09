@@ -4,7 +4,7 @@ import glob
 import re
 
 from backend.engine import async_engine, engine, session_local
-from backend.io_utils import DATA_PATH_TEMPLATE, read_data, write_data
+from backend.io_utils import DATA_PATH_TEMPLATE, read_data
 from backend.models import Base
 from sqlalchemy import event
 
@@ -46,7 +46,7 @@ class DbInit:
             if cls.__tablename__ not in tables_created:
                 continue
             re_files = DATA_PATH_TEMPLATE.substitute(
-                table_name=cls.__tablename__, year="*", root_path=".")
+                table_name=cls.__tablename__, year="*")
             print(f"Reading files {re_files} to populate table '{cls.__tablename__}'")
             years = [
                 int(re.search(r'\d+', file_name).group())

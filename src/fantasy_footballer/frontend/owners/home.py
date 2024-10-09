@@ -5,8 +5,7 @@ import datetime
 from backend.fetch import START_YEAR
 from backend.io_utils import MEDIA_PATH_TEMPLATE
 from backend.models import Team
-from frontend.utils import (add_window_resize_event, common_header,
-                            image_path_to_owner_name, query_data)
+from frontend.utils import common_header, image_path_to_owner_name, query_data
 from inflection import titleize
 from nicegui import events, ui
 from sqlalchemy import func, select
@@ -39,17 +38,17 @@ def owners_grid(img_paths):
 
 async def get_img_paths_by_year():
     """Query database for owners by year and construct image paths."""
-    executable = select(
-        Team.year,
-        func.array_agg(Team.first_name + "_" +  # pylint: disable=not-callable
-                       Team.last_name)).group_by(Team.year)
+    owner_field_label = "owners"
+    executable = (select(Team.year, func.array_agg(Team.owner).label(owner_field_label)).group_by(Team.year))
+    rows = await query_data(executable)
+
+    # Transform query results into dictionary of image paths by year
     img_paths = {}
-    for row in await query_data(executable):
-        img_paths[row[0]] = [
-            MEDIA_PATH_TEMPLATE.substitute(sub_path="owners",
-                                           file_name=f"{full_name}.jpg")
-            for full_name in row[1]
-        ]
+    for row in rows:
+        img_paths[row["year"]] = []
+        for full_name in row[owner_field_label]:
+            image_path = MEDIA_PATH_TEMPLATE.substitute(sub_path="owners", file_name=f"{full_name}.jpg")
+            img_paths[row["year"]].append(image_path)
     return img_paths
 
 

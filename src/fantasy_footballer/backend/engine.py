@@ -19,10 +19,7 @@ ASYNC_URI = SQLALCHEMY_DATABASE_URL.substitute(
     port="5432",
     db=os.environ["DB_NAME"])
 async_engine = create_async_engine(ASYNC_URI, pool_pre_ping=True)
-async_session = async_sessionmaker(bind=async_engine,
-                                   autoflush=False,
-                                   autocommit=False,
-                                   expire_on_commit=False)
+async_session = async_sessionmaker(bind=async_engine, autoflush=False, autocommit=False, expire_on_commit=False)
 
 URI = SQLALCHEMY_DATABASE_URL.substitute(driver="postgresql",
                                          username=os.environ["DB_USER"],

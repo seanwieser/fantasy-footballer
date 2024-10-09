@@ -39,7 +39,6 @@ async def players_table(selection):
             Player.position == selection.position
         ]
         rows = await query_data(select(Player).filter(*where_clause))
-        rows = [row[0].to_dict() for row in rows if row]
         columns = []
         table_fields = [
             "player_key", "name", "pos_rank", "pro_team", "total_points"
@@ -77,10 +76,7 @@ def refresh_table(selection, year=None, position=None):
 
 async def players_table_and_dropdowns():
     """Dropdowns and Table for Players page."""
-    positions = [
-        row[0] for row in await query_data(select(Player.position).distinct())
-        if row
-    ]
+    positions = await query_data(select(Player.position).distinct())
     selection = DropDownSelection(datetime.datetime.now().year, max(positions))
     with ui.row():
         with ui.dropdown_button("Year", auto_close=True) as year_dropdown:

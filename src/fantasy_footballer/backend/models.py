@@ -2,9 +2,8 @@
 from string import Template
 
 from espn_api.football import League
-from inflection import underscore
+from inflection import titleize, underscore
 from sqlalchemy import ARRAY, Boolean, Column, Float, Integer, String
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -15,7 +14,7 @@ TEAM_KEY = Template("${first_name}_${last_name}_${year}")
 class Player(Base):
     """Definition of all fields of players table."""
 
-    __tablename__ = 'players'
+    __tablename__ = "players"
 
     player_key = Column(String, primary_key=True)
     player_id = Column(Integer)
@@ -44,10 +43,7 @@ class Player(Base):
     def transform(cls, league: League) -> list[dict]:
         """Player ingestion extraction and transformations."""
         players = []
-        all_player_ids = [
-            player_id for player_id in league.player_map.keys()
-            if isinstance(player_id, int)
-        ]
+        all_player_ids = [player_id for player_id in league.player_map.keys() if isinstance(player_id, int)]
         for idx, player_id in enumerate(all_player_ids):
             player = league.player_info(playerId=player_id)
             if not player:
@@ -58,8 +54,7 @@ class Player(Base):
                 for k, v in player.__dict__.items()
                 if underscore(k) in cls.__table__.columns.keys()
             }
-            player["player_key"] = PLAYER_KEY.substitute(player_id=player_id,
-                                                         year=league.year)
+            player["player_key"] = PLAYER_KEY.substitute(player_id=player_id, year=league.year)
             player["year"] = league.year
 
             for key in ["injury_status", "pos_rank"]:
@@ -70,9 +65,7 @@ class Player(Base):
 
             players.append(player)
             if (idx + 1) % 20 == 0:
-                print(
-                    f"Players {league.year}: {round(((idx + 1) / len(all_player_ids)) * 100, 2)}%"
-                )
+                print(f"Players {league.year}: {round(((idx + 1) / len(all_player_ids)) * 100, 2)}%")
 
         return players
 
@@ -80,7 +73,7 @@ class Player(Base):
 class PlayerStats(Base):
     """Definition of all fields of player_stats table."""
 
-    __tablename__ = 'player_stats'
+    __tablename__ = "player_stats"
 
     player_week_stats_key = Column(String, primary_key=True)
     player_key = Column(String)
@@ -133,20 +126,15 @@ class PlayerStats(Base):
     def transform(cls, league: League) -> list[dict]:
         """Player Stats ingestion transformations."""
         all_player_stats = []
-        all_player_ids = [
-            player_id for player_id in league.player_map.keys()
-            if isinstance(player_id, int)
-        ]
+        all_player_ids = [player_id for player_id in league.player_map.keys() if isinstance(player_id, int)]
         for idx, player_id in enumerate(all_player_ids):
             player = league.player_info(playerId=player_id)
             if not player:
                 continue
 
             player_stat = {
-                "player_key":
-                PLAYER_KEY.substitute(player_id=player_id, year=league.year),
-                "year":
-                league.year
+                "player_key": PLAYER_KEY.substitute(player_id=player_id, year=league.year),
+                "year": league.year
             }
             player_stat = player_stat | {
                 underscore(k): v
@@ -155,21 +143,15 @@ class PlayerStats(Base):
             }
 
             for week, stat in player.__dict__.get("stats", {}).items():
-                player_stat = player_stat | {
-                    k: v
-                    for k, v in stat.items()
-                    if k in cls.__table__.columns.keys()
-                }
-                player_stat[
-                    "player_week_stats_key"] = f"{player_stat['player_key']}_{week}"
+                player_stat = player_stat | {k: v for k, v in stat.items() if k in cls.__table__.columns.keys()}
+                player_stat["player_week_stats_key"] = f"{player_stat['player_key']}_{week}"
                 player_stat["week"] = week
                 for field, value in stat.get("breakdown", {}).items():
                     if underscore(field) in cls.__table__.columns.keys():
                         player_stat[underscore(field)] = value
                 all_player_stats.append(player_stat)
             if (idx + 1) % 20 == 0:
-                percent_complete = round(
-                    ((idx + 1) / len(all_player_ids)) * 100, 2)
+                percent_complete = round(((idx + 1) / len(all_player_ids)) * 100, 2)
                 print(f"Player Stats {league.year}: {percent_complete}%")
         return all_player_stats
 
@@ -177,12 +159,12 @@ class PlayerStats(Base):
 class Team(Base):
     """Definition of all fields of teams table."""
 
-    __tablename__ = 'teams'
+    __tablename__ = "teams"
 
     team_key = Column(String, primary_key=True)
     team_id = Column(Integer)
-    first_name = Column(String)
-    last_name = Column(String)
+    owner = Column(String)
+    display_name = Column(String)
 
     year = Column(Integer)
     team_abbrev = Column(String)
@@ -192,8 +174,8 @@ class Team(Base):
     wins = Column(Integer)
     losses = Column(Integer)
     ties = Column(Integer)
-    points_for = Column(Integer)
-    points_against = Column(Integer)
+    points_for = Column(Float)
+    points_against = Column(Float)
     acquisitions = Column(Integer)
     acquisition_budget_spent = Column(Integer)
     drops = Column(Integer)
@@ -204,9 +186,8 @@ class Team(Base):
     final_standing = Column(Integer)
     draft_projected_rank = Column(Integer)
     playoff_pct = Column(Integer)
-    roster = Column(
-        ARRAY(String))  # relationship("Player", back_populates="teams")
-    schedule = Column(ARRAY(JSONB))
+
+    # roster = Column(ARRAY(String)) # Fix roster field. The value is at fetch time and not at per week
 
     def to_dict(self):
         """Return dictionary of all columns in table."""
@@ -219,40 +200,14 @@ class Team(Base):
         for team in league.teams:
             team = team.__dict__
 
-            team["first_name"] = underscore(
-                team["owners"][0]["firstName"]).strip()
-            team["last_name"] = underscore(
-                team["owners"][0]["lastName"]).strip()
-            team["team_key"] = TEAM_KEY.substitute(
-                first_name=team["first_name"],
-                last_name=team["last_name"],
-                year=league.year)
+            first_name = underscore(team["owners"][0]["firstName"]).strip()
+            last_name = underscore(team["owners"][0]["lastName"]).strip()
+            team["owner"] = f"{first_name}_{last_name}"
+            team["display_name"] = titleize(f"{first_name} {last_name}")
+            team["team_key"] = TEAM_KEY.substitute(first_name=first_name, last_name=last_name, year=league.year)
             team["year"] = league.year
-            team['roster'] = [
-                PLAYER_KEY.substitute(player_id=player.__dict__['playerId'],
-                                      year=league.year)
-                for player in team['roster']
-            ]
-
-            for week_num in range(len(team["schedule"])):
-                opponent = team["schedule"][week_num].__dict__
-                team["schedule"][week_num] = {
-                    "week":
-                    week_num + 1,
-                    "team_key":
-                    TEAM_KEY.substitute(
-                        first_name=underscore(
-                            opponent["owners"][0]["firstName"]).strip(),
-                        last_name=underscore(
-                            opponent["owners"][0]["lastName"]).strip(),
-                        year=league.year),
-                    "score_for":
-                    round(team["scores"][week_num], 4),
-                    "score_against":
-                    round(team["scores"][week_num] + team["mov"][week_num], 4),
-                    "outcome":
-                    team["outcomes"][week_num]
-                }
+            # team["roster"] = [PLAYER_KEY.substitute(player_id=player.__dict__["playerId"], year=league.year)
+            #                         for player in team["roster"]]
 
             team = {
                 underscore(k): v
@@ -265,3 +220,58 @@ class Team(Base):
             })
             new_teams.append(team)
         return new_teams
+
+
+class TeamSchedules(Base):
+    """Definition of all fields of team_schedules table."""
+
+    __tablename__ = "team_schedules"
+
+    team_schedule_week_key = Column(String, primary_key=True)
+    team_key = Column(String)
+
+    week = Column(Integer)
+    year = Column(Integer)
+    outcome = Column(String)
+    score_for = Column(Float)
+    opponent_schedule_week_key = Column(String)
+    opponent_team_key = Column(String)
+    playoff = Column(Boolean)
+
+    # Add lineup field
+
+    def to_dict(self):
+        """Return dictionary of all columns in table."""
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+    @classmethod
+    def transform(cls, league: League) -> list[dict]:
+        """Team ingestion transformations."""
+        schedule_rows = []
+        for team in league.teams:
+            team = team.__dict__
+            for week_num in range(len(team["schedule"])):
+                schedule_row = {}
+                schedule_row["team_key"] = TEAM_KEY.substitute(
+                    first_name=underscore(team["owners"][0]["firstName"]).strip(),
+                    last_name=underscore(team["owners"][0]["lastName"]).strip(),
+                    year=league.year
+                )
+                schedule_row["week"] = week_num + 1
+                schedule_row["team_schedule_week_key"] = f"{schedule_row['team_key']}_{schedule_row['week']}"
+                schedule_row["year"] = league.year
+                schedule_row["outcome"] = team["outcomes"][week_num]
+                schedule_row["score_for"] = round(team["scores"][week_num], 4)
+                schedule_row["playoff"] = ((schedule_row["year"] < 2021 and schedule_row["week"] >= 14) or
+                                           (schedule_row["year"] >= 2021 and schedule_row["week"] >= 15))
+
+                opponent = team["schedule"][week_num].__dict__
+                schedule_row["opponent_team_key"] = TEAM_KEY.substitute(
+                    first_name=underscore(opponent["owners"][0]["firstName"]).strip(),
+                    last_name=underscore(opponent["owners"][0]["lastName"]).strip(),
+                    year=league.year
+                )
+                schedule_row[
+                    "opponent_schedule_week_key"] = f"{schedule_row['opponent_team_key']}_{schedule_row['week']}"
+                schedule_rows.append(schedule_row)
+        return schedule_rows

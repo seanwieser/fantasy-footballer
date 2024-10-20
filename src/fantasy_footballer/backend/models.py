@@ -2,7 +2,7 @@
 from string import Template
 
 from espn_api.football import League
-from inflection import underscore, titleize
+from inflection import titleize, underscore
 from sqlalchemy import ARRAY, Boolean, Column, Float, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -187,7 +187,7 @@ class Team(Base):
     draft_projected_rank = Column(Integer)
     playoff_pct = Column(Integer)
 
-    # roster = Column(ARRAY(String)) # TODO: Fix roster field. The value is at fetch time and not at per week
+    # roster = Column(ARRAY(String)) # Fix roster field. The value is at fetch time and not at per week
 
     def to_dict(self):
         """Return dictionary of all columns in table."""
@@ -206,8 +206,8 @@ class Team(Base):
             team["display_name"] = titleize(f"{first_name} {last_name}")
             team["team_key"] = TEAM_KEY.substitute(first_name=first_name, last_name=last_name, year=league.year)
             team["year"] = league.year
-            # team["roster"] = [PLAYER_KEY.substitute(player_id=player.__dict__["playerId"], year=league.year) for player
-            #                   in team["roster"]]
+            # team["roster"] = [PLAYER_KEY.substitute(player_id=player.__dict__["playerId"], year=league.year)
+            #                         for player in team["roster"]]
 
             team = {
                 underscore(k): v
@@ -238,7 +238,7 @@ class TeamSchedules(Base):
     opponent_team_key = Column(String)
     playoff = Column(Boolean)
 
-    # TODO: Add lineup field
+    # Add lineup field
 
     def to_dict(self):
         """Return dictionary of all columns in table."""
@@ -251,7 +251,7 @@ class TeamSchedules(Base):
         for team in league.teams:
             team = team.__dict__
             for week_num in range(len(team["schedule"])):
-                schedule_row = dict()
+                schedule_row = {}
                 schedule_row["team_key"] = TEAM_KEY.substitute(
                     first_name=underscore(team["owners"][0]["firstName"]).strip(),
                     last_name=underscore(team["owners"][0]["lastName"]).strip(),

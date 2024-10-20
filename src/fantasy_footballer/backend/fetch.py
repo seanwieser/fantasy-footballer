@@ -1,15 +1,18 @@
 """Extract data from ESPN API, transform with model transformer, and write to jsonl files."""
 
+# pylint: disable=wrong-import-position
+
 import datetime
 import os
+import pickle
 import sys
 
 import click
-import pickle
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-from backend.io_utils import DATA_PATH_TEMPLATE, PICKLE_PATH_TEMPLATE, write_data
+from backend.io_utils import (DATA_PATH_TEMPLATE, PICKLE_PATH_TEMPLATE,
+                              write_data)
 from backend.models import Base
 from espn_api.football import League, Team
 
@@ -59,7 +62,7 @@ def extract_transform_write_data(tables: list[str] = None, years: list[int] = No
 @click.option("--years", type=str, default=None)
 @click.option("--refetch", is_flag=True)
 def main(tables: str = None, years: str = None, refetch: bool = False):
-    """Fetch data"""
+    """Fetch data."""
     if tables:
         tables = tables.split(",")
     if years:

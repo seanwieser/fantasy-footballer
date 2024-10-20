@@ -1,12 +1,13 @@
 """Home page for the frontend."""
 
+from datetime import datetime
+
 from backend.io_utils import MEDIA_PATH_TEMPLATE
 from backend.models import Team
-from frontend.utils import common_header, table, query_data
+from frontend.utils import common_header, query_data, table
 from inflection import titleize
 from nicegui import ui
-from sqlalchemy import select, text, cast, String, func
-from datetime import datetime
+from sqlalchemy import String, cast, func, select, text
 
 CARD_INFOS = {
     "commisioner": {

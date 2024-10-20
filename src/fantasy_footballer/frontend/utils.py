@@ -44,7 +44,6 @@ def common_header():
 
 async def table(data, title="", classes="", props="", pagination=None):
     """Create a standard table element."""
-
     # Need to maintain order of fields that are in the data
     fields = []
     for row in data:

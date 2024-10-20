@@ -5,7 +5,8 @@ import datetime
 from backend.fetch import START_YEAR
 from backend.io_utils import MEDIA_PATH_TEMPLATE
 from backend.models import Team
-from frontend.utils import common_header, image_path_to_owner_name, query_data, get_fantasy_years
+from frontend.utils import (common_header, get_fantasy_years,
+                            image_path_to_owner_name, query_data)
 from inflection import titleize
 from nicegui import events, ui
 from sqlalchemy import func, select
@@ -39,7 +40,7 @@ def owners_grid(img_paths, year):
 async def get_img_paths_by_year():
     """Query database for owners by year and construct image paths."""
     owner_field_label = "owners"
-    executable = (select(Team.year, func.array_agg(Team.owner).label(owner_field_label)).group_by(Team.year))
+    executable = select(Team.year, func.array_agg(Team.owner).label(owner_field_label)).group_by(Team.year) # pylint: disable=not-callable
     rows = await query_data(executable)
 
     # Transform query results into dictionary of image paths by year

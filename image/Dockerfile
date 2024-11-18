@@ -9,13 +9,12 @@ ENV POETRY_HOME="/opt/poetry" \
 ENV PATH="$PATH:$POETRY_HOME/bin"
 
 RUN pip install "poetry==${POETRY_VERSION}"
-ADD ./pyproject.toml .
-ADD ./poetry.lock .
+COPY ./pyproject.toml .
+COPY ./poetry.lock .
 
 RUN poetry install --no-interaction --no-ansi
 
-ADD ./resources ./resources
-ADD ./src/fantasy_footballer .
-ADD ./README.md .
+COPY ./src/fantasy_footballer .
+COPY ./README.md .
 
 ENTRYPOINT ["poetry", "run", "python3", "main.py"]

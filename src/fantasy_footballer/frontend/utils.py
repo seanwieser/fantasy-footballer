@@ -1,32 +1,28 @@
-"""Module contains utility functions for the frontend."""
+"""Module contains utility functions for the marts."""
 
-import json
-
-from backend.engine import async_session
-from backend.models import Team
+from backend.db import DbManager
 from inflection import humanize
 from nicegui import context, ui
-from sqlalchemy import select
 
-PAGES = ["owners", "players"]
+PAGES = ["owners"]
 
-async def get_fantasy_years():
+def get_years() -> list[str]:
     """Get all years that have fantasy data."""
-    year_results = await query_data(select(Team.year).distinct().order_by(Team.year))
-    return [row["year"] for row in year_results]
+    return [row["year"] for row in DbManager.query("select * from main_utilities.all_years", to_dict=True)]
 
+def owner_id_to_owner_name(owner_id: str) -> str:
+    """Return owner name given an owner id."""
+    owner_name_sql = f"select * from main_seed_data.owner_ids where owner_id == {owner_id}"
+    return DbManager.query(owner_name_sql, to_dict=True)[0]["owner_name"]
 
-def image_path_to_owner_name(image_path):
-    """Convert image path to owner name."""
+def image_path_to_owner_id(image_path: str) -> str:
+    """Return owner id given an image_path."""
     return image_path.rsplit("/", 1)[-1].replace(".jpg", "")
 
-
-async def query_data(executable):
-    """Query database with executable and return all rows."""
-    async with async_session() as session:
-        async with session.begin():
-            rows = await session.execute(executable)
-    return [row._asdict() for row in rows.all()]
+def image_path_to_owner_name(image_path: str) -> str:
+    """Return owner name given an image_path."""
+    owner_id = image_path_to_owner_id(image_path)
+    return owner_id_to_owner_name(owner_id)
 
 
 def common_header():
@@ -42,28 +38,19 @@ def common_header():
                       ).props(f"square color={color}")
 
 
-async def table(data, title="", classes="", props="", pagination=None):
+def table(data_df, title="", classes="", props="", not_sortable=None, align="center"): # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Create a standard table element."""
-    # Need to maintain order of fields that are in the data
-    fields = []
-    for row in data:
-        for field in row:
-            if field not in fields:
-                fields.append(field)
-
-    columns = []
-    for col in fields:
-        col_dict = {
-            "name": col,
-            "label": humanize(col),
-            "field": col,
-            "sortable": True
-        }
-        columns.append(col_dict)
     if title:
         with ui.card().classes("no-shadow border-[0px]"):
             with ui.card_section().classes("mx-auto").classes("p-0"):
                 ui.label(title).classes("text-weight-bold underline text-xl text-center")
-            return ui.table(columns=columns, rows=data, pagination=pagination).classes(classes).props(props)
+            tab = ui.table.from_pandas(data_df).classes(classes).props(props)
     else:
-        ui.table(columns=columns, rows=data, pagination=pagination).classes(classes).props(props)
+        tab = ui.table.from_pandas(data_df).classes(classes).props(props)
+
+    not_sortable = not_sortable or []
+    for col in tab.columns:
+        col["sortable"] = col["name"] not in not_sortable and not_sortable != "all"
+        col["align"] = align
+
+    return tab

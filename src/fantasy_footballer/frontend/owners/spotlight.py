@@ -1,11 +1,10 @@
 """Spotlight page for each owner."""
 import os
 
+from backend.db import DbManager
 from frontend.utils import (common_header, get_years, owner_id_to_owner_name,
                             table)
 from nicegui import ui
-
-from fantasy_footballer.backend.db import DbManager
 
 
 def season_overview_card(title, value):

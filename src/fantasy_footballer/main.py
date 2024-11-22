@@ -14,4 +14,5 @@ db_manager = DbManager()
 app.on_startup(db_manager.setup)
 ui.run(title="Sco Chos",
        favicon=f"{os.getenv("MEDIA_DIR_PATH")}/favicons/football.ico",
+       host="0.0.0.0",
        dark=None)

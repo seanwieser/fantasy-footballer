@@ -16,7 +16,7 @@ class S001Extractor:
     SOURCE_NAME = "s001"
 
     def __init__(self, years = None, tables = None):
-        self.years = years or range(int(os.getenv('START_YEAR')), datetime.datetime.now().year + 1)
+        self.years = years or range(int(os.getenv("START_YEAR")), datetime.datetime.now().year + 1)
         self.transformer_classes = S001Extractor._resolve_transformers(tables)
         self.tables = [t.TABLE_NAME for t in self.transformer_classes]
 

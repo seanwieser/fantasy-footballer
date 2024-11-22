@@ -15,6 +15,9 @@ COPY ./poetry.lock .
 RUN poetry install --no-interaction --no-ansi
 
 COPY ./src/fantasy_footballer .
+COPY ./dbt/fantasy_footballer ./dbt/fantasy_footballer/
 COPY ./README.md .
+
+EXPOSE 8080
 
 ENTRYPOINT ["poetry", "run", "python3", "main.py"]

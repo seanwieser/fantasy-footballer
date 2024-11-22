@@ -22,6 +22,8 @@ repos:
       - id: pydocstyle
         exclude: (__init__|setup|(docs?|examples?|tests?|utils?)/.*)\.py$
         additional_dependencies: ["tomli"]
+        args:
+          - --ignore=D107,D203,D401
   - repo: "https://github.com/PyCQA/pylint"
     rev: v3.3.1
     hooks:
@@ -36,3 +38,12 @@ repos:
     hooks:
       - id: isort
         additional_dependencies: [toml]
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.2.5
+    hooks:
+      - id: sqlfluff-lint
+        additional_dependencies: ["dbt-duckdb==1.9.0", "sqlfluff-templater-dbt"]
+        entry: env DB_PATH=ignore sqlfluff lint --processes 0 --disable-progress-bar
+      - id: sqlfluff-fix
+        additional_dependencies: ["dbt-duckdb==1.9.0", "sqlfluff-templater-dbt"]
+        entry: env DB_PATH=ignore sqlfluff fix --show-lint-violations --processes 0 --disable-progress-bar

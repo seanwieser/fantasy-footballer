@@ -1,42 +1,39 @@
+"""Module for common classes and utilities used by source extractor/transformer code."""
 import json
-from string import Template
+import os
 
-DATATYPE_MAP = {
-    int: "INTEGER",
-    bool: "BOOLEAN",
-    str: "VARCHAR",
-    float: "FLOAT",
-    list: "LIST",
-    dict: "STRUCT"
-}
-
-SOURCE_DIR_PATH_TEMPLATE = Template("resources/data/sources/${source}/${table}")
 
 class Transformer:
+    """Parent class for source transformers."""
+
     def __init__(self, table_schema, year):
         self.year = year
         self.table_schema = table_schema
 
-    def apply_schema(self, obj):
+    def convert_to_dict(self, obj):
+        """Convert any indexable object to a dictionary only containing fields in table_schema Pydantic model."""
         index_func = getattr
         if isinstance(obj, dict):
             index_func = dict.get
 
-        row = {k: index_func(obj, k) for k in self.table_schema.model_fields}
+        return {k: index_func(obj, k) for k in self.table_schema.model_fields}
+
+    def apply_schema(self, obj):
+        """Reduce obj to fields in table_schema, validate fields with table_schema, and append year field."""
+        row = self.convert_to_dict(obj)
         row = self.table_schema(**row).model_dump()
         row["year"] = self.year
         return row
 
     def transform(self):
+        """Abstract method to convert source data to native datatypes."""
         raise NotImplementedError("Transformers need a transform method.")
 
 
-def write_source_data(rows: list[dict], source: str, table_name: str, year: int) -> None:
-    """Write jsonl format to specific location."""
-    file_name = f"{source}_{table_name}_{year}.jsonl"
-    directory_name = SOURCE_DIR_PATH_TEMPLATE.substitute(source=source, table=table_name)
-    path = f"{directory_name}/{file_name}"
-    with open(path, "w", encoding="utf-8") as out_file:
+def write_source_data(rows: list[dict], source: str, table: str, year: int) -> None:
+    """Write jsonl file with constructed path from source, table, year parameters."""
+    file_path = f"{os.getenv('SOURCE_DIR_PATH')}/{source}/{table}/{source}_{table}_{year}.jsonl"
+    with open(file_path, "w", encoding="utf-8") as out_file:
         for line in rows:
             json.dump(line, out_file)
             out_file.write("\n")

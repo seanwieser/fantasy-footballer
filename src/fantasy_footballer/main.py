@@ -2,15 +2,16 @@
 
 # pylint: disable=reimported
 
-from backend.db_init import DbInit
-from backend.io_utils import MEDIA_PATH_TEMPLATE
+import os
+
+from backend.db import DbManager
 from frontend.owners.home import page
 from frontend.owners.spotlight import page
 from frontend.splash.home import page
 from nicegui import app, ui
 
-app.on_startup(DbInit.init_tables)
+db_manager = DbManager()
+app.on_startup(db_manager.setup)
 ui.run(title="Sco Chos",
-       favicon=MEDIA_PATH_TEMPLATE.substitute(sub_path="favicons/football",
-                                              file_name="favicon.ico"),
+       favicon=f"{os.getenv("MEDIA_DIR_PATH")}/favicons/football.ico",
        dark=None)

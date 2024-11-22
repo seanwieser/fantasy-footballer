@@ -1,0 +1,30 @@
+name: "fantasy_footballer"
+version: "1.0.0"
+
+profile: "default"
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:         # directories to be removed by `dbt clean`
+  - "target"
+  - "dbt_packages"
+
+models:
+  fantasy_footballer:
+    marts:
+      +schema: marts
+      +materialized: table
+    staging:
+      +schema: staging
+      +materialized: view
+    utilities:
+      +schema: utilities
+      +materialized: table
+
+seeds:
+  +schema: seed_data

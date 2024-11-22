@@ -35,12 +35,13 @@
 
 with player_stats_unnested as (
     select
-        player_id          as player_id,
-        year               as year,
-        name               as name,
-        unnest(stats_raw)  as stats_flat
+        player_id,
+        year,
+        name,
+        unnest(stats_raw) as stats_flat
     from {{ ref("stg_s001__players") }}
 ),
+
 player_stats_expanded as (
     select
         player_id,
@@ -48,10 +49,16 @@ player_stats_expanded as (
         name,
         player_id || '_' || stats_flat['week'][1]::varchar as player_stat_id,
         {% for breakdown_field in breakdown_fields -%}
-        stats_flat['{{breakdown_field['raw_field']}}'][1]::{{breakdown_field['datatype']}} as {{breakdown_field['field']}}{% if not loop.last %},{% endif %}
+            stats_flat['{{ breakdown_field['raw_field'] }}'][1]::{{ breakdown_field['datatype'] }}
+                as {{ breakdown_field['field'] }}
+
+            {% if not loop.last %}
+
+                ,
+            {% endif %}
         {% endfor -%}
     from player_stats_unnested
 )
+
 select *
 from player_stats_expanded
-

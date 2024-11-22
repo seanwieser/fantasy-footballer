@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: stg_s001__players
+    columns:
+      - name: player_id
+        data_tests:
+          - not_null
+          - unique
+  - name: stg_s001__player_stats
+    columns:
+      - name: player_id
+        data_tests:
+          - not_null
+      - name: player_stat_id
+        data_tests:
+          - unique
+          - not_null
+  - name: stg_s001__teams
+    columns:
+      - name: first_name
+        data_tests:
+          - not_null
+      - name: last_name
+        data_tests:
+          - not_null
+      - name: display_name
+        data_tests:
+          - not_null
+      - name: owner_id
+        data_tests:
+          - not_null
+      - name: team_id
+        data_tests:
+          - not_null
+          - unique
+      - name: streak_type
+        data_tests:
+          - accepted_values:
+              values: ["W", "L"]
+  - name: stg_s001__team_schedules
+    columns:
+      - name: team_schedule_id
+        data_tests:
+          - not_null
+          - unique
+      - name: team_id
+        data_tests:
+          - not_null
+      - name: year
+        data_tests:
+          - not_null
+      - name: week
+        data_tests:
+          - not_null
+      - name: score_for
+        data_tests:
+          - not_null
+      - name: outcome
+        data_tests:
+          - accepted_values:
+              values: ["W", "L", "U"]
+      - name: opponent_team_id
+        data_tests:
+          - not_null
+      - name: opponent_team_schedule_id
+        data_tests:
+          - not_null
+          - unique

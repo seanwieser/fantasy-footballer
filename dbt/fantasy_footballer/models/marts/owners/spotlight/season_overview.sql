@@ -3,44 +3,47 @@ with season_overview_wo_clutch as (
         team_id,
         owner_id,
         year,
-        wins || '-' || losses          as record,
-        round(points_for, 2)           as points_for,
-        round(points_against, 2)       as points_against,
         acquisitions,
-        100 - acquisition_budget_spent as budget,
         standing,
         trades,
-        streak
+        streak,
+        wins || '-' || losses as record,
+        round(points_for, 2) as points_for,
+        round(points_against, 2) as points_against,
+        100 - acquisition_budget_spent as budget
     from {{ ref('stg_s001__teams') }}
 ),
+
 clutch_record_grouped as (
-	select
-	    team_schedules.team_id,
-		team_schedules.owner_id,
-		team_schedules.year,
-	    team_schedules.outcome,
-	    count_if(team_schedules.score_for < 100)                                    as shotguns_per_outcome,
-	    sum(team_schedules.score_for)                                               as season_points_for_by_outcome,
-	    sum(opponent_schedules.score_for)                                           as season_points_against_by_outcome,
-	    count_if(abs(team_schedules.score_for - opponent_schedules.score_for) < 10) as count
-	from {{ ref('stg_s001__team_schedules') }} team_schedules
-	join {{ ref('stg_s001__team_schedules') }} opponent_schedules
-	on team_schedules.opponent_team_schedule_id=opponent_schedules.team_schedule_id
-	where team_schedules.outcome != 'U' and not team_schedules.is_playoff
-	group by all
+    select
+        team_schedules.team_id,
+        team_schedules.owner_id,
+        team_schedules.year,
+        team_schedules.outcome,
+        count_if(team_schedules.score_for < 100) as shotguns_per_outcome,
+        sum(team_schedules.score_for) as season_points_for_by_outcome,
+        sum(opponent_schedules.score_for) as season_points_against_by_outcome,
+        count_if(abs(team_schedules.score_for - opponent_schedules.score_for) < 10) as count
+    from {{ ref('stg_s001__team_schedules') }} as team_schedules
+    inner join {{ ref('stg_s001__team_schedules') }} as opponent_schedules
+        on team_schedules.opponent_team_schedule_id = opponent_schedules.team_schedule_id
+    where team_schedules.outcome != 'U' and not team_schedules.is_playoff
+    group by all
 ),
+
 clutch_record_no_zeroes as (
-	select
-	    team_id,
-		owner_id,
-		year,
-		sum(shotguns_per_outcome)             as shotguns,
-		sum(season_points_for_by_outcome)     as season_points_for,
-		sum(season_points_against_by_outcome) as season_points_against,
-		replace(replace(string_agg(outcome || count, '' order by outcome desc), '-', ''), 'L', '-') as record
-	from clutch_record_grouped
-	group by all
+    select
+        team_id,
+        owner_id,
+        year,
+        sum(shotguns_per_outcome) as shotguns,
+        sum(season_points_for_by_outcome) as season_points_for,
+        sum(season_points_against_by_outcome) as season_points_against,
+        replace(replace(string_agg(outcome || count, '' order by outcome desc), '-', ''), 'L', '-') as record
+    from clutch_record_grouped
+    group by all
 ),
+
 clutch_record as (
     select
         team_id,
@@ -56,47 +59,49 @@ clutch_record as (
         end as record
     from clutch_record_no_zeroes
 ),
+
 weeks_played_grouped as (
-	select
-		year,
-		team_id,
-		outcome != 'U' as is_played,
-		count(week) weeks_ct,
-		array_agg(team_schedule_id)
-	from main_staging.stg_s001__team_schedules
-	where  not is_playoff
-	group by all
+    select
+        year,
+        team_id,
+        outcome != 'U' as is_played,
+        count(week) as weeks_ct
+    from main_staging.stg_s001__team_schedules
+    where not is_playoff
+    group by all
 ),
+
 weeks_played as (
-	select
-		year,
-		min(weeks_ct) as weeks_played,
-	from weeks_played_grouped
-	where is_played
-	group by year
+    select
+        year,
+        min(weeks_ct) as weeks_played
+    from weeks_played_grouped
+    where is_played
+    group by year
 ),
+
 season_overview as (
     select
         season_overview_wo_clutch.owner_id,
         season_overview_wo_clutch.year,
         season_overview_wo_clutch.record,
-        round(clutch_record.season_points_for, 2)                               as points_for,
-        round(clutch_record.season_points_for/weeks_played.weeks_played, 2)     as points_for_per_week,
-        round(clutch_record.season_points_against, 2)                           as points_against,
-        round(clutch_record.season_points_against/weeks_played.weeks_played, 2) as points_against_per_week,
         season_overview_wo_clutch.acquisitions,
         season_overview_wo_clutch.budget,
         season_overview_wo_clutch.standing,
         season_overview_wo_clutch.trades,
         season_overview_wo_clutch.streak,
         clutch_record.record as clutch_record,
-        clutch_record.shotguns as shotguns
+        clutch_record.shotguns,
+        round(clutch_record.season_points_for, 2) as points_for,
+        round(clutch_record.season_points_for / weeks_played.weeks_played, 2) as points_for_per_week,
+        round(clutch_record.season_points_against, 2) as points_against,
+        round(clutch_record.season_points_against / weeks_played.weeks_played, 2) as points_against_per_week
     from season_overview_wo_clutch
     full outer join clutch_record
-    on season_overview_wo_clutch.team_id = clutch_record.team_id
-    join weeks_played
-    on season_overview_wo_clutch.year = weeks_played.year
+        on season_overview_wo_clutch.team_id = clutch_record.team_id
+    inner join weeks_played
+        on season_overview_wo_clutch.year = weeks_played.year
 )
-select
-    *
+
+select *
 from season_overview

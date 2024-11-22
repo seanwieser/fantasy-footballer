@@ -37,3 +37,26 @@ good-names = ["db", "id"]
 
 [tool.pylint.FORMAT]
 max-line-length = 120
+
+[tool.sqlfluff.core]
+dialect = "duckdb"
+templater = "dbt"
+sql_file_exts = ".sql"
+exclude_rules = ["ST06", "RF06", "LT01"]
+max_line_length = 120
+processes = -1
+
+[tool.sqlfluff.layout.type.binary_operator]
+line_position = "trailing"
+
+[tool.sqlfluff.references.keywords]
+
+[tool.sqlfluff.templater.dbt]
+project_dir = "./dbt/fantasy_footballer"
+profiles_dir = "./dbt/fantasy_footballer"
+profile = "default"
+target = "dev"
+
+[tool.sqlfluff.rules.references]
+special_chars.allow_space_in_identifier = true
+keywords.ignore_words = "name,year,ties"

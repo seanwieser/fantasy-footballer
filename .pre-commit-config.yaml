@@ -38,3 +38,10 @@ repos:
     hooks:
       - id: isort
         additional_dependencies: [toml]
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.2.5
+    hooks:
+      - id: sqlfluff-lint
+        additional_dependencies: ["dbt-duckdb==1.9.0", "sqlfluff-templater-dbt"]
+      - id: sqlfluff-fix
+        additional_dependencies: ["dbt-duckdb==1.9.0", "sqlfluff-templater-dbt"]

@@ -7,6 +7,6 @@ select
     round(points_for, 2)     as "Points For",
     round(points_against, 2) as "Points Against",
     streak                   as "Streak"
-from {{ ref("stg_s001__teams" )}}
-where year = {{ modules.datetime.datetime.now().year }}
+from {{ ref("stg_s001__teams") }}
+where year = '{{ modules.datetime.datetime.now().year }}'
 order by standing

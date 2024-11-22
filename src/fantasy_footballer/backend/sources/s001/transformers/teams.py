@@ -1,8 +1,12 @@
+"""Module containing pydantic model and transformer for s001 teams source table."""
+
+from backend.sources.utils import Transformer
 from pydantic import BaseModel
-from backend.sources.utils import Transformer, DATATYPE_MAP
+
 
 class TeamSchema(BaseModel):
-    team_id: int
+    """Pydantic model to define schema for teams source table."""
+
     team_abbrev: str
     team_name: str
     division_id: int
@@ -24,12 +28,12 @@ class TeamSchema(BaseModel):
     final_standing: int
     owners: list
     roster: list
-    #
-    # @staticmethod
-    # def table_definition():
-    #     return ", ".join([f"{k} {DATATYPE_MAP[v.annotation]}" for k, v in TeamSchema.model_fields.items()])
+    schedule: list
+
 
 class TeamsTransformer(Transformer):
+    """Transformer class for s001 teams source data."""
+
     TABLE_NAME = "teams"
     TABLE_SCHEMA = TeamSchema
 
@@ -39,6 +43,7 @@ class TeamsTransformer(Transformer):
 
 
     def transform(self):
+        """Override parent abstract method to be run by associated s001 extractor."""
         teams = []
         for team in self.teams:
             team = team.__dict__
@@ -46,9 +51,19 @@ class TeamsTransformer(Transformer):
             # Convert roster Player objects into playerId's
             team["roster"] =  [player.playerId for player in team["roster"]]
 
-            # Convert schedule and scores to single object
-            schedule_scores = list(zip(team["schedule"], team["scores"]))
-            team["schedule"] = {opponent.team_id: points_for for opponent, points_for in schedule_scores}
+            # Convert schedule, scores, outcomes to single object describing a weekly matchup
+            new_schedule = []
+            schedule_infos = list(zip(team["schedule"], team["scores"], team["outcomes"]))
+            for idx, schedule_info in enumerate(schedule_infos):
+                opponent, score, outcome = schedule_info
+                matchup = {
+                    "week": idx + 1,
+                    "score_for": score,
+                    "outcome": outcome,
+                    "opponent": self.convert_to_dict(opponent)["team_name"]
+                }
+                new_schedule.append(matchup)
+            team["schedule"] = new_schedule
 
             teams.append(self.apply_schema(team))
         return teams

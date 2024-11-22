@@ -26,7 +26,7 @@ team_schedules_with_opponent_ids as (
         schedules.outcome,
         opponents.team_id as opponent_team_id,
         schedules.team_id || '_' || schedules.week as team_schedule_id,
-        opponents.team_id || '_' || opponents.week as opponent_team_schedule_id,
+        opponents.team_id || '_' || schedules.week as opponent_team_schedule_id,
         (schedules.year < 2021 and schedules.week >= 14) or
         (schedules.year >= 2021 and schedules.week >= 15) as is_playoff
     from team_schedules_expanded as schedules

@@ -1,0 +1,118 @@
+version: 2
+
+sources:
+  - name: s001
+    tables:
+      - name: players
+        columns:
+          - name: playerId
+            data_tests:
+              - not_null
+          - name: name
+            data_tests:
+              - not_null
+          - name: year
+            data_tests:
+              - not_null
+          - name: posRank
+            data_tests:
+              - not_null
+          - name: eligibleSlots
+            data_tests:
+              - not_null
+          - name: proTeam
+            data_tests:
+              - not_null
+          - name: onTeamId
+            data_tests:
+              - not_null
+          - name: position
+            data_tests:
+              - not_null
+          - name: injuryStatus
+            data_tests:
+              - not_null
+          - name: injured
+            data_tests:
+              - not_null
+          - name: total_points
+            data_tests:
+              - not_null
+          - name: avg_points
+            data_tests:
+              - not_null
+          - name: projected_total_points
+            data_tests:
+              - not_null
+          - name: projected_avg_points
+            data_tests:
+              - not_null
+          - name: percent_owned
+            data_tests:
+              - not_null
+          - name: percent_started
+            data_tests:
+              - not_null
+      - name: teams
+        columns:
+          - name: owners
+          - name: team_abbrev
+            data_tests:
+              - not_null
+          - name: team_name
+            data_tests:
+              - not_null
+          - name: division_id
+            data_tests:
+              - not_null
+          - name: division_name
+            data_tests:
+              - not_null
+          - name: wins
+            data_tests:
+              - not_null
+          - name: losses
+            data_tests:
+              - not_null
+          - name: ties
+            data_tests:
+              - not_null
+          - name: points_for
+            data_tests:
+              - not_null
+          - name: points_against
+            data_tests:
+              - not_null
+          - name: acquisitions
+            data_tests:
+              - not_null
+          - name: acquisition_budget_spent
+            data_tests:
+              - not_null
+          - name: drops
+            data_tests:
+              - not_null
+          - name: trades
+            data_tests:
+              - not_null
+          - name: playoff_pct
+            data_tests:
+              - not_null
+          - name: draft_projected_rank
+            data_tests:
+              - not_null
+          - name: streak_length
+            data_tests:
+              - not_null
+          - name: streak_type
+            data_tests:
+              - not_null
+          - name: standing
+            data_tests:
+              - not_null
+          - name: final_standing
+            data_tests:
+              - not_null
+          - name: roster
+            data_tests:
+              - not_null

@@ -9,30 +9,54 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-espn-api = "^0.36"
+python = "3.12.5"
+espn-api = "0.43.0"
 matplotlib = "^3.6.3"
-click = "8.1.3"
-nicegui = "^1.4"
-sqlalchemy = { version = "^2.0.31", extras = ["asyncio"] }
+click = "^8.1.7"
+nicegui = "^2.5"
 inflection = "^0.5.1"
-asyncpg = "^0.29.0"
-psycopg2-binary = "^2.9.9"
+duckdb = "^1.1.3"
+dbt-core = "^1.8.8"
+dbt-duckdb = "^1.9.0"
+pandas = "2.2.3"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^3.0.3"
 pylint = "2.17.2"
 
 [build-system]
-requires = ["poetry-core>=1.4.0"]
+requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pylint.MASTER]
 init-hook = "import sys; sys.path.append('.venv/lib/python3.10/site-packages/')"
 
 [tool.pylint."MESSAGE CONTROL"]
-disable = ["import-error", "no-member", "R0903", "unused-import", "consider-using-in"]
+disable = ["import-error", "no-member", "R0903", "unused-import", "consider-using-in", "no-name-in-module"]
 good-names = ["db", "id"]
 
 [tool.pylint.FORMAT]
 max-line-length = 120
+
+[tool.sqlfluff.core]
+dialect = "duckdb"
+templater = "dbt"
+sql_file_exts = ".sql"
+exclude_rules = ["ST06", "RF06", "LT01"]
+max_line_length = 120
+processes = -1
+
+[tool.sqlfluff.layout.type.binary_operator]
+line_position = "trailing"
+
+[tool.sqlfluff.references.keywords]
+
+[tool.sqlfluff.templater.dbt]
+project_dir = "./dbt/fantasy_footballer"
+profiles_dir = "./dbt/fantasy_footballer"
+profile = "default"
+target = "dev"
+
+[tool.sqlfluff.rules.references]
+special_chars.allow_space_in_identifier = true
+keywords.ignore_words = "name,year,ties"

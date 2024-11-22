@@ -3,10 +3,9 @@
 import datetime
 import os
 
+from backend.db import DbManager
 from frontend.utils import common_header, get_years, image_path_to_owner_id
 from nicegui import events, ui
-
-from fantasy_footballer.backend.db import DbManager
 
 
 def mouse_handler(event: events.MouseEventArguments, year=int):

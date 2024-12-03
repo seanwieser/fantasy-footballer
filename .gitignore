@@ -13,3 +13,5 @@ dbt/fantasy_footballer/ignore
 *.duckdb
 pickles
 groupme_messages
+__pycache__
+.DS_Store

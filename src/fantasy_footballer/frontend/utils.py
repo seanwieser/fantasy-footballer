@@ -2,7 +2,8 @@
 
 from backend.db import DbManager
 from inflection import humanize
-from nicegui import context, ui
+from nicegui import app, context, elements, ui
+from pandas import DataFrame
 
 PAGES = ["owners"]
 
@@ -24,8 +25,12 @@ def image_path_to_owner_name(image_path: str) -> str:
     owner_id = image_path_to_owner_id(image_path)
     return owner_id_to_owner_name(owner_id)
 
+def logout() -> None:
+    """Utility method to clear user authentication and redirect to login page."""
+    app.storage.user.clear()
+    ui.navigate.to("/login")
 
-def common_header():
+def common_header() -> None:
     """Header that is common for all pages."""
     current_page = context.client.page.path.replace("/", "")
     with ui.header().classes(replace="row items-center"):
@@ -36,9 +41,15 @@ def common_header():
             ui.button(humanize(page),
                       on_click=lambda page=page: ui.navigate.to(f"/{page}")
                       ).props(f"square color={color}")
+        ui.button(on_click=logout, icon="logout").props("square color=primary")
 
-
-def table(data_df, title="", classes="", props="", not_sortable=None, align="center"): # pylint: disable=too-many-arguments,too-many-positional-arguments
+# pylint: disable=too-many-arguments,too-many-positional-arguments
+def table(data_df: DataFrame,
+          title: str="",
+          classes: str="",
+          props: str="",
+          not_sortable: bool=None,
+          align: str="center") -> ui.table:
     """Create a standard table element."""
     if title:
         with ui.card().classes("no-shadow border-[0px]"):

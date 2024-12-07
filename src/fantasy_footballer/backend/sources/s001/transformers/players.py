@@ -38,11 +38,12 @@ class PlayersTransformer(Transformer):
         self.player_info_func = league.player_info
         super().__init__(table_schema=PlayersTransformer.TABLE_SCHEMA, year=league.year)
 
-    def transform(self):
+    def transform(self, queue):
         """Override parent abstract method to be run by associated s001 extractor."""
         players = []
         all_player_ids = [player_id for player_id in self.player_map.keys() if isinstance(player_id, int)]
-        for player_id in all_player_ids:
+        all_player_ids_count = len(all_player_ids)
+        for idx, player_id in enumerate(all_player_ids):
             player_obj = self.player_info_func(playerId=player_id)
             if not player_obj:
                 continue
@@ -56,6 +57,11 @@ class PlayersTransformer(Transformer):
                 new_stat = {"week": week} | stat | breakdown
                 new_stats.append(new_stat)
             player_dict["stats"] = new_stats
+
+            # Apply PlayerSchema
             players.append(self.apply_schema(player_dict))
+
+            # Update queue for frontend progress bar
+            queue.put_nowait(idx + 1 / all_player_ids_count)
 
         return players

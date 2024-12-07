@@ -15,23 +15,12 @@ class S001Extractor:
     ALL_TRANSFORMERS = [PlayersTransformer, TeamsTransformer]
     SOURCE_NAME = "s001"
 
-    def __init__(self, years = None, tables = None):
-        self.years = years or range(int(os.getenv("START_YEAR")), datetime.datetime.now().year + 1)
-        self.transformer_classes = S001Extractor._resolve_transformers(tables)
-        self.tables = [t.TABLE_NAME for t in self.transformer_classes]
-
     @staticmethod
-    def _resolve_transformers(tables) -> list[Transformer]:
-        """Given table names, return list of transformer class definitions associated with those names."""
-        if not tables:
-            return S001Extractor.ALL_TRANSFORMERS
-        return [t for t in S001Extractor.ALL_TRANSFORMERS if t.TABLE_NAME in tables]
-
-    def _extract(self) -> list[Transformer]:
+    def _extract(years, transformer_classes) -> list[Transformer]:
         """Extract source data and return list of initialized transformers containing data."""
         transformers = []
-        for year in self.years:
-            for transformer in self.transformer_classes:
+        for year in years:
+            for transformer in transformer_classes:
                 # Extract source data using s001 associated mechanism (espn_api)
                 league_id, espn_s2, swid = int(os.getenv("LEAGUE_ID")), os.getenv("ESPN_S2"), os.getenv("SWID")
                 try:
@@ -42,12 +31,20 @@ class S001Extractor:
                 transformers.append(transformer(league))
         return transformers
 
-    def run(self):
+    @staticmethod
+    def get_table_names():
+        return [t.TABLE_NAME for t in S001Extractor.ALL_TRANSFORMERS]
+
+    @staticmethod
+    def run(queue, years, tables):
         """Interface method to extract, transform, and write data."""
+        # Resolve parameters
+        transformer_classes = [t for t in S001Extractor.ALL_TRANSFORMERS if t.TABLE_NAME in tables]
+
         # Extract data and initialize transformer objects
-        transformers = self._extract()
+        transformers = S001Extractor._extract(years, transformer_classes)
 
         # Transform to native datatypes, write data to files, and load from files to database
         for transformer in transformers:
-            rows = transformer.transform()
+            rows = transformer.transform(queue)
             write_source_data(rows, S001Extractor.SOURCE_NAME, transformer.TABLE_NAME, transformer.year)

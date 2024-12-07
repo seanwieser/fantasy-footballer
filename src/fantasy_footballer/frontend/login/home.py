@@ -41,7 +41,7 @@ def login() -> Optional[RedirectResponse]:
         encoded_hash = hashes.get(username.value).encode()
         if bcrypt.checkpw(password=encoded_password, hashed_password=encoded_hash):
             app.storage.user.update({"username": username.value, "authenticated": True})
-            ui.navigate.to(app.storage.user.get("referrer_path", "/"))  # go back to where the user wanted to go
+            ui.navigate.to("/")
         else:
             ui.notify("Wrong username or password", color="negative")
 

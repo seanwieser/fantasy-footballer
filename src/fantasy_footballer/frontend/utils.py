@@ -1,11 +1,16 @@
 """Module contains utility functions for the marts."""
+import datetime
+import os
 
 from backend.db import DbManager
 from inflection import humanize
 from nicegui import app, context, elements, ui
 from pandas import DataFrame
 
-PAGES = ["owners"]
+PAGES = ["owners", "admin"]
+
+def get_valid_years() -> list[int]:
+    return [year for year in range(int(os.getenv("START_YEAR")), datetime.datetime.now().year + 1)]
 
 def get_years() -> list[str]:
     """Get all years that have fantasy data."""

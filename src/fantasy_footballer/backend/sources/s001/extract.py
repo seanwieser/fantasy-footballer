@@ -33,6 +33,7 @@ class S001Extractor:
 
     @staticmethod
     def get_table_names():
+        """Return all table names associated with this source extractor."""
         return [t.TABLE_NAME for t in S001Extractor.ALL_TRANSFORMERS]
 
     @staticmethod

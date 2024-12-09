@@ -62,6 +62,6 @@ class PlayersTransformer(Transformer):
             players.append(self.apply_schema(player_dict))
 
             # Update queue for frontend progress bar
-            queue.put_nowait(idx + 1 / all_player_ids_count)
+            queue.put_nowait((idx + 1) / all_player_ids_count)
 
         return players

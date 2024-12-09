@@ -1,8 +1,9 @@
 """Module for common classes and utilities used by source extractor/transformer code."""
+import datetime
 import json
 import os
+
 import boto3
-import datetime
 
 
 class Transformer:
@@ -33,6 +34,7 @@ class Transformer:
 
 
 def get_date_partition():
+    """Utility to return today's date in the standard format."""
     return datetime.datetime.now().strftime("%Y-%m-%d")
 
 

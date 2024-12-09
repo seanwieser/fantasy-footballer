@@ -69,6 +69,6 @@ class TeamsTransformer(Transformer):
             teams.append(self.apply_schema(team))
 
             # Update queue for frontend progress bar
-            queue.put_nowait(team_idx + 1 / len(self.teams))
+            queue.put_nowait((team_idx + 1) / len(self.teams))
 
         return teams

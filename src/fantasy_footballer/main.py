@@ -5,6 +5,7 @@
 import os
 
 from backend.db import DbManager
+from frontend.admin.home import page
 from frontend.login.home import AuthMiddleware
 from frontend.owners.home import page
 from frontend.owners.spotlight import page

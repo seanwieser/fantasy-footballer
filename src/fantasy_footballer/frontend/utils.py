@@ -1,11 +1,17 @@
 """Module contains utility functions for the marts."""
+import datetime
+import os
 
 from backend.db import DbManager
 from inflection import humanize
 from nicegui import app, context, elements, ui
 from pandas import DataFrame
 
-PAGES = ["owners"]
+PAGES = ["owners", "admin"]
+
+def get_valid_years() -> list[int]:
+    """Get all years that fantasy data is available for."""
+    return list(range(int(os.getenv('START_YEAR')), datetime.datetime.now().year + 1))
 
 def get_years() -> list[str]:
     """Get all years that have fantasy data."""
@@ -13,7 +19,7 @@ def get_years() -> list[str]:
 
 def owner_id_to_owner_name(owner_id: str) -> str:
     """Return owner name given an owner id."""
-    owner_name_sql = f"select * from main_seed_data.owner_ids where owner_id == {owner_id}"
+    owner_name_sql = f"select * from main_seed_data.owner_names where owner_id == {owner_id}"
     return DbManager.query(owner_name_sql, to_dict=True)[0]["owner_name"]
 
 def image_path_to_owner_id(image_path: str) -> str:

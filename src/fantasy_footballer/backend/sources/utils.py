@@ -1,6 +1,9 @@
 """Module for common classes and utilities used by source extractor/transformer code."""
+import datetime
 import json
 import os
+
+import boto3
 
 
 class Transformer:
@@ -30,10 +33,19 @@ class Transformer:
         raise NotImplementedError("Transformers need a transform method.")
 
 
+def get_date_partition():
+    """Utility to return today's date in the standard format."""
+    return datetime.datetime.now().strftime("%Y-%m-%d")
+
+
 def write_source_data(rows: list[dict], source: str, table: str, year: int) -> None:
-    """Write jsonl file with constructed path from source, table, year parameters."""
-    file_path = f"{os.getenv('SOURCE_DIR_PATH')}/{source}/{table}/{source}_{table}_{year}.jsonl"
-    with open(file_path, "w", encoding="utf-8") as out_file:
-        for line in rows:
-            json.dump(line, out_file)
-            out_file.write("\n")
+    """Write jsonl file to cloud storage with constructed path from source, table, year parameters."""
+    date_partition = get_date_partition()
+    dir_path = f"{os.getenv('SOURCE_DIR_PATH')}/{source}/{table}/{year}/{date_partition}"
+    file_name = f"{source}_{table}_{year}_{date_partition}.json"
+    s3_key = f"{dir_path}/{file_name}"
+    s3_client = boto3.client("s3",
+                              endpoint_url=os.getenv("ENDPOINT"),
+                              aws_access_key_id=os.getenv("ACCESS_KEY"),
+                              aws_secret_access_key=os.getenv("SECRET_KEY"))
+    s3_client.put_object(Body=json.dumps(rows), Bucket=os.getenv("BUCKET_NAME"), Key=s3_key)

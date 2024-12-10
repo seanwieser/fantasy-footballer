@@ -28,6 +28,7 @@ async def page():
             await run.cpu_bound(DbManager.fetch_data, years, source, tables, fetch_queue)
 
     async def async_refresh_data(sources):
+        refresh_progressbar.clear()
         await run.cpu_bound(DbManager.refresh_db, sources, refresh_queue)
 
     common_header()
@@ -52,7 +53,7 @@ async def page():
     # Refresh components
     refresh_queue = Manager().Queue()
     source_selections = ui.select(list(source_info.keys()), value=None, multiple=True, clearable=True)
-    ui.button("Refresh Data", on_click=lambda: async_refresh_data(source_selections))
+    ui.button("Refresh Data", on_click=lambda: async_refresh_data(source_selections.value))
     refresh_progressbar = ui.linear_progress(value=0).props("instant-feedback")
     ui.separator()
 

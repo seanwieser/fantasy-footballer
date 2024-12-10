@@ -2,10 +2,12 @@
 
 import json
 import os
+import re
 from datetime import datetime
 from string import Template
 
 import boto3
+import dateutil.parser as dparser
 import duckdb
 from backend.sources.s001.extract import S001Extractor
 from dbt.cli.main import dbtRunner, dbtRunnerResult
@@ -25,13 +27,48 @@ CREATE OR REPLACE SECRET cloud_storage_secret (
 CREATE_SCHEMA_TEMPLATE = Template("CREATE SCHEMA IF NOT EXISTS ${db_name}.${source_name}")
 CREATE_TABLE_TEMPLATE = Template("CREATE OR REPLACE TABLE ${fqtn} AS SELECT * FROM read_json(${file_paths});")
 
+
 class DbManager:
     """Static class to provide interface to frontend for all data actions (fetch, load, transform, query)."""
 
     @staticmethod
     def setup():
         """Boot function for backend to load/transform all sources to make db ready for frontend."""
+        DbManager.fetch_resources()
         DbManager.refresh_db(SOURCE_EXTRACTOR_MAP.keys())
+
+    @staticmethod
+    def fetch_resources():
+        """Function used to download all required files from cloud storage during boot."""
+        s3_client = boto3.client("s3",
+                                 endpoint_url=os.getenv("ENDPOINT"),
+                                 aws_access_key_id=os.getenv("ACCESS_KEY"),
+                                 aws_secret_access_key=os.getenv("SECRET_KEY"))
+        objects = s3_client.list_objects_v2(Bucket=os.getenv("BUCKET_NAME"))
+
+        newest_dates = {}
+        for file_info in objects["Contents"]:
+            if file_info["Key"].startswith("resources") and not file_info["Key"].endswith("/"):
+                file_datetime = datetime.fromisoformat(file_info["Key"].split("/")[-2])
+                s3_dir_no_date = "/".join(file_info["Key"].split("/")[:-2])
+
+                if not newest_dates.get(s3_dir_no_date) or newest_dates[s3_dir_no_date] < file_datetime:
+                    newest_dates[s3_dir_no_date] = file_datetime
+
+        fresh_paths = []
+        for file_info in objects["Contents"]:
+            s3_dir_no_date = "/".join(file_info["Key"].split("/")[:-2])
+            if (file_info["Key"].startswith("resources") and
+                    not file_info["Key"].endswith("/") and
+                    newest_dates[s3_dir_no_date].strftime("%Y-%m-%d") in file_info["Key"]):
+                fresh_paths.append(file_info["Key"])
+
+        for path in fresh_paths:
+            path_no_date = re.sub("[0-9]{4}-[0-9]{2}-[0-9]{2}/", "", path)
+            if not os.path.exists(os.path.dirname(path_no_date)):
+                os.makedirs(os.path.dirname(path_no_date))
+            s3_client.download_file(Bucket=os.getenv("BUCKET_NAME"), Key=path, Filename=path_no_date)
+        print("Resources fetched...")
 
     @staticmethod
     def refresh_db(sources, queue=None):
@@ -52,6 +89,7 @@ class DbManager:
                 if queue:
                     queue_count += 1
                     queue.put_nowait(queue_count / (len(sources) + 1))
+        print("Data Loaded...")
 
         # Transform
         DbManager.run_dbt()
@@ -79,7 +117,7 @@ class DbManager:
         objects = s3_client.list_objects_v2(Bucket=os.getenv("BUCKET_NAME"))
 
         # Gather all the freshest date string for each table/year combination
-        newest_dates={t: {} for t in DbManager.get_all_tables_by_source()[source]}
+        newest_dates = {t: {} for t in DbManager.get_all_tables_by_source()[source]}
         for file_info in objects["Contents"]:
             file_name = file_info["Key"].split("/")[-1]
             if file_name.startswith(source):
@@ -99,7 +137,6 @@ class DbManager:
 
         return fresh_table_paths
 
-
     @staticmethod
     def run_dbt():
         """Function to execute dbt actions on database."""
@@ -109,7 +146,6 @@ class DbManager:
 
         if not res.success:
             print(res.exception)
-
 
     @staticmethod
     def query(sql, to_dict=False):

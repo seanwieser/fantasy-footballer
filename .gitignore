@@ -16,3 +16,4 @@ groupme_messages
 __pycache__
 .DS_Store
 .nicegui
+resources/

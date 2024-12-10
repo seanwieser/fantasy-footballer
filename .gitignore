@@ -3,6 +3,7 @@
 .envrc
 __pycache__
 .nicegui
+.venv
 
 image/.env
 

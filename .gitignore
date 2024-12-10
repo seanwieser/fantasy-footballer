@@ -13,5 +13,4 @@ logs
 dbt/fantasy_footballer/ignore
 **.user.yml
 
-resources/media
-resources/fantasy_footballer.duckdb
+resources

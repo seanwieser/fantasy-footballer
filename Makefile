@@ -15,3 +15,6 @@ up:
 
 down:
 	docker container stop fantasy_footballer && docker container rm fantasy_footballer
+
+run-dbt:
+	poetry run dbt build --profiles-dir ${DBT_PATH} --project-dir ${DBT_PATH}

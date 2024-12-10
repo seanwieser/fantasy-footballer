@@ -4,7 +4,7 @@ image/.env
 **dbt.log
 target/
 dbt_packages/
-logs/
+logs
 **.user.yml
 .envrc
 dbt/fantasy_footballer/ignore
@@ -15,3 +15,4 @@ pickles
 groupme_messages
 __pycache__
 .DS_Store
+.nicegui

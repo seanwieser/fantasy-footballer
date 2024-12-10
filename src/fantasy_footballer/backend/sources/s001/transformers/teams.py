@@ -42,10 +42,10 @@ class TeamsTransformer(Transformer):
         super().__init__(table_schema=TeamsTransformer.TABLE_SCHEMA, year=league.year)
 
 
-    def transform(self):
+    def transform(self, queue):
         """Override parent abstract method to be run by associated s001 extractor."""
         teams = []
-        for team in self.teams:
+        for team_idx, team in enumerate(self.teams):
             team = team.__dict__
 
             # Convert roster Player objects into playerId's
@@ -54,10 +54,10 @@ class TeamsTransformer(Transformer):
             # Convert schedule, scores, outcomes to single object describing a weekly matchup
             new_schedule = []
             schedule_infos = list(zip(team["schedule"], team["scores"], team["outcomes"]))
-            for idx, schedule_info in enumerate(schedule_infos):
+            for schedule_idx, schedule_info in enumerate(schedule_infos):
                 opponent, score, outcome = schedule_info
                 matchup = {
-                    "week": idx + 1,
+                    "week": schedule_idx + 1,
                     "score_for": score,
                     "outcome": outcome,
                     "opponent": self.convert_to_dict(opponent)["team_name"]
@@ -65,5 +65,10 @@ class TeamsTransformer(Transformer):
                 new_schedule.append(matchup)
             team["schedule"] = new_schedule
 
+            # Apply TableSchema
             teams.append(self.apply_schema(team))
+
+            # Update queue for frontend progress bar
+            queue.put_nowait((team_idx + 1) / len(self.teams))
+
         return teams

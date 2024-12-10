@@ -4,6 +4,9 @@
 run-pre-commit:
 	poetry run pre-commit run --all-files
 
+run-local:
+	poetry run python3 src/fantasy_footballer/main.py
+
 build:
 	docker build -t fantasy_footballer:latest -f ./image/Dockerfile .
 
@@ -12,6 +15,3 @@ up:
 
 down:
 	docker container stop fantasy_footballer && docker container rm fantasy_footballer
-
-fetch-local:
-	cd src/fantasy_footballer && poetry run python3 backend/fetch.py

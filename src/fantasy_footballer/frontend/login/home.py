@@ -9,12 +9,12 @@ import os
 from typing import Optional
 
 import bcrypt
+from backend.db import DbManager
 from fastapi import Request
 from fastapi.responses import RedirectResponse
 from nicegui import app, ui
 from starlette.middleware.base import BaseHTTPMiddleware
 
-unrestricted_page_routes = {"/login"}
 
 class AuthMiddleware(BaseHTTPMiddleware):
     """Middleware to restrict access to all NiceGUI pages and redirects user to login page if not authenticated."""
@@ -22,7 +22,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """Override dispatch method of parent class."""
         if not app.storage.user.get("authenticated", False):
-            if not request.url.path.startswith("/_nicegui") and request.url.path not in unrestricted_page_routes:
+            if not request.url.path.startswith("/_nicegui") and request.url.path not in {"/login"}:
                 app.storage.user["referrer_path"] = request.url.path  # remember where the user wanted to go
                 return RedirectResponse("/login")
         return await call_next(request)
@@ -32,18 +32,15 @@ class AuthMiddleware(BaseHTTPMiddleware):
 def login() -> Optional[RedirectResponse]:
     """Login page with frontend elements and authentication mechanism."""
     def try_login() -> None:  # local function to avoid passing username and password as arguments
-        hashes = {}
-        with open(os.getenv("AUTH_USERS_PATH"), "r", encoding="utf-8") as users_file:
-            for line in users_file:
-                hashes.update(json.loads(line))
-
-        encoded_password = password.value.encode()
-        encoded_hash = hashes.get(username.value).encode()
-        if bcrypt.checkpw(password=encoded_password, hashed_password=encoded_hash):
+        encoded_hash = user_results.get(username.value)
+        if encoded_hash and bcrypt.checkpw(password=password.value.encode(), hashed_password=encoded_hash):
             app.storage.user.update({"username": username.value, "authenticated": True})
             ui.navigate.to("/")
         else:
             ui.notify("Wrong username or password", color="negative")
+
+    user_results = DbManager.query("select user, hash from fantasy_footballer.main_seed_data.users", to_dict=True)
+    user_results = {entry["user"]: entry["hash"].encode() for entry in user_results}
 
     if app.storage.user.get("authenticated", False):
         return RedirectResponse("/")

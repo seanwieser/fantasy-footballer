@@ -6,7 +6,7 @@ profile: "default"
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
-seed-paths: ["../../resources/dbt_seeds", "seed_examples"]
+seed-paths: ["../../resources/dbt_seeds"po]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 

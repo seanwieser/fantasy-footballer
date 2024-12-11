@@ -6,11 +6,13 @@ import re
 from datetime import datetime
 from string import Template
 
-import boto3
-import dateutil.parser as dparser
+from backend.utils import get_s3_client
 import duckdb
 from backend.sources.s001.extract import S001Extractor
 from dbt.cli.main import dbtRunner, dbtRunnerResult
+
+DB_NAME = "fantasy_footballer"
+DB_PATH = f"resources/{DB_NAME}.duckdb"
 
 SOURCE_EXTRACTOR_MAP = {e.SOURCE_NAME: e for e in [S001Extractor]}
 
@@ -23,7 +25,6 @@ CREATE OR REPLACE SECRET cloud_storage_secret (
     REGION '{os.getenv("REGION")}'
 );
 """
-
 CREATE_SCHEMA_TEMPLATE = Template("CREATE SCHEMA IF NOT EXISTS ${db_name}.${source_name}")
 CREATE_TABLE_TEMPLATE = Template("CREATE OR REPLACE TABLE ${fqtn} AS SELECT * FROM read_json(${file_paths});")
 
@@ -34,16 +35,13 @@ class DbManager:
     @staticmethod
     def setup():
         """Boot function for backend to load/transform all sources to make db ready for frontend."""
-        DbManager.fetch_resources()
+        # DbManager.fetch_resources()
         DbManager.refresh_db(SOURCE_EXTRACTOR_MAP.keys())
 
     @staticmethod
     def fetch_resources():
         """Function used to download all required files from cloud storage during boot."""
-        s3_client = boto3.client("s3",
-                                 endpoint_url=os.getenv("ENDPOINT"),
-                                 aws_access_key_id=os.getenv("ACCESS_KEY"),
-                                 aws_secret_access_key=os.getenv("SECRET_KEY"))
+        s3_client = get_s3_client()
         objects = s3_client.list_objects_v2(Bucket=os.getenv("BUCKET_NAME"))
 
         newest_dates = {}
@@ -74,15 +72,14 @@ class DbManager:
     def refresh_db(sources, queue=None):
         """Function used to load fresh data from cloud storage into db and transform with dbt."""
         # Load data from cloud storage
-        db_name, db_path = os.getenv("DB_NAME"), os.getenv("DB_PATH")
         queue_count = 0
-        with duckdb.connect(db_path) as conn:
+        with duckdb.connect(DB_PATH) as conn:
             conn.sql(SECRET_SQL)
             for source in sources:
-                conn.sql(CREATE_SCHEMA_TEMPLATE.substitute(db_name=db_name, source_name=source))
+                conn.sql(CREATE_SCHEMA_TEMPLATE.substitute(db_name=DB_NAME, source_name=source))
                 table_paths = DbManager.get_fresh_table_paths(source)
                 for table in SOURCE_EXTRACTOR_MAP[source].get_table_names():
-                    fqtn = f"{db_name}.{source}.{table}"
+                    fqtn = f"{DB_NAME}.{source}.{table}"
                     file_paths_str = json.dumps(table_paths[table])
                     conn.sql(CREATE_TABLE_TEMPLATE.substitute(fqtn=fqtn, file_paths=file_paths_str))
 
@@ -110,10 +107,7 @@ class DbManager:
     @staticmethod
     def get_fresh_table_paths(source):
         """Fetch cloud storage paths for freshest data for each table/year combination for passed source."""
-        s3_client = boto3.client("s3",
-                                 endpoint_url=os.getenv("ENDPOINT"),
-                                 aws_access_key_id=os.getenv("ACCESS_KEY"),
-                                 aws_secret_access_key=os.getenv("SECRET_KEY"))
+        s3_client = get_s3_client()
         objects = s3_client.list_objects_v2(Bucket=os.getenv("BUCKET_NAME"))
 
         # Gather all the freshest date string for each table/year combination
@@ -141,7 +135,7 @@ class DbManager:
     def run_dbt():
         """Function to execute dbt actions on database."""
         dbt = dbtRunner()
-        cli_args = ["build", "--profiles-dir", os.getenv("DBT_PATH"), "--project-dir", os.getenv("DBT_PATH")]
+        cli_args = ["build", "--profiles-dir", "dbt/fantasy_footballer", "--project-dir", "dbt/fantasy_footballer"]
         res: dbtRunnerResult = dbt.invoke(cli_args)
 
         if not res.success:
@@ -150,7 +144,7 @@ class DbManager:
     @staticmethod
     def query(sql, to_dict=False):
         """Function that is an interface for the frontend to fetch data from database."""
-        with duckdb.connect(os.getenv("DB_PATH")) as conn:
+        with duckdb.connect(DB_PATH) as conn:
             results_df = conn.sql(sql).fetchdf()
 
         if to_dict:

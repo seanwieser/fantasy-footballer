@@ -41,7 +41,7 @@ def get_owners_info_by_year():
     for row in owners_df.to_dict("records"):
         owners_info = []
         for owner_info in row["owners"]:
-            owner_info["image_path"] = f"{os.getenv('MEDIA_DIR_PATH')}/owners/{owner_info["owner_id"]}.jpg"
+            owner_info["image_path"] = f"resources/media/owners/{owner_info["owner_id"]}.jpg"
             owners_info.append(owner_info)
         owners_info_by_year[row["year"]] = sorted(owners_info, key=lambda d: d["owner_name"])
     return owners_info_by_year

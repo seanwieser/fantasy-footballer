@@ -1,0 +1,31 @@
+# fly.toml app configuration file generated for fantasy-footballer on 2024-12-10T16:58:44-08:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app =
+primary_region =
+
+[build]
+  dockerfile = "image/Dockerfile"
+
+[env]
+  START_YEAR=2018
+  DB_NAME="fantasy_footballer"
+  DB_PATH="/resources/fantasy_footballer.duckdb"
+  MEDIA_DIR_PATH="/resources/media"
+  DBT_PATH="/dbt/fantasy_footballer"
+  LEAGUE_ID=1119971
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  memory = "2gb"
+  cpu_kind = "shared"
+  cpus = 2

@@ -8,10 +8,6 @@ primary_region =
 [build]
   dockerfile = "image/Dockerfile"
 
-[env]
-  START_YEAR=2018
-  LEAGUE_ID=
-
 [http_service]
   internal_port = 8080
   force_https = true

@@ -4,7 +4,7 @@ import datetime
 import os
 
 from backend.models import Player
-from frontend.utils import common_header, query_data, START_YEAR
+from frontend.utils import START_YEAR, common_header, query_data
 from inflection import humanize
 from nicegui import ui
 from sqlalchemy import select

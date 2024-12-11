@@ -17,7 +17,6 @@ if __name__ in {"__main__", "__mp_main__"}:
     app.add_middleware(AuthMiddleware)
     app.on_startup(db_manager.setup)
     ui.run(title="Sco Chos",
-       favicon=f"{os.getenv("MEDIA_DIR_PATH")}/favicons/football.ico",
-       host="0.0.0.0",
-       dark=None,
-       storage_secret=os.getenv("STORAGE_SECRET"))
+           host="0.0.0.0",
+           dark=None,
+           storage_secret=os.getenv("STORAGE_SECRET"))

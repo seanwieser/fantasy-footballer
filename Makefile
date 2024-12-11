@@ -11,10 +11,10 @@ build:
 	docker build -t fantasy_footballer:latest -f ./image/Dockerfile .
 
 up:
-	docker run -p 8080:8080 --name fantasy_footballer --env-file ./image/.env -v ./resources:/resources/:rw fantasy_footballer:latest
+	docker run -p 8080:8080 --name fantasy_footballer --env-file ./image/.env fantasy_footballer:latest
 
 down:
 	docker container stop fantasy_footballer && docker container rm fantasy_footballer
 
 run-dbt:
-	poetry run dbt build --profiles-dir ${DBT_PATH} --project-dir ${DBT_PATH}
+	poetry run dbt build --profiles-dir ./dbt/fantasy-footballer --project-dir ./dbt/fantasy-footballer

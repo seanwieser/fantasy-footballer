@@ -1,0 +1,14 @@
+# nicegui
+export STORAGE_SECRET=
+
+# wasabi
+export ENDPOINT=
+export REGION=
+export ACCESS_KEY=
+export SECRET_KEY=
+export BUCKET_NAME=
+
+# s001
+export LEAGUE_ID=
+export ESPN_S2=
+export SWID=

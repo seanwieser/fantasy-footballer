@@ -6,9 +6,9 @@ import re
 from datetime import datetime
 from string import Template
 
-from backend.utils import get_s3_client
 import duckdb
 from backend.sources.s001.extract import S001Extractor
+from backend.utils import get_s3_client
 from dbt.cli.main import dbtRunner, dbtRunnerResult
 
 DB_NAME = "fantasy_footballer"

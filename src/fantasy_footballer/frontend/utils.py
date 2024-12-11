@@ -7,11 +7,12 @@ from inflection import humanize
 from nicegui import app, context, elements, ui
 from pandas import DataFrame
 
+START_YEAR = 2018
 PAGES = ["owners", "admin"]
 
 def get_valid_years() -> list[int]:
     """Get all years that fantasy data is available for."""
-    return list(range(int(os.getenv('START_YEAR')), datetime.datetime.now().year + 1))
+    return list(range(START_YEAR, datetime.datetime.now().year + 1))
 
 def get_years() -> list[str]:
     """Get all years that have fantasy data."""

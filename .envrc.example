@@ -1,5 +1,4 @@
-# project constants
-export START_YEAR=2018
+# nicegui
 export STORAGE_SECRET=
 
 # wasabi

@@ -41,7 +41,7 @@ def get_date_partition():
 def write_source_data(rows: list[dict], source: str, table: str, year: int) -> None:
     """Write jsonl file to cloud storage with constructed path from source, table, year parameters."""
     date_partition = get_date_partition()
-    dir_path = f"{os.getenv('SOURCE_DIR_PATH')}/{source}/{table}/{year}/{date_partition}"
+    dir_path = f"data/sources/{source}/{table}/{year}/{date_partition}"
     file_name = f"{source}_{table}_{year}_{date_partition}.json"
     s3_key = f"{dir_path}/{file_name}"
     s3_client = boto3.client("s3",

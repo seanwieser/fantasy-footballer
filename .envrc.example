@@ -1,0 +1,25 @@
+# project constants
+export START_YEAR=2018
+export STORAGE_SECRET=
+
+# wasabi
+export ENDPOINT=
+export REGION=
+export ACCESS_KEY=
+export SECRET_KEY=
+export BUCKET_NAME=
+
+# database
+export DB_NAME=fantasy_footballer
+export DB_PATH=${PWD}/resources/fantasy_footballer.duckdb
+
+# resources
+export MEDIA_DIR_PATH=${PWD}/resources/media
+
+# dbt
+export DBT_PATH=${PWD}/dbt/fantasy_footballer
+
+# s001
+export LEAGUE_ID=
+export ESPN_S2=
+export SWID=

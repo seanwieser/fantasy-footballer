@@ -131,7 +131,7 @@ class DbManager:
         fresh_table_paths = {table: [] for table in newest_dates}
         for table, dates_by_year in newest_dates.items():
             for year, date in dates_by_year.items():
-                dir_path = f"{os.getenv('SOURCE_DIR_PATH')}/{source}/{table}/{year}/{date}"
+                dir_path = f"data/sources/{source}/{table}/{year}/{date}"
                 file_name = f"{source}_{table}_{year}_{date}.json"
                 fresh_table_paths[table].append(f"s3://{os.getenv('BUCKET_NAME')}/{dir_path}/{file_name}")
 

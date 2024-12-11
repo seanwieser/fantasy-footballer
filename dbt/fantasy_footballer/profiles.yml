@@ -4,3 +4,9 @@ default:
     dev:
       type: duckdb
       path: ./resources/fantasy_footballer.duckdb
+pre-commit:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../../resources/fantasy_footballer.duckdb

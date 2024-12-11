@@ -4,7 +4,7 @@ import datetime
 import os
 
 from backend.models import Player
-from frontend.utils import common_header, query_data
+from frontend.utils import START_YEAR, common_header, query_data
 from inflection import humanize
 from nicegui import ui
 from sqlalchemy import select
@@ -81,7 +81,7 @@ async def players_table_and_dropdowns():
     with ui.row():
         with ui.dropdown_button("Year", auto_close=True) as year_dropdown:
             year_dropdown.bind_text_from(selection, "year")
-            for year in range(int(os.getenv("START_YEAR")), datetime.datetime.now().year + 1):
+            for year in range(START_YEAR, datetime.datetime.now().year + 1):
                 ui.item(str(year),
                         on_click=lambda year=year: refresh_table(selection,
                                                                  year=year))

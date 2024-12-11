@@ -1,6 +1,6 @@
 """Module containing pydantic model and transformer for s001 teams source table."""
 
-from backend.sources.utils import Transformer
+from backend.utils import Transformer
 from pydantic import BaseModel
 
 

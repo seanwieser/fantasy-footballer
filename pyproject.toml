@@ -56,7 +56,7 @@ line_position = "trailing"
 [tool.sqlfluff.templater.dbt]
 project_dir = "./dbt/fantasy_footballer"
 profiles_dir = "./dbt/fantasy_footballer"
-profile = "default"
+profile = "pre-commit"
 target = "dev"
 
 [tool.sqlfluff.rules.references]

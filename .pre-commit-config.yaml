@@ -43,7 +43,7 @@ repos:
     hooks:
       - id: sqlfluff-lint
         additional_dependencies: ["dbt-duckdb==1.9.0", "sqlfluff-templater-dbt"]
-        entry: env DB_PATH=ignore sqlfluff lint --processes 0 --disable-progress-bar
+        entry: sqlfluff lint --processes 0 --disable-progress-bar
       - id: sqlfluff-fix
         additional_dependencies: ["dbt-duckdb==1.9.0", "sqlfluff-templater-dbt"]
-        entry: env DB_PATH=ignore sqlfluff fix --show-lint-violations --processes 0 --disable-progress-bar
+        entry: sqlfluff fix --show-lint-violations --processes 0 --disable-progress-bar

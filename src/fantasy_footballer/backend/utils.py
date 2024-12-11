@@ -3,6 +3,8 @@ import datetime
 import json
 import os
 
+import boto3
+
 
 class Transformer:
     """Parent class for source transformers."""
@@ -31,6 +33,7 @@ class Transformer:
         raise NotImplementedError("Transformers need a transform method.")
 
 def get_s3_client():
+    """Authenticate with AWS and return an s3 client."""
     s3_client = boto3.client("s3",
                              endpoint_url=os.getenv("ENDPOINT"),
                              aws_access_key_id=os.getenv("ACCESS_KEY"),

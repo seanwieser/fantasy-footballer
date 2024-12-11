@@ -39,7 +39,7 @@ def owner_card(role: str):
     with ui.card().tight().classes("no-shadow border-[1px]"):
         with ui.card_section().classes("mx-auto").classes("p-0"):
             ui.label(titleize(role)).classes("text-weight-bold underline text-xl")
-        image_path = f"{os.getenv('MEDIA_DIR_PATH')}/owners/{CARD_INFOS[role]['owner_id']}.jpg"
+        image_path = f"resources/media/owners/{CARD_INFOS[role]['owner_id']}.jpg"
         ui.image(image_path).props("fit=scale-down")
         with ui.card_section().classes("mx-auto p-0"):
             with ui.row().classes("place-content-center text-weight-bold underline text-base"):

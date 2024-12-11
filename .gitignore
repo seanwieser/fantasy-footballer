@@ -7,6 +7,8 @@ __pycache__
 
 image/.env
 
+fly.toml
+
 **dbt.log
 target/
 dbt_packages/

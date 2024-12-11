@@ -29,7 +29,7 @@ def page(owner_id: str, year: int): # pylint:disable=too-many-statements
 
     with ui.grid(columns="1fr 1fr 2fr").classes("w-full gap-1"):
         # Owner image
-        img_path = f"{os.getenv('MEDIA_DIR_PATH')}/owners/{owner_id}.jpg"
+        img_path = f"resources/media/owners/{owner_id}.jpg"
         ui.image(img_path).classes("border p-1")
 
 

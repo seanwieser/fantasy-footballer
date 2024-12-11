@@ -3,4 +3,4 @@ default:
   outputs:
     dev:
       type: duckdb
-      path: "{{ env_var('DB_PATH') }}"
+      path: ./resources/fantasy_footballer.duckdb

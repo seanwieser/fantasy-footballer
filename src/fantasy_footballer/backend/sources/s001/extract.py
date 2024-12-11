@@ -5,7 +5,7 @@ import os
 from backend.sources.s001.transformers.players import PlayersTransformer
 from backend.sources.s001.transformers.teams import (TeamSchema,
                                                      TeamsTransformer)
-from backend.sources.utils import Transformer, write_source_data
+from backend.utils import Transformer, write_source_data
 from espn_api.football import League
 
 

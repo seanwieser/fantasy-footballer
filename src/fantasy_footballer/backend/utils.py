@@ -3,8 +3,6 @@ import datetime
 import json
 import os
 
-import boto3
-
 
 class Transformer:
     """Parent class for source transformers."""
@@ -32,6 +30,12 @@ class Transformer:
         """Abstract method to convert source data to native datatypes."""
         raise NotImplementedError("Transformers need a transform method.")
 
+def get_s3_client():
+    s3_client = boto3.client("s3",
+                             endpoint_url=os.getenv("ENDPOINT"),
+                             aws_access_key_id=os.getenv("ACCESS_KEY"),
+                             aws_secret_access_key=os.getenv("SECRET_KEY"))
+    return s3_client
 
 def get_date_partition():
     """Utility to return today's date in the standard format."""
@@ -44,8 +48,5 @@ def write_source_data(rows: list[dict], source: str, table: str, year: int) -> N
     dir_path = f"data/sources/{source}/{table}/{year}/{date_partition}"
     file_name = f"{source}_{table}_{year}_{date_partition}.json"
     s3_key = f"{dir_path}/{file_name}"
-    s3_client = boto3.client("s3",
-                              endpoint_url=os.getenv("ENDPOINT"),
-                              aws_access_key_id=os.getenv("ACCESS_KEY"),
-                              aws_secret_access_key=os.getenv("SECRET_KEY"))
+    s3_client = get_s3_client()
     s3_client.put_object(Body=json.dumps(rows), Bucket=os.getenv("BUCKET_NAME"), Key=s3_key)

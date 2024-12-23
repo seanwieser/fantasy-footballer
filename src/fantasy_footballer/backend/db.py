@@ -1,14 +1,16 @@
 """Module used by frontend to perform database actions and provide interface for frontend."""
 
+import csv
 import json
 import os
 import re
 from datetime import datetime
 from string import Template
 
+import bcrypt
 import duckdb
 from backend.sources.s001.extract import S001Extractor
-from backend.utils import get_s3_client
+from backend.utils import get_s3_client, write_dbt_seeds
 from dbt.cli.main import dbtRunner, dbtRunnerResult
 
 DB_NAME = "fantasy_footballer"
@@ -132,10 +134,33 @@ class DbManager:
         return fresh_table_paths
 
     @staticmethod
-    def run_dbt():
+    def add_user(username: str, password: str):
+        """Add a new user/password to authenticate with. Overwrites existing user with same username."""
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password.encode("utf-8"), salt)
+        with open("resources/dbt_seeds/users.csv", "r", newline="", encoding="utf-8") as rfp:
+            reader = csv.DictReader(rfp, delimiter=",")
+            user_data = [row for row in reader if row["user"] != username]
+            user_data.append({"user": username, "hash": hashed_password.decode("utf-8")})
+
+        with open("resources/dbt_seeds/users.csv", "w", newline="", encoding="utf-8") as wfp:
+            writer = csv.DictWriter(wfp, user_data[0].keys())
+            writer.writeheader()
+            writer.writerows(user_data)
+
+        DbManager.run_dbt(action="seed")
+        write_dbt_seeds()
+
+    @staticmethod
+    def run_dbt(action: str = "build"):
         """Function to execute dbt actions on database."""
         dbt = dbtRunner()
-        cli_args = ["build", "--profiles-dir", "dbt/fantasy_footballer", "--project-dir", "dbt/fantasy_footballer"]
+        cli_args = [action]
+        if action in ["build", "seed"]:
+            cli_args.extend(["--profiles-dir", "dbt/fantasy_footballer", "--project-dir", "dbt/fantasy_footballer"])
+        else:
+            raise RuntimeError("Not a supported dbt action.")
+
         res: dbtRunnerResult = dbt.invoke(cli_args)
 
         if not res.success:

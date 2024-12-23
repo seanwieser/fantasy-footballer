@@ -40,10 +40,14 @@ def logout() -> None:
 def common_header() -> None:
     """Header that is common for all pages."""
     current_page = context.client.page.path.replace("/", "")
+    valid_pages = PAGES
+    if app.storage.user.get("username") != "admin":
+        valid_pages = [page for page in valid_pages if page != "admin"]
+
     with ui.header().classes(replace="row items-center"):
         color = "red" if current_page == "" else "primary"
         ui.button(on_click=lambda: ui.navigate.to("/"), icon="home").props(f"square color={color}")
-        for page in PAGES:
+        for page in valid_pages:
             color = "red" if page == current_page else "primary"
             ui.button(humanize(page),
                       on_click=lambda page=page: ui.navigate.to(f"/{page}")

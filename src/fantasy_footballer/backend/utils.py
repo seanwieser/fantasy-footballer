@@ -53,3 +53,14 @@ def write_source_data(rows: list[dict], source: str, table: str, year: int) -> N
     s3_key = f"{dir_path}/{file_name}"
     s3_client = get_s3_client()
     s3_client.put_object(Body=json.dumps(rows), Bucket=os.getenv("BUCKET_NAME"), Key=s3_key)
+
+def write_dbt_seeds():
+    """Write dbt seed files to cloud storage."""
+    date_partition = get_date_partition()
+    dir_path = "resources/dbt_seeds"
+    s3_client = get_s3_client()
+    for _, _, filenames in os.walk(dir_path):
+        for dbt_seed_name in filenames:
+            s3_key = f"{dir_path}/{date_partition}/{dbt_seed_name}"
+            file_name = f"{dir_path}/{dbt_seed_name}"
+            s3_client.upload_file(Filename=file_name, Bucket=os.getenv("BUCKET_NAME"), Key=s3_key)

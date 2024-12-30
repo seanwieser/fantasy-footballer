@@ -39,7 +39,10 @@ clutch_record_no_zeroes as (
         sum(shotguns_per_outcome) as shotguns,
         sum(season_points_for_by_outcome) as season_points_for,
         sum(season_points_against_by_outcome) as season_points_against,
-        replace(replace(string_agg(outcome || count, '' order by outcome desc), '-', ''), 'L', '-') as record
+        replace(replace(string_agg(
+            outcome || count, ''
+            order by outcome desc
+        ), '-', ''), 'L', '-') as record
     from clutch_record_grouped
     group by all
 ),

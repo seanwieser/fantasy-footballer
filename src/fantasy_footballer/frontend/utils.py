@@ -18,6 +18,10 @@ def get_years() -> list[str]:
     """Get all years that have fantasy data."""
     return [row["year"] for row in DbManager.query("select * from main_utilities.all_years", to_dict=True)]
 
+def get_current_year() -> int:
+    """Get the latest year with fantasy data."""
+    return [row["this"] for row in DbManager.query("select * from main_utilities.current_year", to_dict=True)][0]
+
 def owner_id_to_owner_name(owner_id: str) -> str:
     """Return owner name given an owner id."""
     owner_name_sql = f"select * from main_seed_data.owner_names where owner_id == {owner_id}"

@@ -21,8 +21,8 @@ SOURCE_EXTRACTOR_MAP = {e.SOURCE_NAME: e for e in [S001Extractor]}
 SECRET_SQL = f"""
 CREATE OR REPLACE SECRET cloud_storage_secret (
     TYPE S3,
-    KEY_ID '{os.getenv("ACCESS_KEY")}',
-    SECRET '{os.getenv("SECRET_KEY")}',
+    KEY_ID '{os.getenv("APPLICATION_KEY_ID")}',
+    SECRET '{os.getenv("APPLICATION_KEY")}',
     ENDPOINT '{os.getenv("ENDPOINT").replace("https://", "")}',
     REGION '{os.getenv("REGION")}'
 );

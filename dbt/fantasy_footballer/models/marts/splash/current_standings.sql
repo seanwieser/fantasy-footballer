@@ -1,12 +1,18 @@
-select
-    standing                 as "Standing",
-    team_name                as "Name",
-    owner_name               as "Owner",
-    wins                     as "Wins",
-    losses                   as "Losses",
-    round(points_for, 2)     as "Points For",
-    round(points_against, 2) as "Points Against",
-    streak                   as "Streak"
-from {{ ref("stg_s001__teams") }}
-where year = '{{ modules.datetime.datetime.now().year }}'
-order by standing
+with current_standings as (
+    select
+        teams.standing                 as "Standing",
+        teams.team_name                as "Name",
+        teams.owner_name               as "Owner",
+        teams.wins                     as "Wins",
+        teams.losses                   as "Losses",
+        round(teams.points_for, 2)     as "Points For",
+        round(teams.points_against, 2) as "Points Against",
+        teams.streak                   as "Streak"
+    from {{ ref("stg_s001__teams") }} as teams
+    cross join {{ ref("current_year") }} as current_year
+    where teams.year = current_year.this
+    order by teams.standing
+)
+
+select *
+from current_standings

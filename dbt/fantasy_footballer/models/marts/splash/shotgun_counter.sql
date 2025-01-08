@@ -6,11 +6,12 @@ with shotgun_counter as (
     from {{ ref("stg_s001__team_schedules") }} as schedules
     inner join {{ ref("stg_s001__teams") }} as teams
         on schedules.team_id = teams.team_id
+    cross join {{ ref("current_year") }} as current_year
     where
-        schedules.year = {{ modules.datetime.datetime.now().year }} and
+        schedules.year = current_year.this and
         schedules.score_for < 100 and
         schedules.outcome != 'U'
-    group by "Owner"
+    group by teams.owner_name
     order by "Count" desc
 )
 

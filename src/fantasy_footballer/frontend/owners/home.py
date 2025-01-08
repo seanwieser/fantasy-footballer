@@ -4,7 +4,8 @@ import datetime
 import os
 
 from backend.db import DbManager
-from frontend.utils import common_header, get_years, image_path_to_owner_id
+from frontend.utils import (common_header, get_current_year, get_years,
+                            image_path_to_owner_id)
 from nicegui import events, ui
 
 
@@ -53,14 +54,13 @@ def page():
     common_header()
     owners_info_by_year = get_owners_info_by_year()
 
-    current_year = datetime.datetime.now().year
     fantasy_years = get_years()
     with ui.tabs().classes("w-full") as tabs:
         tab_panels = {}
         for year in fantasy_years:
             tab_panels[year] = ui.tab(str(year))
 
-    with ui.tab_panels(tabs, value=str(current_year)).classes("w-full"):
+    with ui.tab_panels(tabs, value=str(fantasy_years[-1])).classes("w-full"):
         for year in fantasy_years:
             with ui.tab_panel(tab_panels[year]):
                 owners_grid(owners_info_by_year[year], year)

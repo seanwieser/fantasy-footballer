@@ -1,11 +1,11 @@
 # nicegui
 export STORAGE_SECRET=
 
-# wasabi
+# backblaze
 export ENDPOINT=
 export REGION=
-export ACCESS_KEY=
-export SECRET_KEY=
+export APPLICATION_KEY_ID=
+export APPLICATION_KEY=
 export BUCKET_NAME=
 
 # s001

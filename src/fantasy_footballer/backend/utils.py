@@ -33,11 +33,11 @@ class Transformer:
         raise NotImplementedError("Transformers need a transform method.")
 
 def get_s3_client():
-    """Authenticate with AWS and return an s3 client."""
+    """Authenticate with AWS and return a s3 client."""
     s3_client = boto3.client("s3",
                              endpoint_url=os.getenv("ENDPOINT"),
-                             aws_access_key_id=os.getenv("ACCESS_KEY"),
-                             aws_secret_access_key=os.getenv("SECRET_KEY"))
+                             aws_access_key_id=os.getenv("APPLICATION_KEY_ID"),
+                             aws_secret_access_key=os.getenv("APPLICATION_KEY"))
     return s3_client
 
 def get_date_partition():

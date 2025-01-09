@@ -1,11 +1,7 @@
 """Module for Owners page."""
 
-import datetime
-import os
-
 from backend.db import DbManager
-from frontend.utils import (common_header, get_current_year, get_years,
-                            image_path_to_owner_id)
+from frontend.utils import common_header, get_years, image_path_to_owner_id
 from nicegui import events, ui
 
 

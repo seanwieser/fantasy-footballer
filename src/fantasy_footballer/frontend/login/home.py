@@ -4,8 +4,6 @@ Module to handle the login page and authentication of user.
 Inspired by https://github.com/zauberzeug/nicegui/blob/main/examples/authentication/main.py.
 """
 
-import json
-import os
 from typing import Optional
 
 import bcrypt

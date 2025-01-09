@@ -1,10 +1,8 @@
 """Source s001 extractor to handle everything associated with the source."""
-import datetime
 import os
 
 from backend.sources.s001.transformers.players import PlayersTransformer
-from backend.sources.s001.transformers.teams import (TeamSchema,
-                                                     TeamsTransformer)
+from backend.sources.s001.transformers.teams import TeamsTransformer
 from backend.utils import Transformer, write_source_data
 from espn_api.football import League
 

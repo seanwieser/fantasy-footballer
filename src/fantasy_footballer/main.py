@@ -1,11 +1,12 @@
 """Main entry point for the application."""
 
-# pylint: disable=reimported
+# pylint: disable=reimported,unused-import
 
 import os
 
 from backend.db import DbManager
 from frontend.admin.home import page
+from frontend.gallery.home import page
 from frontend.login.home import AuthMiddleware
 from frontend.owners.home import page
 from frontend.owners.spotlight import page

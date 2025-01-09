@@ -2,4 +2,4 @@ version: 2
 
 models:
   - name: current_standings
-  - name: shotgun_counter
+  - name: current_shotgun_counter

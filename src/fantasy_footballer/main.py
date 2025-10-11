@@ -11,7 +11,6 @@ from frontend.login.home import AuthMiddleware
 from frontend.owners.home import page
 from frontend.owners.spotlight import page
 from frontend.splash.home import page
-from frontend.stats_center.home import page
 from nicegui import app, ui
 
 if __name__ in {"__main__", "__mp_main__"}:

@@ -53,7 +53,6 @@ player_stats_expanded as (
                 as {{ breakdown_field['field'] }}
 
             {% if not loop.last %}
-
                 ,
             {% endif %}
         {% endfor -%}

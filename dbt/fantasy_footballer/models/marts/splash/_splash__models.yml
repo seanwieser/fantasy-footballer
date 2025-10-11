@@ -1,5 +1,0 @@
-version: 2
-
-models:
-  - name: current_standings
-  - name: current_shotgun_counter

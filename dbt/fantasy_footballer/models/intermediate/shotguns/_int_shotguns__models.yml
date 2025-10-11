@@ -1,4 +1,0 @@
-version: 2
-
-models:
-  - name: int_shotguns_by_owner_year_week

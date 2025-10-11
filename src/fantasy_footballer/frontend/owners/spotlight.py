@@ -7,12 +7,12 @@ from nicegui import ui
 
 def season_overview_card(title, value, tooltip_text=None):
     """Season Overview card."""
-    with ui.card().classes("w-full h-full"):
+    with ui.card().classes("w-full h-full") as card:
+        if tooltip_text:
+            card.tooltip(tooltip_text)
         ui.label(title).classes("text-weight-bold underline text-xl text-center w-full")
         with ui.row().classes(" h-full w-full items-center"):
-            lab = ui.label(value).classes("text-5xl text-center text-bold w-full")
-            if tooltip_text:
-                lab.tooltip(tooltip_text)
+            ui.label(value).classes("text-5xl text-center text-bold w-full")
 
 
 @ui.page("/owners/{owner_id}/{year}")
@@ -39,7 +39,6 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
             with ui.card_section().classes("w-full").classes("p-0"):
                 ui.label("Season Overview").classes("text-weight-bold underline text-3xl text-center")
             with ui.grid(columns="1fr 1fr 1fr 1fr 1fr 1fr").classes("w-full h-full gap-2"):
-
                 season_overview_card("Standing", season_overview_data["standing"])
                 season_overview_card("Record", season_overview_data["record"])
 
@@ -63,11 +62,13 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
                         ui.label(season_overview_data["points_against_per_week"]).classes("text-5xl")
                         ui.label("pts/week").classes("text-2xl")
 
-                season_overview_card("Streak", season_overview_data["streak"])
+                season_overview_card("Current Streak", season_overview_data["streak"])
                 season_overview_card("Clutch Record",
                                      season_overview_data["clutch_record"],
                                      tooltip_text="Matchups within 10 points")
-                season_overview_card("Shotguns", season_overview_data["shotguns"])
+                season_overview_card("Shotguns",
+                                     season_overview_data["shotguns"],
+                                     tooltip_text="Under 100 Points For or lowest of week")
                 season_overview_card("Budget", f"${season_overview_data['budget']}")
                 season_overview_card("Acquisitions", season_overview_data["acquisitions"])
                 season_overview_card("Trades", season_overview_data["trades"])
@@ -80,17 +81,33 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
 
         # Season Schedule
         with ui.card().classes("no-shadow border-[0px] col-span-2 w-full"):
-            schedule_sql = f"select * from main_marts.season_schedule where owner_id={owner_id} and year={str(year)}"
+            schedule_sql = f"""
+                select * exclude(owner_id, year),  
+                from main_marts.season_schedule 
+                where owner_id={owner_id} and year={str(year)}
+            """
             season_data_df = DbManager.query(schedule_sql)
-            season_data_df.drop(["owner_id", "year"], axis=1, inplace=True)
+
             table(season_data_df,
                   title="Season Schedule",
                   classes="no-shadow border-[0px] w-full",
                   props="dense",
                   not_sortable=["Team Name", "Owner", "Outcome"],
-                  slots=[{"name": "body-cell-Points For",
+                  slots=[{
+                      "name": "body-cell-Outcome",
+                      "template": r"""
+                        <q-td 
+                            :props="props"
+                            :class="
+                                props.value.includes('cw') ? 'bg-light-green-7' : 
+                                props.value.includes('cl') ? 'bg-orange-7' :
+                                'primary'      
+                            ">
+                            {{ props.value.replace('cw', '').replace('cl', '') }}
+                        </q-td>"""},
+                      {
+                          "name": "body-cell-Points For",
                           "template": r"""
-            <q-td :props="props" :class="props.value < 100 ? 'bg-red' : 'primary'">
-                {{ props.value }}
-            </q-td>
-        """}])
+                        <q-td :props="props" :class="props.value.includes('sg') ? 'bg-red-7' : 'primary'">
+                            {{ props.value.replace('sg', '') }}
+                        </q-td>"""}])

@@ -78,6 +78,7 @@ def table(data_df: DataFrame,
     else:
         tab = ui.table.from_pandas(data_df).classes(classes).props(props)
 
+    slots = slots or []
     for slot in slots:
         tab.add_slot(**slot)
 

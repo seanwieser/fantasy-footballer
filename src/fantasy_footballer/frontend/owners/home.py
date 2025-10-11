@@ -1,4 +1,4 @@
-"""Module for Owners page."""
+"""Module for Owners home page."""
 
 from backend.db import DbManager
 from frontend.utils import common_header, get_years, image_path_to_owner_id

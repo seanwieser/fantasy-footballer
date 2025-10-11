@@ -9,21 +9,21 @@ with schedule as (
             when team_schedules.outcome = 'U'
                 then null
             when
-                abs(team_schedules.score_for - opponent_schedules.score_for) < 10
-                and team_schedules.outcome = 'W'
-            then
-                team_schedules.outcome || 'cw'
+                abs(team_schedules.score_for - opponent_schedules.score_for) < 10 and
+                team_schedules.outcome = 'W'
+                then
+                    team_schedules.outcome || 'cw'
             when
-                abs(team_schedules.score_for - opponent_schedules.score_for) < 10
-                and team_schedules.outcome = 'L'
-            then
-                team_schedules.outcome || 'cl'
+                abs(team_schedules.score_for - opponent_schedules.score_for) < 10 and
+                team_schedules.outcome = 'L'
+                then
+                    team_schedules.outcome || 'cl'
             else team_schedules.outcome
         end                                                 as "Outcome",
         case
             when team_schedules.score_for = 0.0
                 then null
-            when is_shotgun
+            when shotguns.is_shotgun
                 then team_schedules.score_for::varchar || 'sg'
             else team_schedules.score_for::varchar
         end                                                 as "Points For",
@@ -33,7 +33,7 @@ with schedule as (
         on team_schedules.opponent_team_schedule_id = opponent_schedules.team_schedule_id
     inner join {{ ref('stg_s001__teams') }} as opponent_teams
         on opponent_schedules.team_id = opponent_teams.team_id
-    left join {{ ref('int_shotguns') }} shotguns
+    left join {{ ref('int_shotguns') }} as shotguns
         on team_schedules.team_schedule_id = shotguns.team_schedule_id
     where not team_schedules.is_playoff
     order by team_schedules.week

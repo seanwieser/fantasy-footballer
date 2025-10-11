@@ -64,7 +64,7 @@ async def transform_data_ui():
     refresh_queue = Manager().Queue()
     refresh_progressbar = ui.linear_progress(value=0).props("instant-feedback")
 
-    ui.button("Transform", on_click=lambda: async_transform_data())
+    ui.button("Transform", on_click=lambda: async_transform_data)
     ui.separator()
 
     return refresh_progressbar, refresh_queue

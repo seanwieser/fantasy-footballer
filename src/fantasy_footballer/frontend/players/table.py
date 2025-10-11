@@ -1,10 +1,9 @@
 """Module for displaying a table of players."""
 
 import datetime
-import os
 
 from backend.models import Player
-from frontend.utils import START_YEAR, common_header, query_data
+from frontend.utils import START_YEAR, query_data
 from inflection import humanize
 from nicegui import ui
 from sqlalchemy import select

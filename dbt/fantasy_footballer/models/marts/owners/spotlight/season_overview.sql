@@ -20,10 +20,9 @@ clutch_record_grouped as (
         team_schedules.owner_id,
         team_schedules.year,
         team_schedules.outcome,
-        count_if(team_schedules.score_for < 100) as shotguns_per_outcome,
         sum(team_schedules.score_for) as season_points_for_by_outcome,
         sum(opponent_schedules.score_for) as season_points_against_by_outcome,
-        count_if(abs(team_schedules.score_for - opponent_schedules.score_for) < 10) as count
+        count_if(abs(team_schedules.score_for - opponent_schedules.score_for) < 10) as clutch_count
     from {{ ref('stg_s001__team_schedules') }} as team_schedules
     inner join {{ ref('stg_s001__team_schedules') }} as opponent_schedules
         on team_schedules.opponent_team_schedule_id = opponent_schedules.team_schedule_id
@@ -36,11 +35,10 @@ clutch_record_no_zeroes as (
         team_id,
         owner_id,
         year,
-        sum(shotguns_per_outcome) as shotguns,
         sum(season_points_for_by_outcome) as season_points_for,
         sum(season_points_against_by_outcome) as season_points_against,
         replace(replace(string_agg(
-            outcome || count, ''
+            outcome || clutch_count, ''
             order by outcome desc
         ), '-', ''), 'L', '-') as record
     from clutch_record_grouped
@@ -52,7 +50,6 @@ clutch_record as (
         team_id,
         owner_id,
         year,
-        shotguns,
         season_points_for,
         season_points_against,
         case
@@ -83,6 +80,14 @@ weeks_played as (
     group by year
 ),
 
+shotguns_by_team as (
+    select
+        team_id,
+        count(is_shotgun) as shotguns
+    from {{ ref("int_shotguns") }}
+    group by team_id
+),
+
 season_overview as (
     select
         season_overview_wo_clutch.owner_id,
@@ -94,7 +99,7 @@ season_overview as (
         season_overview_wo_clutch.trades,
         season_overview_wo_clutch.streak,
         clutch_record.record as clutch_record,
-        clutch_record.shotguns,
+        shotguns_by_team.shotguns,
         round(clutch_record.season_points_for, 2) as points_for,
         round(clutch_record.season_points_for / weeks_played.weeks_played, 2) as points_for_per_week,
         round(clutch_record.season_points_against, 2) as points_against,
@@ -104,6 +109,8 @@ season_overview as (
         on season_overview_wo_clutch.team_id = clutch_record.team_id
     inner join weeks_played
         on season_overview_wo_clutch.year = weeks_played.year
+    inner join shotguns_by_team
+        on season_overview_wo_clutch.team_id = shotguns_by_team.team_id
 )
 
 select *

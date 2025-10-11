@@ -14,7 +14,7 @@ def page():
     #         r"""
     #     <div style="position:relative;padding-top:56.25%;">
     #     <iframe
-    #         src="https://iframe.mediadelivery.net/embed/366287/9ad736fe-b905-43fa-a4d7-1b8cf5e4facd?autoplay=false&loop=false&muted=false&preload=false&responsive=true"
+    #         src=""
     #         loading="lazy"
     #         style="border:0;position:absolute;top:0;height:100%;width:100%;"
     #         allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"

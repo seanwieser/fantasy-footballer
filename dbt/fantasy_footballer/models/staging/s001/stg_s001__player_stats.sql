@@ -50,12 +50,7 @@ player_stats_expanded as (
         player_id || '_' || stats_flat['week'][1]::varchar as player_stat_id,
         {% for breakdown_field in breakdown_fields -%}
             stats_flat['{{ breakdown_field['raw_field'] }}'][1]::{{ breakdown_field['datatype'] }}
-                as {{ breakdown_field['field'] }}
-
-            {% if not loop.last %}
-
-                ,
-            {% endif %}
+                as {{ breakdown_field['field'] }}{% if not loop.last %},{% endif %}
         {% endfor -%}
     from player_stats_unnested
 )

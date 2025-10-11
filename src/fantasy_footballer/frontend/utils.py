@@ -1,14 +1,12 @@
 """Module contains utility functions for the marts."""
 import datetime
-import os
 
 from backend.db import DbManager
 from inflection import humanize
-from nicegui import app, context, elements, ui
+from nicegui import app, context, ui
 from pandas import DataFrame
 
 START_YEAR = 2018
-PAGES = ["owners", "admin"]
 
 def get_valid_years() -> list[int]:
     """Get all years that fantasy data is available for."""
@@ -43,11 +41,16 @@ def logout() -> None:
 
 def common_header() -> None:
     """Header that is common for all pages."""
-    current_page = context.client.page.path.replace("/", "")
-    valid_pages = PAGES
-    if app.storage.user.get("username") != "admin":
-        valid_pages = [page for page in valid_pages if page != "admin"]
+    page_by_access_level = {"owners": 0, "gallery": 1, "admin": 2}
+    username = app.storage.user.get("username")
+    if username == "public":
+        valid_pages = [page for page, access_level in page_by_access_level.items() if access_level == 0]
+    elif username == "admin":
+        valid_pages = [page for page, access_level in page_by_access_level.items() if access_level <= 1]
+    else:
+        valid_pages = [page for page, access_level in page_by_access_level.items() if access_level <= 2]
 
+    current_page = context.client.page.path.replace("/", "")
     with ui.header().classes(replace="row items-center"):
         color = "red" if current_page == "" else "primary"
         ui.button(on_click=lambda: ui.navigate.to("/"), icon="home").props(f"square color={color}")
@@ -63,16 +66,21 @@ def table(data_df: DataFrame,
           title: str="",
           classes: str="",
           props: str="",
-          not_sortable: bool=None,
-          align: str="center") -> ui.table:
+          not_sortable: bool = None,
+          align: str= "center",
+          slots: list[str] = None) -> ui.table:
     """Create a standard table element."""
     if title:
-        with ui.card().classes("no-shadow border-[0px]"):
+        with ui.card().classes("no-shadow border-[0px] w-full"):
             with ui.card_section().classes("mx-auto").classes("p-0"):
                 ui.label(title).classes("text-weight-bold underline text-xl text-center")
             tab = ui.table.from_pandas(data_df).classes(classes).props(props)
     else:
         tab = ui.table.from_pandas(data_df).classes(classes).props(props)
+
+    slots = slots or []
+    for slot in slots:
+        tab.add_slot(**slot)
 
     not_sortable = not_sortable or []
     for col in tab.columns:

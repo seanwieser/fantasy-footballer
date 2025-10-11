@@ -1,9 +1,7 @@
 """Home page for the marts."""
-import os
 
 from backend.db import DbManager
-from frontend.utils import common_header, image_path_to_owner_id, table
-from inflection import titleize
+from frontend.utils import common_header, table
 from nicegui import ui
 
 # def owner_card(role: str):
@@ -31,7 +29,7 @@ def page():
         with ui.card().classes("no-shadow border-[1px] relative-top-left"):
             with ui.card_section().classes("mx-auto").classes("p-0 pt-2"):
                 ui.label("Shotgun Counter").classes("text-weight-bold underline text-xl text-center")
-            sql = "select * from fantasy_footballer.main_marts.shotgun_counter"
+            sql = "select * from fantasy_footballer.main_marts.current_shotgun_counter"
             standings_df = DbManager.query(sql)
             table(standings_df, classes="no-shadow w-full", not_sortable="all")
 

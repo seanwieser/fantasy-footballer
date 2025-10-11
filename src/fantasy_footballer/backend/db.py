@@ -37,8 +37,10 @@ class DbManager:
     @staticmethod
     def setup():
         """Boot function for backend to load/transform all sources to make db ready for frontend."""
-        DbManager.fetch_resources()
-        DbManager.refresh_db(SOURCE_EXTRACTOR_MAP.keys())
+        # DbManager.fetch_resources()
+        # DbManager.ingest_raw_data_from_cloud(SOURCE_EXTRACTOR_MAP.keys())
+        DbManager.run_dbt()
+        print("On")
 
     @staticmethod
     def fetch_resources():
@@ -71,7 +73,7 @@ class DbManager:
         print("Resources fetched...")
 
     @staticmethod
-    def refresh_db(sources, queue=None):
+    def ingest_raw_data_from_cloud(sources, queue=None):
         """Function used to load fresh data from cloud storage into db and transform with dbt."""
         # Load data from cloud storage
         queue_count = 0
@@ -87,17 +89,11 @@ class DbManager:
 
                 if queue:
                     queue_count += 1
-                    queue.put_nowait(queue_count / (len(sources) + 1))
-        print("Data Loaded...")
-
-        # Transform
-        DbManager.run_dbt()
-        if queue:
-            queue_count += 1
-            queue.put_nowait(queue_count / (len(sources) + 1))
+                    queue.put_nowait(queue_count / len(sources))
+        print("Raw Data Ingested...")
 
     @staticmethod
-    def fetch_data(years, source, tables, queue):
+    def fetch_data_from_sources(years, source, tables, queue):
         """Run source extractor for passed parameters."""
         SOURCE_EXTRACTOR_MAP[source].run(queue, years, tables)
 
@@ -152,7 +148,7 @@ class DbManager:
         write_dbt_seeds()
 
     @staticmethod
-    def run_dbt(action: str = "build"):
+    def run_dbt(action: str = "build", queue=None):
         """Function to execute dbt actions on database."""
         dbt = dbtRunner()
         cli_args = [action]
@@ -165,6 +161,9 @@ class DbManager:
 
         if not res.success:
             print(res.exception)
+
+        if queue:
+            queue.put_nowait(1)
 
     @staticmethod
     def query(sql, to_dict=False):

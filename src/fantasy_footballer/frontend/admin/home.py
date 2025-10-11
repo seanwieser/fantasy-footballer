@@ -1,4 +1,4 @@
-"""Module for Admin page."""
+"""Module for Admin page to allow backend actions to be executed from frontend."""
 
 from multiprocessing import Manager
 
@@ -7,9 +7,9 @@ from frontend.utils import common_header, get_valid_years
 from nicegui import app, run, ui
 
 
-async def fetch_data_ui(source_info):
+async def fetch_data_from_sources_ui(source_info):
     """UI for fetching data from source and writing to cloud storage."""
-    async def async_fetch_data(years, source_tables):
+    async def async_fetch_data_from_sources(years, source_tables):
         # Need a better way to repr the source tables mapping
         tables_by_source = {}
         for source_table in source_tables:
@@ -20,7 +20,7 @@ async def fetch_data_ui(source_info):
                 tables_by_source[source] = [table]
 
         for source, tables in tables_by_source.items():
-            await run.cpu_bound(DbManager.fetch_data, years, source, tables, fetch_queue)
+            await run.cpu_bound(DbManager.fetch_data_from_sources, years, source, tables, fetch_queue)
 
     fetch_progressbar = ui.linear_progress(value=0).props("instant-feedback")
     fetch_queue = Manager().Queue()
@@ -32,22 +32,39 @@ async def fetch_data_ui(source_info):
     with ui.row():
         source_table_selections = ui.select(options, value=None, multiple=True, clearable=True)
         year_selections = ui.select(get_valid_years(), value=None, multiple=True, clearable=True)
-    ui.button("Fetch", on_click=lambda: async_fetch_data(year_selections.value, source_table_selections.value))
+    ui.button("Fetch data from source",
+              on_click=lambda: async_fetch_data_from_sources(year_selections.value, source_table_selections.value)
+              )
     ui.separator()
 
     return fetch_progressbar, fetch_queue
 
-async def refresh_data_ui(source_info):
+async def ingest_data_from_cloud_ui(source_info):
     """UI for refreshing data in database layer."""
-    async def async_refresh_data(sources):
+    async def async_ingest_data_from_cloud(sources):
         refresh_progressbar.clear()
-        await run.cpu_bound(DbManager.refresh_db, sources, refresh_queue)
+        await run.cpu_bound(DbManager.ingest_data_from_cloud, sources, refresh_queue)
 
     refresh_queue = Manager().Queue()
     refresh_progressbar = ui.linear_progress(value=0).props("instant-feedback")
 
     source_selections = ui.select(list(source_info.keys()), value=None, multiple=True, clearable=True)
-    ui.button("Refresh Data", on_click=lambda: async_refresh_data(source_selections.value))
+    ui.button("Ingest raw data from cloud",
+              on_click=lambda: async_ingest_data_from_cloud(source_selections.value))
+    ui.separator()
+
+    return refresh_progressbar, refresh_queue
+
+async def transform_data_ui():
+    """UI for refreshing data in database layer."""
+    async def async_transform_data():
+        refresh_progressbar.clear()
+        await run.cpu_bound(DbManager.run_dbt)
+
+    refresh_queue = Manager().Queue()
+    refresh_progressbar = ui.linear_progress(value=0).props("instant-feedback")
+
+    ui.button("Transform", on_click=lambda: async_transform_data())
     ui.separator()
 
     return refresh_progressbar, refresh_queue
@@ -66,14 +83,18 @@ async def page():
     """Admin page to manually execute backend actions from the frontend."""
     def update_progressbars():
         fetch_progressbar.set_value(fetch_queue.get() if not fetch_queue.empty() else fetch_progressbar.value)
-        refresh_progressbar.set_value(refresh_queue.get() if not refresh_queue.empty() else refresh_progressbar.value)
+        ingest_progressbar.set_value(ingest_queue.get() if not ingest_queue.empty() else ingest_progressbar.value)
+        transform_progressbar.set_value(
+            transform_queue.get() if not transform_queue.empty() else transform_progressbar.value
+        )
 
     common_header()
     ui.timer(1, callback=update_progressbars)
 
     source_info = DbManager.get_all_tables_by_source()
-    fetch_progressbar, fetch_queue = await fetch_data_ui(source_info)
-    refresh_progressbar, refresh_queue = await refresh_data_ui(source_info)
+    fetch_progressbar, fetch_queue = await fetch_data_from_sources_ui(source_info)
+    ingest_progressbar, ingest_queue = await ingest_data_from_cloud_ui(source_info)
+    transform_progressbar, transform_queue = await transform_data_ui()
     access_control_ui()
 
     ui.button("Shutdown", on_click=app.shutdown)

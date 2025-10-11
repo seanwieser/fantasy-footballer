@@ -83,9 +83,10 @@ weeks_played as (
 shotguns_by_team as (
     select
         team_id,
-        count(is_shotgun) as shotguns
+        year,
+        sum(if(is_shotgun, 1, 0)) as shotguns
     from {{ ref("int_shotguns") }}
-    group by team_id
+    group by all
 ),
 
 season_overview as (

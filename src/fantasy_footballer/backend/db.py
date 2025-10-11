@@ -37,10 +37,9 @@ class DbManager:
     @staticmethod
     def setup():
         """Boot function for backend to load/transform all sources to make db ready for frontend."""
-        # DbManager.fetch_resources()
-        # DbManager.ingest_raw_data_from_cloud(SOURCE_EXTRACTOR_MAP.keys())
+        DbManager.fetch_resources()
+        DbManager.ingest_raw_data_from_cloud(SOURCE_EXTRACTOR_MAP.keys())
         DbManager.run_dbt()
-        print("On")
 
     @staticmethod
     def fetch_resources():

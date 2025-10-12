@@ -1,0 +1,59 @@
+version: 2
+
+sources:
+  - name: s002
+
+    tables:
+      - name: timeframes
+        description: NFL season timeframes including regular season, preseason, postseason, and offseason periods
+
+        columns:
+          - name: season_type
+            description: |
+              Numeric identifier for the type of season period:
+              1 = Regular Season, 2 = Preseason, 3 = Postseason, 4 = Offseason, 5 = Pro Bowl
+            tests:
+              - not_null
+              - accepted_values:
+                  values: [1, 2, 3, 4, 5]
+
+          - name: season
+            description: The year of the NFL season
+            tests:
+              - not_null
+
+          - name: week
+            description: Week number within the season (null for offseason periods)
+
+          - name: name
+            description: Full name of the timeframe (e.g., "Week 1", "Super Bowl")
+            tests:
+              - not_null
+
+          - name: short_name
+            description: Abbreviated name of the timeframe
+
+          - name: start_date
+            description: Start date and time of the timeframe period
+            tests:
+              - not_null
+
+          - name: end_date
+            description: End date and time of the timeframe period
+            tests:
+              - not_null
+
+          - name: api_season
+            description: Season identifier used in API calls (e.g., "2024REG", "2024POST")
+            tests:
+              - not_null
+
+          - name: api_week
+            description: Week identifier used in API calls (null for some periods)
+
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - season
+                - season_type
+                - week

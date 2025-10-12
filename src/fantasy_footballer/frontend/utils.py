@@ -46,9 +46,9 @@ def common_header() -> None:
     if username == "public":
         valid_pages = [page for page, access_level in page_by_access_level.items() if access_level == 0]
     elif username == "admin":
-        valid_pages = [page for page, access_level in page_by_access_level.items() if access_level <= 1]
-    else:
         valid_pages = [page for page, access_level in page_by_access_level.items() if access_level <= 2]
+    else:
+        valid_pages = [page for page, access_level in page_by_access_level.items() if access_level <= 1]
 
     current_page = context.client.page.path.replace("/", "")
     with ui.header().classes(replace="row items-center"):

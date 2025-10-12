@@ -39,35 +39,35 @@ async def fetch_data_from_sources_ui(source_info):
 
     return fetch_progressbar, fetch_queue
 
-async def ingest_data_from_cloud_ui(source_info):
+async def ingest_raw_data_from_cloud_ui(source_info):
     """UI for refreshing data in database layer."""
-    async def async_ingest_data_from_cloud(sources):
+    async def async_ingest_raw_data_from_cloud(sources):
         refresh_progressbar.clear()
-        await run.cpu_bound(DbManager.ingest_data_from_cloud, sources, refresh_queue)
+        await run.cpu_bound(DbManager.ingest_raw_data_from_cloud, sources, ingest_refresh_queue)
 
-    refresh_queue = Manager().Queue()
+    ingest_refresh_queue = Manager().Queue()
     refresh_progressbar = ui.linear_progress(value=0).props("instant-feedback")
 
     source_selections = ui.select(list(source_info.keys()), value=None, multiple=True, clearable=True)
     ui.button("Ingest raw data from cloud",
-              on_click=lambda: async_ingest_data_from_cloud(source_selections.value))
+              on_click=lambda: async_ingest_raw_data_from_cloud(source_selections.value))
     ui.separator()
 
-    return refresh_progressbar, refresh_queue
+    return refresh_progressbar, ingest_refresh_queue
 
 async def transform_data_ui():
     """UI for refreshing data in database layer."""
     async def async_transform_data():
         refresh_progressbar.clear()
-        await run.cpu_bound(DbManager.run_dbt)
+        await run.cpu_bound(DbManager.run_dbt, "build", transform_refresh_queue)
 
-    refresh_queue = Manager().Queue()
+    transform_refresh_queue = Manager().Queue()
     refresh_progressbar = ui.linear_progress(value=0).props("instant-feedback")
 
-    ui.button("Transform", on_click=lambda: async_transform_data)
+    ui.button("Transform", on_click=lambda: async_transform_data()) #pylint: disable=unnecessary-lambda
     ui.separator()
 
-    return refresh_progressbar, refresh_queue
+    return refresh_progressbar, transform_refresh_queue
 
 def access_control_ui():
     """UI for adding users to the authentication system."""
@@ -93,7 +93,7 @@ async def page():
 
     source_info = DbManager.get_all_tables_by_source()
     fetch_progressbar, fetch_queue = await fetch_data_from_sources_ui(source_info)
-    ingest_progressbar, ingest_queue = await ingest_data_from_cloud_ui(source_info)
+    ingest_progressbar, ingest_queue = await ingest_raw_data_from_cloud_ui(source_info)
     transform_progressbar, transform_queue = await transform_data_ui()
     access_control_ui()
 

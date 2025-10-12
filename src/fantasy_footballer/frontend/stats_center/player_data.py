@@ -1,30 +1,31 @@
+"""Module for the Player Data page."""
+
 from frontend.utils import common_header
 from nicegui import ui
 
+# class DropDownSelection:
+#     """Class for dropdown selection for Players table."""
+#
+#     def __init__(self, year=None, position=None):
+#         """Initialize DropDownSelection."""
+#         self.year = year
+#         self.position = position
+#
+#     def valid(self):
+#         """Check if year and position are valid."""
+#         return all([self.year, self.position])
+#
+#     def set(self, year, position):
+#         """Set year and position."""
+#         if year:
+#             self.year = year
+#         if position:
+#             self.position = position
 
-class DropDownSelection:
-    """Class for dropdown selection for Players table."""
 
-    def __init__(self, year=None, position=None):
-        """Initialize DropDownSelection."""
-        self.year = year
-        self.position = position
-
-    def valid(self):
-        """Check if year and position are valid."""
-        return all([self.year, self.position])
-
-    def set(self, year, position):
-        """Set year and position."""
-        if year:
-            self.year = year
-        if position:
-            self.position = position
-
-
-@ui.refreshable
-async def players_table(selection):
-    """Table of players."""
+# @ui.refreshable
+# async def players_table(selection):
+#     """Table of players."""
     # if selection.valid():
     #     where_clause = [
     #         Player.year == selection.year,
@@ -58,18 +59,16 @@ async def players_table(selection):
     #                   row_key="name",
     #                   pagination=25).classes("w-full").props("selection=single") as table:
     #         table.on("selection", lambda e: ui.notify(e.args))
-    pass
 
 
-def refresh_table(selection, year=None, position=None):
-    """Refresh table with new year and position."""
+# def refresh_table(selection, year=None, position=None):
+#     """Refresh table with new year and position."""
     # selection.set(year, position)
     # players_table.refresh(selection)
-    pass
 
 
-async def players_table_and_dropdowns():
-    """Dropdowns and Table for Players page."""
+# async def players_table_and_dropdowns():
+#     """Dropdowns and Table for Players page."""
     # positions = await query_data(select(Player.position).distinct())
     # selection = DropDownSelection(datetime.datetime.now().year, max(positions))
     # with ui.row():
@@ -88,7 +87,6 @@ async def players_table_and_dropdowns():
     #                     on_click=lambda position=position: refresh_table(
     #                         selection, position=position))
     # await players_table(selection)
-    pass
 
 @ui.page("/stats_center/player_data")
 async def page():

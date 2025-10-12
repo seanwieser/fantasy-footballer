@@ -25,7 +25,8 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
         fantasy_years = get_years(owner_id)
         with ui.dropdown_button(str(year)).classes("w-1/6"):
             for fantasy_year in fantasy_years:
-                ui.item(fantasy_year, on_click=lambda fy=fantasy_year: ui.navigate.to(f"/owner_history/{owner_id}/{fy}"))
+                ui.item(fantasy_year,
+                        on_click=lambda fy=fantasy_year: ui.navigate.to(f"/owner_history/{owner_id}/{fy}"))
 
     with ui.grid(columns="1fr 1fr 2fr").classes("w-full gap-1"):
         # Owner image

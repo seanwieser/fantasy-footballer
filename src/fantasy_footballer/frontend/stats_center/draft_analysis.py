@@ -1,3 +1,5 @@
+"""Module for the Draft Analysis page."""
+
 from frontend.utils import common_header
 from nicegui import ui
 

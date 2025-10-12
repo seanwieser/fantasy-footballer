@@ -1,10 +1,11 @@
-"Module containing all pages within the Stats Center."
+"""Module containing all pages within the Stats Center."""
 
-from frontend.utils import common_header, table
+from frontend.utils import common_header
 from nicegui import ui
 
 
 def stats_center_card(label, icon, icon_color):
+    """Reusable ui component for the Stats Center subpages."""
     with ui.card() \
             .classes("p-6 hover:shadow-lg transition-shadow cursor-pointer") \
             .on("click", lambda: ui.navigate.to(f"/stats_center/{label.replace(" ", "_").lower()}")):
@@ -13,6 +14,7 @@ def stats_center_card(label, icon, icon_color):
 
 @ui.page("/stats_center")
 def page():
+    """Landing page for the Stats Center."""
     common_header()
 
     with ui.column().classes("w-full items-center px-8 py-16 no-shadow"):

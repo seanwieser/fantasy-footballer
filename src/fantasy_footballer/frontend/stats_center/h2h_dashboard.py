@@ -1,3 +1,5 @@
+"""Module for the H2H Dashboard page."""
+
 from frontend.utils import common_header
 from nicegui import ui
 

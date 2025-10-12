@@ -95,6 +95,7 @@ class DbManager:
     def fetch_data_from_sources(years, source, tables, queue):
         """Run source extractor for passed parameters."""
         SOURCE_EXTRACTOR_MAP[source].run(queue, years, tables)
+        print("Raw Data Written to Cloud...")
 
     @staticmethod
     def get_all_tables_by_source():

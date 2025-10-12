@@ -8,7 +8,7 @@ from nicegui import ui
 def page():
     """Gallery Page to display media hosted by bunny cdn."""
     common_header()
-    ui.label("Under Construction...")
+    ui.label("Coming Soon...")
     # with ui.card_section().classes("mx-auto").classes("p-0 w-full h-full"):
     #     ui.html(
     #         r"""

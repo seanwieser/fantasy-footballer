@@ -44,7 +44,7 @@ def logout() -> None:
 
 def common_header() -> None:
     """Header that is common for all pages."""
-    page_by_access_level = {"owners": 0, "stats_center": 0, "gallery": 1, "admin": 2}
+    page_by_access_level = {"owner_history": 0, "stats_center": 0, "gallery": 1, "admin": 2}
     username = app.storage.user.get("username")
     if username == "public":
         valid_pages = [page for page, access_level in page_by_access_level.items() if access_level == 0]

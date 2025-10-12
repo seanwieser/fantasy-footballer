@@ -28,9 +28,9 @@ with schedule as (
             else team_schedules.score_for::varchar
         end                                                                                 as "Points For",
         if(opponent_schedules.score_for = 0.0, '', opponent_schedules.score_for::varchar)   as "Points Against"
-    from {{ ref('stg_s001__team_schedules') }} team_schedules
-    inner join {{ ref('stg_s001__team_schedules') }} opponent_schedules
-    on team_schedules.opponent_team_schedule_id = opponent_schedules.team_schedule_id
+    from {{ ref('stg_s001__team_schedules') }} as team_schedules
+    inner join {{ ref('stg_s001__team_schedules') }} as opponent_schedules
+        on team_schedules.opponent_team_schedule_id = opponent_schedules.team_schedule_id
     inner join {{ ref('stg_s001__teams') }} as opponent_teams
         on opponent_schedules.team_id = opponent_teams.team_id
     left join {{ ref('int_shotguns') }} as shotguns

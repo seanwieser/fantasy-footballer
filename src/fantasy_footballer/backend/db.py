@@ -160,6 +160,8 @@ class DbManager:
 
         if not res.success:
             print(res.exception)
+        else:
+            print("Data Transformed...")
 
         if queue:
             queue.put_nowait(1)

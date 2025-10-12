@@ -5,12 +5,13 @@
 import os
 
 from backend.db import DbManager
-from frontend.admin.home import page
-from frontend.gallery.home import page
+from frontend.admin import home
+from frontend.gallery import home
 from frontend.login.home import AuthMiddleware
-from frontend.owners.home import page
-from frontend.owners.spotlight import page
-from frontend.splash.home import page
+from frontend.owner_history import home, spotlight
+from frontend.splash import home
+from frontend.stats_center import (draft_analysis, h2h_dashboard, home,
+                                   league_highlights, player_data)
 from nicegui import app, ui
 
 if __name__ in {"__main__", "__mp_main__"}:

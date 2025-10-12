@@ -12,9 +12,12 @@ def get_valid_years() -> list[int]:
     """Get all years that fantasy data is available for."""
     return list(range(START_YEAR, datetime.datetime.now().year + 1))
 
-def get_years() -> list[str]:
-    """Get all years that have fantasy data."""
-    return [row["year"] for row in DbManager.query("select * from main_utilities.all_years", to_dict=True)]
+def get_years(owner_id: str = None) -> list[str]:
+    """Get all years that have fantasy data (by owner_id if passed)."""
+    all_years_by_owner = DbManager.query("select * from main_utilities.all_years_by_owner", to_dict=True)
+    if owner_id:
+        return list({row["year"] for row in all_years_by_owner if row["owner_id"] == int(owner_id)})
+    return list({row["year"] for row in all_years_by_owner})
 
 def get_current_year() -> int:
     """Get the latest year with fantasy data."""
@@ -41,7 +44,7 @@ def logout() -> None:
 
 def common_header() -> None:
     """Header that is common for all pages."""
-    page_by_access_level = {"owners": 0, "gallery": 1, "admin": 2}
+    page_by_access_level = {"owner_history": 0, "stats_center": 0, "gallery": 1, "admin": 2}
     username = app.storage.user.get("username")
     if username == "public":
         valid_pages = [page for page, access_level in page_by_access_level.items() if access_level == 0]

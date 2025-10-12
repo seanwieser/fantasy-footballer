@@ -32,12 +32,12 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
         img_path = f"resources/media/owners/{owner_id}.jpg"
         ui.image(img_path).classes("border p-1")
 
-        # Season Overview
+        # Regular Season Overview
         season_overview_sql = f"select * from main_marts.season_overview where owner_id={owner_id} and year={str(year)}"
         season_overview_data = DbManager.query(season_overview_sql, to_dict=True)[0]
         with ui.card().classes("no-shadow border-[0px] col-span-2"):
             with ui.card_section().classes("w-full").classes("p-0"):
-                ui.label("Season Overview").classes("text-weight-bold underline text-3xl text-center")
+                ui.label("Regular Season Overview").classes("text-weight-bold underline text-3xl text-center")
             with ui.grid(columns="1fr 1fr 1fr 1fr 1fr 1fr").classes("w-full h-full gap-2"):
                 season_overview_card("Standing", season_overview_data["standing"])
                 season_overview_card("Record", season_overview_data["record"])
@@ -79,7 +79,7 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
                 ui.label("Bio").classes("text-weight-bold underline text-xl text-center")
                 ui.label("Under Construction...").classes("text-weight-bold  text-center")
 
-        # Season Schedule
+        # Regular Season Schedule
         with ui.card().classes("no-shadow border-[0px] col-span-2 w-full"):
             schedule_sql = f"""
                 select * exclude(owner_id, year),  
@@ -89,7 +89,7 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
             season_data_df = DbManager.query(schedule_sql)
 
             table(season_data_df,
-                  title="Season Schedule",
+                  title="Regular Season Schedule",
                   classes="no-shadow border-[0px] w-full",
                   props="dense",
                   not_sortable=["Team Name", "Owner", "Outcome"],

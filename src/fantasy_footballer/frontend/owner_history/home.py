@@ -9,7 +9,7 @@ def mouse_handler(event: events.MouseEventArguments, year=int):
     """Mouse event handler for Owners page image."""
     owner_id = image_path_to_owner_id(event.sender.source)
     if event.type == "mouseup":
-        ui.navigate.to(f"/owners/{owner_id}/{year}")
+        ui.navigate.to(f"/owner_history/{owner_id}/{year}")
     elif event.type == "mouseover" and str(owner_id) == "4":
         ui.notify("Dick sucks at fantasy football")
 
@@ -44,7 +44,7 @@ def get_owners_info_by_year():
     return owners_info_by_year
 
 
-@ui.page("/owners")
+@ui.page("/owner_history")
 def page():
     """Owners page with tabs for each year."""
     common_header()

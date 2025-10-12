@@ -12,7 +12,7 @@ with shotgun_counter as (
         shotguns.owner_name
     order by
         "Count" desc,
-        "Weeks" asc
+        "Weeks" desc
 )
 
 select *

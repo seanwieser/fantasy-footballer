@@ -15,17 +15,18 @@ def season_overview_card(title, value, tooltip_text=None):
             ui.label(value).classes("text-5xl text-center text-bold w-full")
 
 
-@ui.page("/owners/{owner_id}/{year}")
+@ui.page("/owner_history/{owner_id}/{year}")
 def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
     """Owner page for each owner/year combination."""
     common_header()
     with ui.grid(columns="1fr 1fr").classes("w-full"):
         owner_name = owner_id_to_owner_name(owner_id)
         ui.label(owner_name).classes("text-weight-bold underline text-4xl w-full text-right")
-        fantasy_years = get_years()
+        fantasy_years = get_years(owner_id)
         with ui.dropdown_button(str(year)).classes("w-1/6"):
             for fantasy_year in fantasy_years:
-                ui.item(fantasy_year, on_click=lambda fy=fantasy_year: ui.navigate.to(f"/owners/{owner_id}/{fy}"))
+                ui.item(fantasy_year,
+                        on_click=lambda fy=fantasy_year: ui.navigate.to(f"/owner_history/{owner_id}/{fy}"))
 
     with ui.grid(columns="1fr 1fr 2fr").classes("w-full gap-1"):
         # Owner image
@@ -73,11 +74,16 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
                 season_overview_card("Acquisitions", season_overview_data["acquisitions"])
                 season_overview_card("Trades", season_overview_data["trades"])
 
-        # Bio
-        with ui.card().classes("no-shadow border-[0px]"):
-            with ui.card_section().classes("mx-auto").classes("p-0"):
-                ui.label("Bio").classes("text-weight-bold underline text-xl text-center")
-                ui.label("Under Construction...").classes("text-weight-bold  text-center")
+        with ui.column().classes("w-full gap-4"):
+            # Bio
+            with ui.card().classes("no-shadow border-[0px] col-span-2 w-full h-full"):
+                ui.label("Bio").classes("text-weight-bold underline text-xl text-center w-full")
+                ui.label("Coming Soon...").classes("mx-auto text-gray-500")
+
+            # Highlights
+            with ui.card().classes("no-shadow border-[0px] col-span-2 w-full h-full"):
+                ui.label("Highlights").classes("text-weight-bold underline text-xl text-center w-full")
+                ui.label("Coming Soon...").classes("mx-auto text-gray-500")
 
         # Regular Season Schedule
         with ui.card().classes("no-shadow border-[0px] col-span-2 w-full"):

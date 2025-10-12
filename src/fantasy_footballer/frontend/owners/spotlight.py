@@ -22,7 +22,7 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
     with ui.grid(columns="1fr 1fr").classes("w-full"):
         owner_name = owner_id_to_owner_name(owner_id)
         ui.label(owner_name).classes("text-weight-bold underline text-4xl w-full text-right")
-        fantasy_years = get_years()
+        fantasy_years = get_years(owner_id)
         with ui.dropdown_button(str(year)).classes("w-1/6"):
             for fantasy_year in fantasy_years:
                 ui.item(fantasy_year, on_click=lambda fy=fantasy_year: ui.navigate.to(f"/owners/{owner_id}/{fy}"))
@@ -34,6 +34,7 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
 
         # Regular Season Overview
         season_overview_sql = f"select * from main_marts.season_overview where owner_id={owner_id} and year={str(year)}"
+        results = DbManager.query(season_overview_sql, to_dict=True)
         season_overview_data = DbManager.query(season_overview_sql, to_dict=True)[0]
         with ui.card().classes("no-shadow border-[0px] col-span-2"):
             with ui.card_section().classes("w-full").classes("p-0"):

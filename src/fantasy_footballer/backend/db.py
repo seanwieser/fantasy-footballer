@@ -49,6 +49,7 @@ class DbManager:
 
     @staticmethod
     def has_dbt_seeds_rows():
+        """Check dbt seeds files if they are empty."""
         csv_files = [f for f in os.listdir(DBT_SEEDS_PATH) if f.endswith(".csv")]
 
         csv_files = csv_files or []
@@ -58,6 +59,7 @@ class DbManager:
                 next(reader, None) # Skip header
                 if next(reader, None) is not None:
                     return True
+        return False
 
 
     @staticmethod
@@ -93,7 +95,6 @@ class DbManager:
     @staticmethod
     def ingest_raw_data_from_cloud(sources, queue=None):
         """Function used to load fresh raw data from cloud storage into db."""
-
         queue_count = 0
         with duckdb.connect(DB_PATH) as conn:
             conn.sql(SECRET_SQL)

@@ -1715,13 +1715,13 @@ test-extras = ["pytest-mpl", "pytest-randomly"]
 
 [[package]]
 name = "nicegui"
-version = "2.24.2"
+version = "3.0.4"
 description = "Create web-based user interfaces with Python. The nice way."
 optional = false
-python-versions = "<4.0,>=3.8"
+python-versions = "<4.0,>=3.9"
 files = [
-    {file = "nicegui-2.24.2-py3-none-any.whl", hash = "sha256:9b810fe75f3dd1ff926e3d96d71e25031387fe5b7a21d32159a32611b8023423"},
-    {file = "nicegui-2.24.2.tar.gz", hash = "sha256:21e7620c99aeeb535665e81e45ef2f9eeda95f6a9e35cee542414a10bbe61b77"},
+    {file = "nicegui-3.0.4-py3-none-any.whl", hash = "sha256:c6901815f2d670dded8303bf93d15dcd3078ddf66e983ae0899074e5ba02899a"},
+    {file = "nicegui-3.0.4.tar.gz", hash = "sha256:d00fefae2f28020d3fd09ddd03a09e8255f31eec03239cdb4575cde98be8a477"},
 ]
 
 [package.dependencies]
@@ -1740,11 +1740,10 @@ orjson = {version = ">=3.9.15", markers = "platform_machine != \"i386\" and plat
 Pygments = ">=2.15.1,<3.0.0"
 python-engineio = ">=4.12.0"
 python-multipart = ">=0.0.18"
-python-socketio = {version = ">=5.10.0", extras = ["asyncio-client"]}
-starlette = {version = ">=0.45.3", markers = "python_version >= \"3.9\""}
+python-socketio = {version = ">=5.14.0", extras = ["asyncio-client"]}
+starlette = ">=0.45.3"
 typing-extensions = ">=4.0.0"
 uvicorn = {version = ">=0.22.0", extras = ["standard"]}
-vbuild = ">=0.8.2"
 watchfiles = ">=0.18.1"
 
 [package.extras]
@@ -2268,17 +2267,6 @@ files = [
     {file = "protobuf-6.32.1-cp39-cp39-win_amd64.whl", hash = "sha256:d0975d0b2f3e6957111aa3935d08a0eb7e006b1505d825f862a1fffc8348e122"},
     {file = "protobuf-6.32.1-py3-none-any.whl", hash = "sha256:2601b779fc7d32a866c6b4404f9d42a3f67c5b9f3f15b4db3cccabe06b95c346"},
     {file = "protobuf-6.32.1.tar.gz", hash = "sha256:ee2469e4a021474ab9baafea6cd070e5bf27c7d29433504ddea1a4ee5850f68d"},
-]
-
-[[package]]
-name = "pscript"
-version = "0.7.7"
-description = "Python to JavaScript compiler."
-optional = false
-python-versions = "*"
-files = [
-    {file = "pscript-0.7.7-py3-none-any.whl", hash = "sha256:b0fdac0df0393a4d7497153fea6a82e6429f32327c4c0a4817f1cd68adc08083"},
-    {file = "pscript-0.7.7.tar.gz", hash = "sha256:8632f7a4483f235514aadee110edee82eb6d67336bf68744a7b18d76e50442f8"},
 ]
 
 [[package]]
@@ -3130,20 +3118,6 @@ docs = ["Sphinx (>=4.1.2,<4.2.0)", "sphinx-rtd-theme (>=0.5.2,<0.6.0)", "sphinxc
 test = ["aiohttp (>=3.10.5)", "flake8 (>=5.0,<6.0)", "mypy (>=0.800)", "psutil", "pyOpenSSL (>=23.0.0,<23.1.0)", "pycodestyle (>=2.9.0,<2.10.0)"]
 
 [[package]]
-name = "vbuild"
-version = "0.8.2"
-description = "A simple module to extract html/script/style from a vuejs '.vue' file (can minimize/es2015 compliant js) ... just py2 or py3, NO nodejs !"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
-files = [
-    {file = "vbuild-0.8.2-py2.py3-none-any.whl", hash = "sha256:d76bcc976a1c53b6a5776ac947606f9e7786c25df33a587ebe33ed09dd8a1076"},
-    {file = "vbuild-0.8.2.tar.gz", hash = "sha256:270cd9078349d907dfae6c0e6364a5a5e74cb86183bb5093613f12a18b435fa9"},
-]
-
-[package.dependencies]
-pscript = ">=0.7.0,<0.8.0"
-
-[[package]]
 name = "virtualenv"
 version = "20.35.3"
 description = "Virtual Python Environment builder"
@@ -3629,4 +3603,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "3.12.5"
-content-hash = "5eccad8661b97154bde42c9b792b9fa6edaf20669bdfca8579a9b426a8c71526"
+content-hash = "08cdebb9f9a4f11050a0322c84b4a5271c4985358f9c79a33afe2ac05e7758b3"

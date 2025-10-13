@@ -89,7 +89,7 @@ async def page():
         )
 
     common_header()
-    ui.timer(1, callback=update_progressbars)
+    ui.timer(3, callback=update_progressbars)
 
     source_info = DbManager.get_all_tables_by_source()
     fetch_progressbar, fetch_queue = await fetch_data_from_sources_ui(source_info)

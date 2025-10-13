@@ -4,8 +4,8 @@
 
 import os
 
-from backend.db import DbManager
 import click
+from backend.db import DbManager
 from frontend.admin import home
 from frontend.gallery import home
 from frontend.login.home import AuthMiddleware
@@ -14,6 +14,7 @@ from frontend.splash import home
 from frontend.stats_center import (draft_analysis, h2h_dashboard, home,
                                    league_highlights, player_data)
 from nicegui import app, ui
+
 
 @click.command()
 @click.option("--dev-mode", is_flag=True)

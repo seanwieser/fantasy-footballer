@@ -5,7 +5,10 @@ run-pre-commit:
 	poetry run pre-commit run --all-files
 
 run-local:
-	poetry run python3 src/fantasy_footballer/main.py
+	poetry run python3 src/fantasy_footballer/main.py $(ARGS)
+
+run-local-dev:
+	poetry run python3 src/fanta
 
 build:
 	docker build -t fantasy_footballer:latest -f ./image/Dockerfile .
@@ -17,4 +20,4 @@ down:
 	docker container stop fantasy_footballer && docker container rm fantasy_footballer
 
 run-dbt:
-	poetry run dbt build --profiles-dir ./dbt/fantasy_footballer --project-dir ./dbt/fantasy_footballer
+	poetry run dbt build --full-refresh --profiles-dir ./dbt/fantasy_footballer --project-dir ./dbt/fantasy_footballer

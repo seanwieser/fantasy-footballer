@@ -11,8 +11,6 @@ packages = [
 [tool.poetry.dependencies]
 python = "3.12.5"
 espn-api = "0.43.0"
-matplotlib = "^3.6.3"
-click = "^8.3.0"
 nicegui = "^2.5"
 inflection = "^0.5.1"
 duckdb = "^1.4.1"

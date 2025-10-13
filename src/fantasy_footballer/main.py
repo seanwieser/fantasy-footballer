@@ -4,7 +4,7 @@
 
 import os
 
-import click
+import argparse
 from backend.db import DbManager
 from frontend.admin import home
 from frontend.gallery import home
@@ -15,18 +15,14 @@ from frontend.stats_center import (draft_analysis, h2h_dashboard, home,
                                    league_highlights, player_data)
 from nicegui import app, ui
 
-
-@click.command()
-@click.option("--dev-mode", is_flag=True)
-def main(dev_mode: bool = False):
-    db_manager = DbManager()
+if __name__ in {"__main__", "__mp_main__"}:
+    parser = argparse.ArgumentParser(description='A simple program that greets the user.')
+    parser.add_argument("--dev-mode", action="store_true")
+    args = parser.parse_args()
+    db_manager = DbManager(args.dev_mode)
     app.add_middleware(AuthMiddleware)
-    app.on_startup(lambda: db_manager.setup(dev_mode))
+    app.on_startup(db_manager.setup)
     ui.run(title="Sco Chos",
            host="0.0.0.0",
            dark=None,
            storage_secret=os.getenv("STORAGE_SECRET"))
-
-
-if __name__ in {"__main__", "__mp_main__"}:
-    main()

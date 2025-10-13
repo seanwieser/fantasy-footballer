@@ -35,10 +35,12 @@ CREATE_TABLE_TEMPLATE = Template("CREATE OR REPLACE TABLE ${fqtn} AS SELECT * FR
 class DbManager:
     """Static class to provide interface to frontend for all data actions (fetch, load, transform, query)."""
 
-    @staticmethod
-    def setup(dev_mode: bool = False):
+    def __init__(self, dev_mode: bool = False):
+        self.dev_mode = dev_mode
+
+    def setup(self):
         """Boot function for backend to load+transform all sources to make db ready locally for frontend."""
-        if not (dev_mode and DbManager.has_dbt_seeds_rows()):
+        if not (self.dev_mode and DbManager.has_dbt_seeds_rows()):
             DbManager.fetch_resources()
             DbManager.ingest_raw_data_from_cloud(SOURCE_EXTRACTOR_MAP.keys())
             DbManager.run_dbt()
@@ -51,15 +53,12 @@ class DbManager:
 
         csv_files = csv_files or []
         for csv_file in csv_files:
-            try:
-                with open(csv_file, "r", encoding="utf-8") as f:
-                    reader = csv.reader(f)
-                    next(reader, None) # Skip header
-                    if next(reader, None) is not None:
-                        return True
-            except Exception as e:
-                print(f"Error reading {csv_file}: {e}")
-                continue
+            with open(f"{DBT_SEEDS_PATH}/{csv_file}", "r", encoding="utf-8") as f:
+                reader = csv.reader(f)
+                next(reader, None) # Skip header
+                if next(reader, None) is not None:
+                    return True
+
 
     @staticmethod
     def fetch_resources():
@@ -172,7 +171,11 @@ class DbManager:
         dbt = dbtRunner()
         cli_args = [action]
         if action in ["build", "seed"]:
-            cli_args.extend(["--profiles-dir", "dbt/fantasy_footballer", "--project-dir", "dbt/fantasy_footballer"])
+            cli_args.extend(["--full-refresh",
+                             "--profiles-dir",
+                             "dbt/fantasy_footballer",
+                             "--project-dir",
+                             "dbt/fantasy_footballer"])
         else:
             raise RuntimeError("Not a supported dbt action.")
 

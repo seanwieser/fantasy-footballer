@@ -37,7 +37,8 @@ models:
       - name: streak_type
         data_tests:
           - accepted_values:
-              values: ["W", "L"]
+              arguments:
+                values: ["W", "L"]
   - name: stg_s001__team_schedules
     columns:
       - name: team_schedule_id
@@ -59,7 +60,8 @@ models:
       - name: outcome
         data_tests:
           - accepted_values:
-              values: ["W", "L", "U"]
+              arguments:
+                values: ["W", "L", "U"]
       - name: opponent_team_id
         data_tests:
           - not_null

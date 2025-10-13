@@ -37,8 +37,8 @@ def login() -> Optional[RedirectResponse]:
         else:
             ui.notify("Wrong username or password", color="negative")
 
-    user_results = DbManager.query("select user, hash from fantasy_footballer.main_seed_data.users", to_dict=True)
-    user_results = {entry["user"]: entry["hash"].encode() for entry in user_results}
+    user_results = DbManager.query("select username, hash from fantasy_footballer.main_seed_data.users", to_dict=True)
+    user_results = {entry["username"]: entry["hash"].encode() for entry in user_results}
 
     if app.storage.user.get("authenticated", False):
         return RedirectResponse("/")

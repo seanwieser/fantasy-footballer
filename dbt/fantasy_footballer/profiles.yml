@@ -4,6 +4,7 @@ default:
     dev:
       type: duckdb
       path: ./resources/fantasy_footballer.duckdb
+      keep_open: false
 pre-commit:
   target: dev
   outputs:

@@ -2,9 +2,9 @@
 
 # pylint: disable=reimported,unused-import
 
+import argparse
 import os
 
-import argparse
 from backend.db import DbManager
 from frontend.admin import home
 from frontend.gallery import home

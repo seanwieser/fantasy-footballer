@@ -5,6 +5,7 @@
 import os
 
 from backend.db import DbManager
+import click
 from frontend.admin import home
 from frontend.gallery import home
 from frontend.login.home import AuthMiddleware
@@ -14,11 +15,17 @@ from frontend.stats_center import (draft_analysis, h2h_dashboard, home,
                                    league_highlights, player_data)
 from nicegui import app, ui
 
-if __name__ in {"__main__", "__mp_main__"}:
+@click.command()
+@click.option("--dev-mode", is_flag=True)
+def main(dev_mode: bool = False):
     db_manager = DbManager()
     app.add_middleware(AuthMiddleware)
-    app.on_startup(db_manager.setup)
+    app.on_startup(lambda: db_manager.setup(dev_mode))
     ui.run(title="Sco Chos",
            host="0.0.0.0",
            dark=None,
            storage_secret=os.getenv("STORAGE_SECRET"))
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    main()

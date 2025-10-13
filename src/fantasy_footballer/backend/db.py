@@ -15,6 +15,7 @@ from dbt.cli.main import dbtRunner, dbtRunnerResult
 
 DB_NAME = "fantasy_footballer"
 DB_PATH = f"resources/{DB_NAME}.duckdb"
+DBT_SEEDS_PATH = "resources/dbt_seeds"
 
 SOURCE_EXTRACTOR_MAP = {e.SOURCE_NAME: e for e in [S001Extractor]}
 
@@ -35,15 +36,34 @@ class DbManager:
     """Static class to provide interface to frontend for all data actions (fetch, load, transform, query)."""
 
     @staticmethod
-    def setup():
-        """Boot function for backend to load/transform all sources to make db ready for frontend."""
-        DbManager.fetch_resources()
-        DbManager.ingest_raw_data_from_cloud(SOURCE_EXTRACTOR_MAP.keys())
-        DbManager.run_dbt()
+    def setup(dev_mode: bool = False):
+        """Boot function for backend to load+transform all sources to make db ready locally for frontend."""
+        if not (dev_mode and DbManager.has_dbt_seeds_rows()):
+            DbManager.fetch_resources()
+            DbManager.ingest_raw_data_from_cloud(SOURCE_EXTRACTOR_MAP.keys())
+            DbManager.run_dbt()
+        else:
+            print("Skipping data setup...")
+
+    @staticmethod
+    def has_dbt_seeds_rows():
+        csv_files = [f for f in os.listdir(DBT_SEEDS_PATH) if f.endswith(".csv")]
+
+        csv_files = csv_files or []
+        for csv_file in csv_files:
+            try:
+                with open(csv_file, "r", encoding="utf-8") as f:
+                    reader = csv.reader(f)
+                    next(reader, None) # Skip header
+                    if next(reader, None) is not None:
+                        return True
+            except Exception as e:
+                print(f"Error reading {csv_file}: {e}")
+                continue
 
     @staticmethod
     def fetch_resources():
-        """Function used to download all required files from cloud storage during boot."""
+        """Function used to download all required resource files from cloud storage during boot."""
         s3_client = get_s3_client()
         objects = s3_client.list_objects_v2(Bucket=os.getenv("BUCKET_NAME"))
 
@@ -69,12 +89,12 @@ class DbManager:
             if not os.path.exists(os.path.dirname(path_no_date)):
                 os.makedirs(os.path.dirname(path_no_date))
             s3_client.download_file(Bucket=os.getenv("BUCKET_NAME"), Key=path, Filename=path_no_date)
-        print("Resources fetched...")
+        print("Resources fetched from cloud...")
 
     @staticmethod
     def ingest_raw_data_from_cloud(sources, queue=None):
-        """Function used to load fresh data from cloud storage into db and transform with dbt."""
-        # Load data from cloud storage
+        """Function used to load fresh raw data from cloud storage into db."""
+
         queue_count = 0
         with duckdb.connect(DB_PATH) as conn:
             conn.sql(SECRET_SQL)
@@ -89,7 +109,7 @@ class DbManager:
                 if queue:
                     queue_count += 1
                     queue.put_nowait(queue_count / len(sources))
-        print("Raw Data Ingested...")
+        print("Raw data ingested from cloud...")
 
     @staticmethod
     def fetch_data_from_sources(years, source, tables, queue):
@@ -130,15 +150,15 @@ class DbManager:
 
     @staticmethod
     def add_user(username: str, password: str):
-        """Add a new user/password to authenticate with. Overwrites existing user with same username."""
+        """Add a new credentials to authenticate with. Overwrites existing credentials with same username."""
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), salt)
-        with open("resources/dbt_seeds/users.csv", "r", newline="", encoding="utf-8") as rfp:
+        with open(f"{DBT_SEEDS_PATH}/users.csv", "r", newline="", encoding="utf-8") as rfp:
             reader = csv.DictReader(rfp, delimiter=",")
-            user_data = [row for row in reader if row["user"] != username]
-            user_data.append({"user": username, "hash": hashed_password.decode("utf-8")})
+            user_data = [row for row in reader if row["username"] != username]
+            user_data.append({"username": username, "hash": hashed_password.decode("utf-8")})
 
-        with open("resources/dbt_seeds/users.csv", "w", newline="", encoding="utf-8") as wfp:
+        with open(f"{DBT_SEEDS_PATH}/users.csv", "w", newline="", encoding="utf-8") as wfp:
             writer = csv.DictWriter(wfp, user_data[0].keys())
             writer.writeheader()
             writer.writerows(user_data)
@@ -161,7 +181,7 @@ class DbManager:
         if not res.success:
             print(res.exception)
         else:
-            print("Data Transformed...")
+            print("Data transformed...")
 
         if queue:
             queue.put_nowait(1)

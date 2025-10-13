@@ -1,0 +1,40 @@
+version: 2
+
+seeds:
+  - name: display_names
+    description: "Mapping between owner_id and display_name."
+    columns:
+      - name: display_name
+        description: "Owner display name set by owner."
+        data_tests:
+          - not_null
+      - name: owner_id
+        description: "Owner id that persists over years."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('owner_names')
+                field: owner_id
+  - name: owner_names
+    description: "Mapping between owner_id and owner_name."
+    columns:
+      - name: owner_name
+        description: "Owner name that persists over years."
+        data_tests:
+          - not_null
+      - name: owner_id
+        description: "Owner id that persists over years."
+        data_tests:
+          - not_null
+  - name: users
+    description: "Mapping between username and password hash."
+    columns:
+      - name: username
+        description: "Username for a credential set."
+        data_tests:
+          - not_null
+      - name: hash
+        description: "Hashed password for a credential set."
+        data_tests:
+          - not_null

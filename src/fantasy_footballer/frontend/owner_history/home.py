@@ -16,7 +16,7 @@ def mouse_handler(event: events.MouseEventArguments, year=int):
 
 def owners_grid(owners_info, year):
     """Grid component for each tab."""
-    with ui.grid(rows=2, columns=6).classes("h-100 gap-1"):
+    with ui.grid(rows=2, columns=6).classes("w-full gap-1 mx-auto"):
         for owner_info in owners_info:
             with ui.interactive_image(
                     owner_info["image_path"],

@@ -1,6 +1,6 @@
 with current_year as (
     select max(year) as this
-    from {{ ref("all_years_by_owner") }}
+    from {{ ref("owner_year_map") }}
 )
 
 select *

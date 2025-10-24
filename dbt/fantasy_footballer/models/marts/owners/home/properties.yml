@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: owners_by_year
+    description: Model containing aggregated list of all owners who participated in each season year
+    columns:
+      - name: year
+        description: Season year
+        data_type: integer
+        tests:
+          - unique
+          - not_null
+      - name: owners
+        description: Array of structs containing owner_id and owner_name for all owners who participated in the season
+        data_type: struct(owner_id int, owner_name varchar)[]
+        tests:
+          - not_null

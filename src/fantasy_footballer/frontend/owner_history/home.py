@@ -1,7 +1,8 @@
 """Module for Owners home page."""
 
 from backend.db import DbManager
-from frontend.utils import common_header, get_years, image_path_to_owner_id
+from frontend.utils import (common_header, get_years_by_owner_id,
+                            image_path_to_owner_id)
 from nicegui import events, ui
 
 
@@ -50,7 +51,7 @@ def page():
     common_header()
     owners_info_by_year = get_owners_info_by_year()
 
-    fantasy_years = get_years()
+    fantasy_years = get_years_by_owner_id()
     with ui.tabs().classes("w-full") as tabs:
         tab_panels = {}
         for year in fantasy_years:

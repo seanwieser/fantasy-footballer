@@ -16,6 +16,8 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 models:
   fantasy_footballer:
+    +contract:
+      enforced: true
     +materialized: table
     marts:
       +schema: marts
@@ -23,6 +25,8 @@ models:
       +schema: intermediate
     staging:
       +schema: staging
+    base:
+      +schema: base
     utilities:
       +schema: utilities
 

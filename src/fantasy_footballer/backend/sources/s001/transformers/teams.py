@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class TeamSchema(BaseModel):
     """Pydantic model to define schema for teams source table."""
 
+    team_id: int
     team_abbrev: str
     team_name: str
     division_id: int
@@ -44,6 +45,7 @@ class TeamsTransformer(Transformer):
 
     def transform(self, queue):
         """Override parent abstract method to be run by associated s001 extractor."""
+        queue.put(f"0 / {len(self.teams)}")
         teams = []
         for team_idx, team in enumerate(self.teams):
             team = team.__dict__
@@ -69,6 +71,6 @@ class TeamsTransformer(Transformer):
             teams.append(self.apply_schema(team))
 
             # Update queue for frontend progress bar
-            queue.put_nowait((team_idx + 1) / len(self.teams))
+            queue.put(f"{team_idx + 1} / {len(self.teams)}")
 
         return teams

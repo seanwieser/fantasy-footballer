@@ -35,7 +35,7 @@ class S001Extractor:
         return [t.TABLE_NAME for t in S001Extractor.ALL_TRANSFORMERS]
 
     @staticmethod
-    def run(queue, years, tables):
+    def run(log, years, tables):
         """Interface method to extract, transform, and write data."""
         # Resolve parameters
         transformer_classes = [t for t in S001Extractor.ALL_TRANSFORMERS if t.TABLE_NAME in tables]
@@ -45,5 +45,5 @@ class S001Extractor:
 
         # Transform to native datatypes, write data to files, and load from files to database
         for transformer in transformers:
-            rows = transformer.transform(queue)
+            rows = transformer.transform(log)
             write_source_data(rows, S001Extractor.SOURCE_NAME, transformer.TABLE_NAME, transformer.year)

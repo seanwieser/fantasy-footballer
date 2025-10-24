@@ -1,15 +1,32 @@
 """Module for Admin page to allow backend actions to be executed from frontend."""
 
-from multiprocessing import Manager
+import logging
+import multiprocessing
+from queue import Empty
 
 from backend.db import DbManager
 from frontend.utils import common_header, get_valid_years
 from nicegui import app, run, ui
 
 
-async def fetch_data_from_sources_ui(source_info):
+class LogElementHandler(logging.Handler):
+    """A logging handler that emits messages to a log element."""
+
+    def __init__(self, element: ui.log, level: int = logging.NOTSET) -> None:
+        self.element = element
+        super().__init__(level)
+
+    def emit(self, record: logging.LogRecord) -> None:
+        """Push formatted record to log element."""
+        try:
+            msg = self.format(record)
+            self.element.push(msg)
+        except Exception: # pylint: disable=broad-exception-caught
+            self.handleError(record)
+
+async def fetch_data_from_sources_ui(source_info, queue):
     """UI for fetching data from source and writing to cloud storage."""
-    async def async_fetch_data_from_sources(years, source_tables):
+    async def async_fetch_data_from_sources(years, source_tables, admin_queue):
         # Need a better way to repr the source tables mapping
         tables_by_source = {}
         for source_table in source_tables:
@@ -20,10 +37,7 @@ async def fetch_data_from_sources_ui(source_info):
                 tables_by_source[source] = [table]
 
         for source, tables in tables_by_source.items():
-            await run.cpu_bound(DbManager.fetch_data_from_sources, years, source, tables, fetch_queue)
-
-    fetch_progressbar = ui.linear_progress(value=0).props("instant-feedback")
-    fetch_queue = Manager().Queue()
+            await run.cpu_bound(DbManager.fetch_data_from_sources, years, source, tables, admin_queue)
 
     options = []
     for source_name, table_names in source_info.items():
@@ -33,41 +47,19 @@ async def fetch_data_from_sources_ui(source_info):
         source_table_selections = ui.select(options, value=None, multiple=True, clearable=True)
         year_selections = ui.select(get_valid_years(), value=None, multiple=True, clearable=True)
     ui.button("Fetch data from source",
-              on_click=lambda: async_fetch_data_from_sources(year_selections.value, source_table_selections.value)
+              on_click=lambda: async_fetch_data_from_sources(year_selections.value,
+                                                             source_table_selections.value,
+                                                             queue)
               )
     ui.separator()
 
-    return fetch_progressbar, fetch_queue
+async def async_ingest_raw_data_from_cloud(sources, queue):
+    """Async function to ingest raw data from cloud."""
+    await run.cpu_bound(DbManager.ingest_raw_data_from_cloud, sources, queue)
 
-async def ingest_raw_data_from_cloud_ui(source_info):
-    """UI for refreshing data in database layer."""
-    async def async_ingest_raw_data_from_cloud(sources):
-        refresh_progressbar.clear()
-        await run.cpu_bound(DbManager.ingest_raw_data_from_cloud, sources, ingest_refresh_queue)
-
-    ingest_refresh_queue = Manager().Queue()
-    refresh_progressbar = ui.linear_progress(value=0).props("instant-feedback")
-
-    source_selections = ui.select(list(source_info.keys()), value=None, multiple=True, clearable=True)
-    ui.button("Ingest raw data from cloud",
-              on_click=lambda: async_ingest_raw_data_from_cloud(source_selections.value))
-    ui.separator()
-
-    return refresh_progressbar, ingest_refresh_queue
-
-async def transform_data_ui():
-    """UI for refreshing data in database layer."""
-    async def async_transform_data():
-        refresh_progressbar.clear()
-        await run.cpu_bound(DbManager.run_dbt, "build", transform_refresh_queue)
-
-    transform_refresh_queue = Manager().Queue()
-    refresh_progressbar = ui.linear_progress(value=0).props("instant-feedback")
-
-    ui.button("Transform", on_click=lambda: async_transform_data()) #pylint: disable=unnecessary-lambda
-    ui.separator()
-
-    return refresh_progressbar, transform_refresh_queue
+async def async_transform(queue):
+    """Async function to run dbt."""
+    await run.cpu_bound(DbManager.run_dbt, "build", queue)
 
 def access_control_ui():
     """UI for adding users to the authentication system."""
@@ -77,24 +69,45 @@ def access_control_ui():
     ui.button("Add User", on_click=lambda: DbManager.add_user(username_input.value, password_input.value))
     ui.separator()
 
+def update_log(queue, log_element):
+    """Update log element with items in queue."""
+    if not queue.empty():
+        message = queue.get()
+        log_element.push(message)
+
+def clear_log(queue, log_element):
+    """Empty the queue and log element."""
+    while True:
+        try:
+            queue.get(block=False)
+        except Empty:
+            break  # Exit loop when the queue is empty
+    log_element.clear()
 
 @ui.page("/admin")
 async def page():
     """Admin page to manually execute backend actions from the frontend."""
-    def update_progressbars():
-        fetch_progressbar.set_value(fetch_queue.get() if not fetch_queue.empty() else fetch_progressbar.value)
-        ingest_progressbar.set_value(ingest_queue.get() if not ingest_queue.empty() else ingest_progressbar.value)
-        transform_progressbar.set_value(
-            transform_queue.get() if not transform_queue.empty() else transform_progressbar.value
-        )
-
     common_header()
-    ui.timer(1, callback=update_progressbars)
+
+    admin_queue = multiprocessing.Manager().Queue()
+    admin_log = ui.log()
+
+    ui.timer(1.0, lambda: update_log(admin_queue, admin_log))
 
     source_info = DbManager.get_all_tables_by_source()
-    fetch_progressbar, fetch_queue = await fetch_data_from_sources_ui(source_info)
-    ingest_progressbar, ingest_queue = await ingest_raw_data_from_cloud_ui(source_info)
-    transform_progressbar, transform_queue = await transform_data_ui()
+    await fetch_data_from_sources_ui(source_info, admin_queue)
+
+    # Ingest raw data UI
+    source_selections = ui.select(list(source_info.keys()), value=None, multiple=True, clearable=True)
+    ui.button("Ingest raw data from cloud",
+              on_click=lambda: async_ingest_raw_data_from_cloud(source_selections.value, admin_queue))
+    ui.separator()
+
+    # Transform UI
+    ui.button("Transform", on_click=lambda: async_transform(admin_queue))  # pylint: disable=unnecessary-lambda
+    ui.separator()
     access_control_ui()
 
-    ui.button("Shutdown", on_click=app.shutdown)
+    with ui.row():
+        ui.button("Clear Log", on_click=lambda: clear_log(admin_queue, admin_log))
+        ui.button("Shutdown", on_click=app.shutdown)

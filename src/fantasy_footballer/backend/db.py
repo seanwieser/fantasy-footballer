@@ -2,6 +2,7 @@
 
 import csv
 import json
+import multiprocessing
 import os
 import re
 from datetime import datetime
@@ -95,7 +96,7 @@ class DbManager:
     @staticmethod
     def ingest_raw_data_from_cloud(sources, queue=None):
         """Function used to load fresh raw data from cloud storage into db."""
-        queue_count = 0
+        sources_ingested = 0
         with duckdb.connect(DB_PATH) as conn:
             conn.sql(SECRET_SQL)
             for source in sources:
@@ -107,14 +108,14 @@ class DbManager:
                     conn.sql(CREATE_TABLE_TEMPLATE.substitute(fqtn=fqtn, file_paths=file_paths_str))
 
                 if queue:
-                    queue_count += 1
-                    queue.put_nowait(queue_count / len(sources))
+                    sources_ingested += 1
+                    queue.put(f"{sources_ingested} / {len(sources)}")
         print("Raw data ingested from cloud...")
 
     @staticmethod
-    def fetch_data_from_sources(years, source, tables, queue):
+    def fetch_data_from_sources(years, source, tables, log):
         """Run source extractor for passed parameters."""
-        SOURCE_EXTRACTOR_MAP[source].run(queue, years, tables)
+        SOURCE_EXTRACTOR_MAP[source].run(log, years, tables)
 
     @staticmethod
     def get_all_tables_by_source():
@@ -167,7 +168,7 @@ class DbManager:
         write_dbt_seeds()
 
     @staticmethod
-    def run_dbt(action: str = "build", queue=None):
+    def run_dbt(action: str = "build", queue: multiprocessing.Queue = None):
         """Function to execute dbt actions on database."""
         dbt = dbtRunner()
         cli_args = [action]
@@ -176,25 +177,30 @@ class DbManager:
                              "--profiles-dir",
                              "dbt/fantasy_footballer",
                              "--project-dir",
-                             "dbt/fantasy_footballer"])
+                             "dbt/fantasy_footballer",
+                             "--target",
+                             "app"])
         else:
             raise RuntimeError("Not a supported dbt action.")
-
+        if queue:
+            queue.put("dbt transform started...")
         res: dbtRunnerResult = dbt.invoke(cli_args)
 
-        if not res.success:
-            print(res.exception)
-        else:
-            print("Data transformed...")
-
         if queue:
-            queue.put_nowait(1)
+            output_msg = "Data transformed..."
+            if not res.success:
+                output_msg = "Error while transforming data..."
+            queue.put(output_msg)
 
     @staticmethod
     def query(sql, to_dict=False):
         """Function that is an interface for the frontend to fetch data from database."""
-        with duckdb.connect(DB_PATH) as conn:
-            results_df = conn.sql(sql).fetchdf()
+        try:
+            with duckdb.connect(DB_PATH) as conn:
+                results_df = conn.sql(sql).fetchdf()
+        except Exception as e:
+            print(sql)
+            raise e
 
         if to_dict:
             return results_df.to_dict("records")

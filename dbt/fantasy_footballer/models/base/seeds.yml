@@ -16,11 +16,13 @@ seeds:
               arguments:
                 to: ref('owner_names')
                 field: owner_id
+
   - name: owner_names
     description: "Mapping between owner_id and owner_name."
     columns:
       - name: owner_name
         description: "Owner name that persists over years."
+        data_type: varchar
         data_tests:
           - not_null
       - name: owner_id

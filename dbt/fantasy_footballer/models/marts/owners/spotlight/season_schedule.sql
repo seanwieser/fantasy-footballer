@@ -1,42 +1,42 @@
 with schedule as (
     select
-        team_schedules.owner_id,
-        team_schedules.year,
-        team_schedules.week                                 as "Week",
-        opponent_teams.team_name                            as "Team Name",
+        team_matchups.owner_id,
+        team_matchups.year,
+        team_matchups.week                                  as "Week",
+        opponent_teams.team_name                            as "Team_Name",
         opponent_teams.owner_name                           as "Owner",
         case
-            when team_schedules.outcome = 'U'
+            when team_matchups.outcome = 'U'
                 then ''
             when
-                abs(team_schedules.score_for - opponent_schedules.score_for) < 10 and
-                team_schedules.outcome = 'W'
+                abs(team_matchups.score_for - opponent_matchups.score_for) < 10 and
+                team_matchups.outcome = 'W'
                 then
-                    team_schedules.outcome || 'cw'
+                    team_matchups.outcome || 'cw'
             when
-                abs(team_schedules.score_for - opponent_schedules.score_for) < 10 and
-                team_schedules.outcome = 'L'
+                abs(team_matchups.score_for - opponent_matchups.score_for) < 10 and
+                team_matchups.outcome = 'L'
                 then
-                    team_schedules.outcome || 'cl'
-            else team_schedules.outcome
-        end                                                                                 as "Outcome",
+                    team_matchups.outcome || 'cl'
+            else team_matchups.outcome
+        end                                                                             as "Outcome",
         case
-            when team_schedules.score_for = 0.0
+            when team_matchups.score_for = 0.0
                 then ''
             when shotguns.is_shotgun
-                then team_schedules.score_for::varchar || 'sg'
-            else team_schedules.score_for::varchar
-        end                                                                                 as "Points For",
-        if(opponent_schedules.score_for = 0.0, '', opponent_schedules.score_for::varchar)   as "Points Against"
-    from {{ ref('stg_s001__team_schedules') }} as team_schedules
-    inner join {{ ref('stg_s001__team_schedules') }} as opponent_schedules
-        on team_schedules.opponent_team_schedule_id = opponent_schedules.team_schedule_id
-    inner join {{ ref('stg_s001__teams') }} as opponent_teams
-        on opponent_schedules.team_id = opponent_teams.team_id
+                then team_matchups.score_for::varchar || 'sg'
+            else team_matchups.score_for::varchar
+        end                                                                             as "Points_For",
+        if(opponent_matchups.score_for = 0.0, '', opponent_matchups.score_for::varchar) as "Points_Against"
+    from {{ ref('stg__team_matchups') }} as team_matchups
+    inner join {{ ref('stg__team_matchups') }} as opponent_matchups
+        on team_matchups.opponent_owner_matchup_id = opponent_matchups.owner_matchup_id
+    inner join {{ ref('stg__teams') }} as opponent_teams
+        on opponent_matchups.owner_year_id = opponent_teams.owner_year_id
     left join {{ ref('int_shotguns') }} as shotguns
-        on team_schedules.team_schedule_id = shotguns.team_schedule_id
-    where not team_schedules.is_playoff
-    order by team_schedules.week
+        on team_matchups.owner_matchup_id = shotguns.owner_matchup_id
+    where not team_matchups.is_playoff
+    order by team_matchups.week
 )
 
 select *

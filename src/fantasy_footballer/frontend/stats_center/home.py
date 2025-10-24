@@ -25,3 +25,4 @@ def page():
                 stats_center_card(label="League Highlights", icon="sym_s_star", icon_color="orange")
                 stats_center_card(label="Player Data", icon="sym_s_data_loss_prevention", icon_color="blue")
                 stats_center_card(label="Draft Analysis", icon="price_check", icon_color="green")
+                stats_center_card(label="Strength of Schedule", icon="sym_s_calendar_month", icon_color="grey")

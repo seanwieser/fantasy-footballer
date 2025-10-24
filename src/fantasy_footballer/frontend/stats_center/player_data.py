@@ -1,96 +1,122 @@
 """Module for the Player Data page."""
-
-from frontend.utils import common_header
+from backend.db import DbManager
+from frontend.utils import (VALID_POSITIONS, common_header, format_field_name,
+                            get_current_year, get_nfl_teams,
+                            get_owner_names_by_year, get_years_by_owner_id,
+                            table)
 from nicegui import ui
 
-# class DropDownSelection:
-#     """Class for dropdown selection for Players table."""
-#
-#     def __init__(self, year=None, position=None):
-#         """Initialize DropDownSelection."""
-#         self.year = year
-#         self.position = position
-#
-#     def valid(self):
-#         """Check if year and position are valid."""
-#         return all([self.year, self.position])
-#
-#     def set(self, year, position):
-#         """Set year and position."""
-#         if year:
-#             self.year = year
-#         if position:
-#             self.position = position
+
+class DropDownSelection:
+    """Class for dropdown selection for Players table."""
+
+    DEFAULT = {
+        "year": get_current_year(),
+        "position": "ALL",
+        "owner_name": "ALL",
+        "nfl_team": "ALL",
+    }
+
+    def __init__(self):
+        """Initialize DropDownSelection."""
+        self.reset()
+
+    def reset(self):
+        """Reset all instance attributes to DEFAULT constant."""
+        for attribute, value in DropDownSelection.DEFAULT.items():
+            setattr(self, attribute, value)
+        player_data_table.refresh()
+
+    def get_filter(self, field):
+        """Return SQL boolean expression filtering 'field' parameter."""
+        if getattr(self, field) == "ALL":
+            return "1 = 1"
+        return f"{field}::varchar='{getattr(self, field)}'"
 
 
-# @ui.refreshable
-# async def players_table(selection):
-#     """Table of players."""
-    # if selection.valid():
-    #     where_clause = [
-    #         Player.year == selection.year,
-    #         Player.position == selection.position
-    #     ]
-    #     rows = await query_data(select(Player).filter(*where_clause))
-    #     columns = []
-    #     table_fields = [
-    #         "player_key", "name", "pos_rank", "pro_team", "total_points"
-    #     ]
-    #     for field in table_fields:
-    #         if field in [col.name for col in Player.__table__.columns]:
-    #             col_dict = {
-    #                 "name": field,
-    #                 "label": humanize(field),
-    #                 "field": field,
-    #                 "sortable": True
-    #             }
-    #             if field == "player_key":
-    #                 col_dict["classes"] = "hidden"
-    #                 col_dict["headerClasses"] = "hidden"
-    #             columns.append(col_dict)
-    #     rows = [{k: v
-    #              for k, v in row.items() if k in table_fields} for row in rows]
-    #     rows_ordered = sorted(rows,
-    #                           key=lambda x: x["total_points"],
-    #                           reverse=True)
-    #
-    #     with ui.table(columns=columns,
-    #                   rows=rows_ordered,
-    #                   row_key="name",
-    #                   pagination=25).classes("w-full").props("selection=single") as table:
-    #         table.on("selection", lambda e: ui.notify(e.args))
+def filter_dropdown_button(selection: DropDownSelection, field: str, field_options: list[str], extra_format_funcs=None):
+    """Generic dropdown button element with label above."""
+    field_label = format_field_name(field, extra_format_funcs)
+    with ui.column().classes("gap-1 mx-auto"):
+        ui.label(field_label).classes("h-full mx-auto text-l text-weight-bold underline")
+        with ui.dropdown_button(field_label, auto_close=True) as field_dropdown:
+            field_dropdown.bind_text_from(selection, field)
+            for field_option in ["ALL"] + field_options:
+                ui.item(field_option,
+                        on_click=lambda field_option=field_option: refresh_table(selection, field, field_option))
 
 
-# def refresh_table(selection, year=None, position=None):
-#     """Refresh table with new year and position."""
-    # selection.set(year, position)
-    # players_table.refresh(selection)
+def filter_ui(selection: DropDownSelection):
+    """UI Element containing all user input options."""
+    with ui.card().classes("w-full my-auto mx-auto"):
+        with ui.row().classes("w-full gap-4 my-auto mx-auto"):
+            filter_dropdown_button(selection,"year", [str(year) for year in get_years_by_owner_id()])
+            filter_dropdown_button(selection, "position", VALID_POSITIONS)
+            filter_dropdown_button(selection, "owner_name", get_owner_names_by_year())
+            filter_dropdown_button(selection,
+                                   "nfl_team",
+                                   get_nfl_teams(),
+                                   [lambda s: f"{s.split(' ')[0].upper()} {s.split(' ')[1]}"]
+                                   )
+            ui.button("Reset Filter", on_click=selection.reset)
 
 
-# async def players_table_and_dropdowns():
-#     """Dropdowns and Table for Players page."""
-    # positions = await query_data(select(Player.position).distinct())
-    # selection = DropDownSelection(datetime.datetime.now().year, max(positions))
-    # with ui.row():
-    #     with ui.dropdown_button("Year", auto_close=True) as year_dropdown:
-    #         year_dropdown.bind_text_from(selection, "year")
-    #         for year in range(START_YEAR, datetime.datetime.now().year + 1):
-    #             ui.item(str(year),
-    #                     on_click=lambda year=year: refresh_table(selection,
-    #                                                              year=year))
-    #
-    #     with ui.dropdown_button("Position",
-    #                             auto_close=True) as position_dropdown:
-    #         position_dropdown.bind_text_from(selection, "position")
-    #         for position in positions:
-    #             ui.item(position,
-    #                     on_click=lambda position=position: refresh_table(
-    #                         selection, position=position))
-    # await players_table(selection)
+@ui.refreshable
+def player_data_table(selection):
+    """Data table displaying all player data."""
+    player_data_df = DbManager.query(f"""
+        select 
+            year            as Year, 
+            player_name     as "Player Name",
+            position        as Position, 
+            position_rank   as "Position Rank", 
+            nfl_team        as "NFL Team",
+            owner_name      as "Owner Name",
+            team_name       as "Team Name" , 
+            total_points    as "Total Points", 
+            avg_points      as "Average Points" 
+        from main_marts.player_data_table
+        where   
+            not is_playoff and
+            {selection.get_filter('year')} and
+            {selection.get_filter('position')} and
+            {selection.get_filter('owner_name')} and
+            {selection.get_filter('nfl_team')}
+    """)
+
+    table(player_data_df,
+          pagination=25,
+          classes="mx-auto w-full",
+          format_field_names=False,
+          hidden_fields = [field for field, value in selection.__dict__.items() if value != "ALL"],
+          slots=[{
+              "name": "body-cell-Team Name",
+              "template": r"""
+                  <q-td 
+                      :props="props"
+                      :class="
+                          props.value.includes('Available') ? 'bg-light-green-7' : 
+                          'primary'      
+                      ">
+                      {{ props.value }}
+                  </q-td>"""}
+          ]
+    )
+
+def refresh_table(selection, field, value):
+    """Refresh table with new year and position."""
+    setattr(selection, field, value)
+    player_data_table.refresh(selection)
+
+
+def players_table_and_dropdowns():
+    """Dropdowns and Table for Players page."""
+    selection = DropDownSelection()
+    filter_ui(selection)
+    player_data_table(selection)
 
 @ui.page("/stats_center/player_data")
-async def page():
+def page():
     """Players page."""
     common_header()
-    ui.label("Coming Soon...")
-    # await players_table_and_dropdowns()
+    players_table_and_dropdowns()

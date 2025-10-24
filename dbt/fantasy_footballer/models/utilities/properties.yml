@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: owner_year_map
+    description: Staging model containing distinct combinations of owners and years they participated in the league
+    columns:
+      - name: owner_id
+        description: Unique identifier for the team owner
+        data_type: integer
+        tests:
+          - not_null
+      - name: owner_name
+        description: Unique identifier for the team owner
+        data_type: varchar
+        tests:
+          - not_null
+      - name: year
+        description: Season year the owner participated
+        data_type: integer
+        tests:
+          - not_null
+
+  - name: current_year
+    description: Model containing the most recent season year available in the data
+    columns:
+      - name: this
+        description: The maximum (most recent) year from all owner-year combinations
+        data_type: integer
+        tests:
+          - not_null
+
+  - name: playoff_matchups
+    description: "Calendar table with all year-week combinations and playoff indicators based on historical season structures"
+    columns:
+      - name: year
+        description: "Season year"
+        data_type: integer
+        tests:
+          - not_null
+      - name: week
+        description: "Week number in the season (1-18)"
+        data_type: integer
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+      - name: is_playoff
+        description: "Boolean flag indicating if the week is a playoff week (week 14+ for pre-2021, week 15+ for 2021 onwards)"
+        data_type: boolean
+        tests:
+          - not_null
+
+  - name: nfl_teams
+    description: "Distinct list of NFL team abbreviations extracted from player data"
+    columns:
+      - name: nfl_team
+        description: "NFL team abbreviation"
+        data_type: varchar
+        tests:
+          - not_null
+          - unique

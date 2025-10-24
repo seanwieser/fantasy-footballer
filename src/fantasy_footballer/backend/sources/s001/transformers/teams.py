@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class TeamSchema(BaseModel):
     """Pydantic model to define schema for teams source table."""
 
+    team_id: int
     team_abbrev: str
     team_name: str
     division_id: int

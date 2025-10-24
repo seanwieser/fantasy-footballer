@@ -1,13 +1,10 @@
 default:
-  target: dev
+  target: default
   outputs:
-    dev:
+    app:
       type: duckdb
       path: ./resources/fantasy_footballer.duckdb
       keep_open: false
-pre-commit:
-  target: dev
-  outputs:
-    dev:
+    default:
       type: duckdb
       path: ../../resources/fantasy_footballer.duckdb

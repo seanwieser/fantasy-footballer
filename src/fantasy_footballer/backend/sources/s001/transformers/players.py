@@ -43,6 +43,7 @@ class PlayersTransformer(Transformer):
         players = []
         all_player_ids = [player_id for player_id in self.player_map.keys() if isinstance(player_id, int)]
         all_player_ids_count = len(all_player_ids)
+        queue.put(f"0 / {all_player_ids_count}")
         for idx, player_id in enumerate(all_player_ids):
             player_obj = self.player_info_func(playerId=player_id)
             if not player_obj:
@@ -62,6 +63,6 @@ class PlayersTransformer(Transformer):
             players.append(self.apply_schema(player_dict))
 
             # Update queue for frontend progress bar
-            queue.put_nowait((idx + 1) / all_player_ids_count)
+            queue.put(f"{idx + 1} / {all_player_ids_count}")
 
         return players

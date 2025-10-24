@@ -1,7 +1,7 @@
 """Spotlight page for each owner."""
 from backend.db import DbManager
-from frontend.utils import (common_header, get_years, owner_id_to_owner_name,
-                            table)
+from frontend.utils import (common_header, get_years_by_owner_id,
+                            owner_id_to_owner_name, table)
 from nicegui import ui
 
 
@@ -22,7 +22,7 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements
     with ui.grid(columns="1fr 1fr").classes("w-full"):
         owner_name = owner_id_to_owner_name(owner_id)
         ui.label(owner_name).classes("text-weight-bold underline text-4xl w-full text-right")
-        fantasy_years = get_years(owner_id)
+        fantasy_years = get_years_by_owner_id(owner_id)
         with ui.dropdown_button(str(year)).classes("w-1/6"):
             for fantasy_year in fantasy_years:
                 ui.item(fantasy_year,

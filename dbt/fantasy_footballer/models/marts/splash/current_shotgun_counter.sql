@@ -1,8 +1,8 @@
 with shotgun_counter as (
     select
-        shotguns.owner_name                                                         as "Owner",
-        count(*)                                                                    as "Count",
-        list_aggr(list_sort(array_agg(shotguns.week), 'ASC'), 'string_agg', ', ')   as "Weeks"
+        shotguns.owner_name                                                         as owner,
+        count(*)::int                                                               as count,
+        list_aggr(list_sort(array_agg(shotguns.week), 'ASC'), 'string_agg', ', ')   as weeks
     from {{ ref("int_shotguns") }}                      as shotguns
     cross join {{ ref("current_year") }}                as current_year
     where
@@ -11,8 +11,8 @@ with shotgun_counter as (
     group by
         shotguns.owner_name
     order by
-        "Count" desc,
-        "Weeks" desc
+        count desc,
+        weeks desc
 )
 
 select *

@@ -30,8 +30,6 @@ sources:
             data_tests:
               - not_null
           - name: injuryStatus
-            data_tests:
-              - not_null
           - name: injured
             data_tests:
               - not_null

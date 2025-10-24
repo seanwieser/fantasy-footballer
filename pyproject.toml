@@ -42,7 +42,7 @@ max-line-length = 120
 dialect = "duckdb"
 templater = "dbt"
 sql_file_exts = ".sql"
-exclude_rules = ["ST06", "RF06", "LT01"]
+exclude_rules = ["ST06", "RF06", "LT01", "RF04"]
 max_line_length = 120
 processes = -1
 
@@ -54,9 +54,9 @@ line_position = "trailing"
 [tool.sqlfluff.templater.dbt]
 project_dir = "./dbt/fantasy_footballer"
 profiles_dir = "./dbt/fantasy_footballer"
-profile = "pre-commit"
-target = "dev"
+profile = "default"
+target = "default"
 
 [tool.sqlfluff.rules.references]
 special_chars.allow_space_in_identifier = true
-keywords.ignore_words = "name,year,ties"
+keywords.ignore_words = "name,year,ties,week,count,owner"

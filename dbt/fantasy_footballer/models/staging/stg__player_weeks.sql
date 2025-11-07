@@ -1,11 +1,7 @@
 with player_stats_unnested as (
     select
-        owner_year_id,
-        player_year_id,
         player_id,
-        owner_id,
-        owner_name,
-        team_name,
+        player_year_id,
         nfl_team,
         year,
         player_name,
@@ -13,25 +9,19 @@ with player_stats_unnested as (
         is_flex,
         position_rank,
         unnest(stats_raw) as stats_flat
-    from {{ ref("stg__players") }}
+    from {{ ref("base_s001__players") }}
 ),
 
 player_stats_expanded as (
     select
-        player_stats_unnested.player_year_id ||
-        '_' || player_stats_unnested.stats_flat['week']::varchar as player_matchup_id,
-        player_stats_unnested.owner_year_id ||
-        '_' || player_stats_unnested.stats_flat['week']::varchar as owner_matchup_id,
-        player_stats_unnested.owner_year_id,
         player_stats_unnested.player_id,
-        player_stats_unnested.owner_id,
-        player_stats_unnested.owner_name,
-        player_stats_unnested.team_name,
+        player_stats_unnested.player_year_id,
+        player_stats_unnested.player_year_id ||
+        '_' || player_stats_unnested.stats_flat['week']::varchar as player_week_id,
         player_stats_unnested.nfl_team,
         player_stats_unnested.player_name,
         player_stats_unnested.year,
         player_stats_unnested.stats_flat['week']::integer as week,
-        playoff_matchups.is_playoff,
         player_stats_unnested.position_slot,
         player_stats_unnested.is_flex,
         player_stats_unnested.position_rank,
@@ -67,10 +57,6 @@ player_stats_expanded as (
         player_stats_unnested.stats_flat['madeExtraPoints']::integer as made_extra_points,
         player_stats_unnested.stats_flat['attemptedExtraPoints']::integer as attempted_extra_points
     from player_stats_unnested
-    inner join {{ ref("playoff_matchups") }} as playoff_matchups
-        on
-            player_stats_unnested.year = playoff_matchups.year and
-            player_stats_unnested.stats_flat['week']::integer = playoff_matchups.week
 )
 
 select *

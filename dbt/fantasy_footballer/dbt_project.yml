@@ -27,8 +27,6 @@ models:
       +schema: staging
     base:
       +schema: base
-    utilities:
-      +schema: utilities
 
 seeds:
   +schema: seed_data

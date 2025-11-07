@@ -62,7 +62,6 @@ class DbManager:
                     return True
         return False
 
-
     @staticmethod
     def fetch_resources():
         """Function used to download all required resource files from cloud storage during boot."""
@@ -96,7 +95,9 @@ class DbManager:
     @staticmethod
     def ingest_raw_data_from_cloud(sources, queue=None):
         """Function used to load fresh raw data from cloud storage into db."""
-        sources_ingested = 0
+        if queue:
+            queue.put(f"Sources to ingest from cloud: {' '.join(sources)}")
+
         with duckdb.connect(DB_PATH) as conn:
             conn.sql(SECRET_SQL)
             for source in sources:
@@ -106,11 +107,11 @@ class DbManager:
                     fqtn = f"{DB_NAME}.{source}.{table}"
                     file_paths_str = json.dumps(table_paths[table])
                     conn.sql(CREATE_TABLE_TEMPLATE.substitute(fqtn=fqtn, file_paths=file_paths_str))
+                    if queue:
+                        queue.put(f"Loaded: {source} - {fqtn}")
 
-                if queue:
-                    sources_ingested += 1
-                    queue.put(f"{sources_ingested} / {len(sources)}")
-        print("Raw data ingested from cloud...")
+        if queue:
+            queue.put(f"Sources ingested from cloud: {' '.join(sources)}")
 
     @staticmethod
     def fetch_data_from_sources(years, source, tables, log):
@@ -173,13 +174,15 @@ class DbManager:
         dbt = dbtRunner()
         cli_args = [action]
         if action in ["build", "seed"]:
-            cli_args.extend(["--full-refresh",
-                             "--profiles-dir",
-                             "dbt/fantasy_footballer",
-                             "--project-dir",
-                             "dbt/fantasy_footballer",
-                             "--target",
-                             "app"])
+            cli_args.extend([
+                "--full-refresh",
+                "--profiles-dir",
+                "dbt/fantasy_footballer",
+                "--project-dir",
+                "dbt/fantasy_footballer",
+                "--target",
+                "app"
+            ])
         else:
             raise RuntimeError("Not a supported dbt action.")
         if queue:

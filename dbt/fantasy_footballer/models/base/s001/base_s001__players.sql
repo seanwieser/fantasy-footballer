@@ -3,11 +3,12 @@ select
     onteamid::varchar || '_' || year::varchar as team_year_id,
     playerid::varchar as player_id,
     name::varchar as player_name,
-    year::integer as year,
+    year::int as year,
     eligibleslots::varchar [] as eligible_slots,
     proteam::varchar as nfl_team,
-    onteamid::integer as team_id,
+    onteamid::int as team_id,
     position::varchar as position_slot,
+    (position::varchar in array_value('WR', 'RB', 'TE')) as is_flex,
     injured::boolean as is_injured,
     total_points::double as total_points,
     avg_points::double as avg_points,
@@ -16,6 +17,6 @@ select
     percent_owned::double as percent_owned,
     percent_started::double as percent_started,
     stats as stats_raw,
-    try_cast(posrank as integer) as position_rank,
+    try_cast(posrank as int) as position_rank,
     if(injurystatus != '[]', replace(injurystatus::varchar, '"', '')::varchar, null) as injury_status
 from {{ source("s001", "players") }}

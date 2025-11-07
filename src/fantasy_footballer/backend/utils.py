@@ -5,6 +5,7 @@ import os
 
 import boto3
 
+NUM_NFL_WEEKS = 18
 
 class Transformer:
     """Parent class for source transformers."""
@@ -45,7 +46,7 @@ def get_date_partition():
     return datetime.datetime.now().strftime("%Y-%m-%d")
 
 
-def write_source_data(rows: list[dict], source: str, table: str, year: int) -> None:
+def write_source_data(rows: list[dict], source: str, table: str, year: int, queue=None) -> None:
     """Write jsonl file to cloud storage with constructed path from source, table, year parameters."""
     date_partition = get_date_partition()
     dir_path = f"data/sources/{source}/{table}/{year}/{date_partition}"
@@ -53,6 +54,8 @@ def write_source_data(rows: list[dict], source: str, table: str, year: int) -> N
     s3_key = f"{dir_path}/{file_name}"
     s3_client = get_s3_client()
     s3_client.put_object(Body=json.dumps(rows), Bucket=os.getenv("BUCKET_NAME"), Key=s3_key)
+    if queue:
+        queue.put(f"File written to b2: {s3_key}")
 
 def write_dbt_seeds():
     """Write dbt seed files to cloud storage."""

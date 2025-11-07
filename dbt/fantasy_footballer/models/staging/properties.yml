@@ -1,12 +1,44 @@
 version: 2
 
 models:
+
+  - name: stg__matchup_players
+    description: >
+      Granular view of players who participated in each matchup, unnested from the lineup arrays.
+      Creates one row per player per matchup week. Excludes future matchups where games have not
+      yet been played (score_for = 0) to focus on completed matchups only.
+
+    columns:
+      - name: year
+        description: Season year of the matchup
+        data_type: int
+        data_tests:
+          - not_null
+      - name: matchup_week
+        description: Week number of the matchup within the season
+        data_type: int
+        data_tests:
+          - not_null
+      - name: is_playoff
+        description: Flag indicating whether this matchup occurred during the playoff period
+        data_type: boolean
+        data_tests:
+          - not_null
+      - name: matchup_type
+        description: Type or category of the matchup (e.g., regular season, playoff round)
+        data_type: varchar
+      - name: player_id
+        description: Unique identifier for the player in the starting lineup for this matchup
+        data_type: varchar
+        data_tests:
+          - not_null
+
   - name: stg__owner_display_names
     description: "Combines owner information with their display names from separate source tables"
     columns:
       - name: owner_id
         description: "Unique identifier for the owner"
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: owner_name
@@ -19,118 +51,29 @@ models:
         data_type: varchar
         data_tests:
           - not_null
-  - name: stg__players
-    columns:
-      - name: player_id
-        data_type: string
-        data_tests:
-          - not_null
-      - name: player_year_id
-        data_type: string
-        data_tests:
-          - not_null
-          - unique
-      - name: owner_id
-        description: "Unique identifier for the team owner, null if player not on a roster"
-        data_type: integer
-      - name: team_year_id
-        description: "Unique identifier for team-year combination"
-        data_type: varchar
-        tests:
-          - not_null
-      - name: team_id
-        description: "Unique identifier for the team"
-        data_type: integer
-        tests:
-          - not_null
-      - name: owner_year_id
-        description: "Unique identifier for owner-year combination, null if player not on a roster"
-        data_type: varchar
-      - name: owner_name
-        description: "Name of the team owner, null if player not on a roster"
-        data_type: varchar
-      - name: team_name
-        description: "Fantasy team name, null if player not on a roster"
-        data_type: varchar
-      - name: avg_points
-        data_type: double
-        data_tests:
-          - not_null
-      - name: eligible_slots
-        data_type: varchar[]
-        data_tests:
-          - not_null
-      - name: injury_status
-        data_type: varchar
-      - name: is_injured
-        data_type: boolean
-        data_tests:
-          - not_null
-      - name: player_name
-        data_type: varchar
-        data_tests:
-          - not_null
-      - name: percent_owned
-        data_type: double
-        data_tests:
-          - not_null
-      - name: percent_started
-        data_type: double
-        data_tests:
-          - not_null
-      - name: position_rank
-        data_type: integer
-      - name: position_slot
-        data_type: varchar
-        data_tests:
-          - not_null
-      - name: nfl_team
-        data_type: varchar
-        data_tests:
-          - not_null
-      - name: projected_avg_points
-        data_type: double
-        data_tests:
-          - not_null
-      - name: projected_total_points
-        data_type: double
-        data_tests:
-          - not_null
-      - name: stats_raw
-        data_type: map(varchar, json)[]
-        data_tests:
-          - not_null
-      - name: total_points
-        data_type: double
-        data_tests:
-          - not_null
-      - name: year
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: is_flex
-        description: "Boolean flag indicating if player is eligible for flex position (WR, RB, or TE)"
-        data_type: boolean
-        tests:
-          - not_null
 
-  - name: stg__player_stats
+  - name: stg__player_weeks
     description: Staging model for weekly fantasy football player statistics with all stat categories flattened
     columns:
-      - name: player_matchup_id
-        description: Unique identifier combining player ID, year, and week
-        data_type: varchar
-        data_tests:
-          - unique
-          - not_null
       - name: player_id
         description: Unique identifier for the player
         data_type: varchar
         data_tests:
           - not_null
+      - name: player_year_id
+        description: Unique identifier for the player
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: player_week_id
+        description: Unique identifier combining player ID, year, and week
+        data_type: varchar
+        data_tests:
+          - unique
+          - not_null
       - name: year
         description: Season year
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: player_name
@@ -138,12 +81,12 @@ models:
         data_type: varchar
       - name: week
         description: Week number of the game
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: team_win
         description: Binary indicator if player's NFL team won (1) or lost (0)
-        data_type: integer
+        data_type: int
       - name: points
         description: Total fantasy points scored for the week
         data_type: double
@@ -155,328 +98,260 @@ models:
         data_type: double
       - name: receiving_targets
         description: Number of times targeted by quarterback
-        data_type: integer
+        data_type: int
       - name: receiving_touchdowns
         description: Number of receiving touchdowns
-        data_type: integer
+        data_type: int
       - name: receiving_2_pt_conversions
         description: Number of successful 2-point conversions via reception
-        data_type: integer
+        data_type: int
       - name: rushing_attempts
         description: Number of rushing attempts (carries)
-        data_type: integer
+        data_type: int
       - name: rushing_yards
         description: Total rushing yards
         data_type: double
       - name: rushing_touchdowns
         description: Number of rushing touchdowns
-        data_type: integer
+        data_type: int
       - name: rushing_2_pt_conversions
         description: Number of successful 2-point conversions via rush
-        data_type: integer
+        data_type: int
       - name: passing_attempts
         description: Number of pass attempts
-        data_type: integer
+        data_type: int
       - name: passing_completions
         description: Number of completed passes
-        data_type: integer
+        data_type: int
       - name: passing_incompletions
         description: Number of incomplete passes
-        data_type: integer
+        data_type: int
       - name: passing_yards
         description: Total passing yards
         data_type: double
       - name: passing_touchdowns
         description: Number of passing touchdowns
-        data_type: integer
+        data_type: int
       - name: passing_completion_percentage
         description: Completion percentage (completions / attempts)
         data_type: double
       - name: passing_times_sacked
         description: Number of times sacked
-        data_type: integer
+        data_type: int
       - name: fumbles
         description: Total number of fumbles
-        data_type: integer
+        data_type: int
       - name: lost_fumbles
         description: Number of fumbles lost to opposing team
-        data_type: integer
+        data_type: int
       - name: turnovers
         description: Total turnovers (interceptions + lost fumbles)
-        data_type: integer
+        data_type: int
       - name: made_field_goals_from_40_to_49
         description: Field goals made from 40-49 yards
-        data_type: integer
+        data_type: int
       - name: attempted_field_goals_from_40_to_49
         description: Field goals attempted from 40-49 yards
-        data_type: integer
+        data_type: int
       - name: made_field_goals_from_under_40
         description: Field goals made from under 40 yards
-        data_type: integer
+        data_type: int
       - name: attempted_field_goals_from_under_40
         description: Field goals attempted from under 40 yards
-        data_type: integer
+        data_type: int
       - name: made_field_goals
         description: Total field goals made
-        data_type: integer
+        data_type: int
       - name: attempted_field_goals
         description: Total field goals attempted
-        data_type: integer
+        data_type: int
       - name: made_extra_points
         description: Extra points made
-        data_type: integer
+        data_type: int
       - name: attempted_extra_points
         description: Extra points attempted
-        data_type: integer
+        data_type: int
       - name: is_flex
         description: "Boolean flag indicating if player is eligible for flex position"
-        data_type: boolean
-      - name: is_playoff
-        description: "Boolean flag indicating if the week is a playoff week"
         data_type: boolean
       - name: nfl_team
         description: "NFL team abbreviation"
         data_type: varchar
-      - name: owner_id
-        description: "Unique identifier for the team owner"
-        data_type: integer
-      - name: owner_matchup_id
-        description: "Unique identifier for the owner's matchup"
-        data_type: varchar
-      - name: owner_name
-        description: "Name of the team owner"
-        data_type: varchar
-      - name: owner_year_id
-        description: "Unique identifier for owner-year combination"
-        data_type: varchar
       - name: position_rank
         description: "Rank of player within their position"
-        data_type: integer
+        data_type: int
       - name: position_slot
         description: "Player's position slot designation"
         data_type: varchar
-      - name: team_name
-        description: "Name of the fantasy team"
-        data_type: varchar
 
-  - name: stg__teams
+  - name: stg__settings_matchup_weeks_map
     columns:
-      - name: owner_year_id
-        data_type: string
-        data_tests:
-          - not_null
-          - unique
-      - name: team_year_id
-        data_type: string
-        data_tests:
-          - not_null
-          - unique
-      - name: owner_id
-        data_type: int
-        data_tests:
-          - not_null
-      - name: first_name
-        data_type: string
-        data_tests:
-          - not_null
-      - name: last_name
-        data_type: string
-        data_tests:
-          - not_null
-      - name: display_name
-        data_type: string
-        data_tests:
-          - not_null
-      - name: streak_type
-        data_type: string
-        data_tests:
-          - accepted_values:
-              arguments:
-                values: ["W", "L"]
-      - name: acquisition_budget_spent
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: acquisitions
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: division_id
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: division_name
-        data_type: varchar
-        data_tests:
-          - not_null
-      - name: draft_projected_rank
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: drops
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: final_standing
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: losses
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: owner_name
-        data_type: varchar
-        data_tests:
-          - not_null
-      - name: playoff_pct
-        data_type: double
-        data_tests:
-          - not_null
-      - name: points_against
-        data_type: double
-        data_tests:
-          - not_null
-      - name: points_for
-        data_type: double
-        data_tests:
-          - not_null
-      - name: roster
-        data_type: varchar[]
-        data_tests:
-          - not_null
-      - name: standing
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: streak
-        data_type: varchar
-        data_tests:
-          - not_null
-      - name: streak_length
-        data_type: varchar
-        data_tests:
-          - not_null
-      - name: team_abbrev
-        data_type: varchar
-        data_tests:
-          - not_null
-      - name: team_name
-        data_type: varchar
-        data_tests:
-          - not_null
-      - name: ties
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: trades
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: wins
-        data_type: integer
-        data_tests:
-          - not_null
       - name: year
-        data_type: integer
-        data_tests:
-          - not_null
-      - name: matchups_raw
-        data_type: varchar[]
-        data_tests:
-          - not_null
-
-
-  - name: stg__team_matchups
-    description: Staging model for fantasy football team matchups with weekly matchup details and opponent information
-    columns:
-      - name: owner_matchup_id
-        description: Unique identifier for a team's specific week (owner_year_id + week)
-        data_type: varchar
-        data_tests:
-          - unique
-          - not_null
-      - name: owner_year_id
-        description: Unique identifier combining owner ID and year
-        data_type: varchar
-        data_tests:
-          - not_null
-          - relationships:
-              arguments:
-                to: ref('stg__teams')
-                field: owner_year_id
-      - name: owner_id
-        description: Identifier for the team owner
         data_type: int
-      - name: opponent_owner_year_id
-        description: Unique identifier combining opponent team ID and year
-        data_type: varchar
-        data_tests:
-          - relationships:
-              arguments:
-                to: ref('stg__teams')
-                field: owner_year_id
-      - name: opponent_owner_matchup_id
-        description: Unique identifier for opponent's matchup record for this matchup
-        data_type: varchar
-        data_tests:
+        tests:
           - not_null
-      - name: year
-        description: Season year
-        data_type: integer
-        data_tests:
+      - name: matchup_week
+        data_type: int
+        tests:
           - not_null
       - name: week
-        description: Week number of the matchup
-        data_type: integer
-        data_tests:
+        data_type: int
+        tests:
           - not_null
-      - name: score_for
-        description: Points scored by the team in this matchup
-        data_type: double
-      - name: outcome
-        description: Result of the matchup (W for win, L for loss, T for tie)
-        data_type: varchar
-      - name: is_playoff
-        description: Boolean flag indicating if this week is a playoff week (week 14+ for 2020 and earlier, week 15+ for 2021 and later)
-        data_type: boolean
 
-  - name: stg__team_current_rosters
-    description: "Unnested team rosters with one row per player per team per year, transforming the roster array into individual player records"
+  - name: stg__team_week_players
+    description: >
+      Player-level lineup data for each team by week. Unnests the lineup struct from team_weeks
+      to create one row per player per team per week. Excludes undecided matchups (outcome = 'U').
+      Standardizes lineup slot naming by converting 'RB/WR/TE' to 'FLEX' for consistency.
     columns:
-      - name: owner_year_id
-        description: "Unique identifier for owner-year combination"
-        data_type: varchar
+      - name: team_id
+        description: Unique identifier for the team
+        data_type: int
         tests:
           - not_null
-      - name: owner_id
-        description: "Unique identifier for the team owner"
-        data_type: integer
-        tests:
-          - not_null
-      - name: owner_name
-        description: "Name of the team owner"
+          - relationships:
+              arguments:
+                to: ref('stg__team_weeks')
+                field: team_id
+      - name: team_year_id
+        description: Composite key combining team_id and year (format 'team_id_year')
         data_type: varchar
         tests:
           - not_null
       - name: team_name
-        description: "Name of the fantasy team"
+        description: Name of the team
+        data_type: varchar
+        tests:
+          - not_null
+      - name: team_week_id
+        description: Composite key combining team_year_id and week (format 'team_year_id_week')
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg__team_weeks')
+                field: team_week_id
+      - name: opponent_team_id
+        description: Unique identifier for the opposing team in this week's matchup
+        data_type: int
+        tests:
+          - not_null
+      - name: opponent_team_year_id
+        description: Composite key for the opponent combining team_id and year
+        data_type: varchar
+        tests:
+          - not_null
+      - name: opponent_team_week_id
+        description: Composite key for the opponent's week (format 'opponent_team_year_id_week')
         data_type: varchar
         tests:
           - not_null
       - name: player_id
-        description: "Unique identifier for the player, extracted from the roster array"
+        description: Unique identifier for the player
         data_type: varchar
         tests:
           - not_null
       - name: player_year_id
-        description: "Composite key combining player_id and year for unique player-year identification"
+        description: Composite key combining player_id and year (format 'player_id_year')
+        data_type: varchar
+        tests:
+          - not_null
+      - name: player_week_id
+        description: Composite key combining player_id, year, and week (format 'player_id_year_week')
+        data_type: varchar
+        tests:
+          - not_null
+      - name: lineup_slot
+        description: >
+          Roster position the player occupied in the lineup (e.g., QB, RB, WR, TE, FLEX, K, D/ST, BN).
+          Standardized so 'RB/WR/TE' positions are converted to 'FLEX'.
+        data_type: varchar
+        tests:
+          - not_null
+      - name: year
+        description: Season year
+        data_type: int
+        tests:
+          - not_null
+      - name: week
+        description: Week number within the season
+        data_type: int
+        tests:
+          - not_null
+
+  - name: stg__team_weeks
+    description: >
+      Weekly performance data for each team, unnested from the teams table's weekly array structure.
+      Creates one row per team per week with matchup details, lineup information, and opponent enrichment.
+      Opponent team data is joined to provide full context for both sides of each weekly matchup.
+
+    columns:
+      - name: team_id
+        description: Unique identifier for the team
+        data_type: int
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('base_s001__teams')
+                field: team_id
+      - name: team_year_id
+        description: Composite key combining team_id and year (format 'team_id_year')
+        data_type: varchar
+        tests:
+          - not_null
+      - name: team_week_id
+        description: Composite key combining team_year_id and week (format 'team_year_id_week')
         data_type: varchar
         tests:
           - not_null
           - unique
-      - name: year
-        description: "Season year"
-        data_type: integer
+      - name: team_name
+        description: Name of the team
+        data_type: varchar
         tests:
           - not_null
+      - name: opponent_team_id
+        description: Unique identifier for the opposing team in this week's matchup
+        data_type: int
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('base_s001__teams')
+                field: team_id
+      - name: opponent_team_year_id
+        description: Composite key for the opponent combining team_id and year
+        data_type: varchar
+        tests:
+          - not_null
+      - name: opponent_team_week_id
+        description: Composite key for the opponent's week (format 'opponent_team_year_id_week')
+        data_type: varchar
+        tests:
+          - not_null
+      - name: year
+        description: Season year
+        data_type: int
+        tests:
+          - not_null
+      - name: week
+        description: Week number within the season
+        data_type: int
+        tests:
+          - not_null
+      - name: lineup
+        description: >
+          Array of lineup slots containing player IDs and their assigned roster positions
+          for this team during this week
+        data_type: struct(playerId varchar, lineupSlot varchar)[]
+      - name: score_for
+        description: Points scored by the team in this week
+        data_type: double
+        data_tests:
+          - not_null
+      - name: outcome
+        description: Result of the matchup for this team (e.g., 'W', 'L', 'T')
+        data_type: varchar

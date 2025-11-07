@@ -111,6 +111,100 @@ sources:
           - name: final_standing
             data_tests:
               - not_null
-          - name: roster
+      - name: matchups
+        columns:
+          - name: year
             data_tests:
               - not_null
+          - name: matchup_week
+            data_tests:
+              - not_null
+          - name: home_team
+            data_tests:
+              - not_null
+          - name: home_score
+            data_tests:
+              - not_null
+          - name: home_projected
+            data_tests:
+              - not_null
+          - name: away_team
+          - name: away_score
+            data_tests:
+              - not_null
+          - name: away_projected
+            data_tests:
+              - not_null
+          - name: home_lineup
+            data_tests:
+              - not_null
+          - name: away_lineup
+            data_tests:
+              - not_null
+          - name: is_playoff
+            data_tests:
+              - not_null
+          - name: matchup_type
+            data_tests:
+              - not_null
+
+      - name: settings
+        description: League configuration and settings including scoring rules, roster positions, and playoff structure
+        columns:
+          - name: year
+            data_tests:
+              - not_null
+          - name: reg_season_count
+            description: Number of regular season weeks
+            data_type: integer
+          - name: matchup_periods
+            description: Mapping of matchup periods to week numbers (JSON/struct)
+            data_type: json
+          - name: veto_votes_required
+            description: Number of votes required to veto a trade
+            data_type: integer
+          - name: team_count
+            description: Total number of teams in the league
+            data_type: integer
+          - name: playoff_team_count
+            description: Number of teams that make the playoffs
+            data_type: integer
+          - name: keeper_count
+            description: Number of keeper players allowed per team
+            data_type: integer
+          - name: trade_deadline
+            description: Trade deadline timestamp (Unix milliseconds)
+            data_type: bigint
+          - name: division_map
+            description: Mapping of division IDs to division names (JSON/struct)
+            data_type: json
+          - name: name
+            description: League name
+            data_type: varchar
+          - name: tie_rule
+            description: Rule for handling ties in regular season matchups
+            data_type: varchar
+          - name: playoff_tie_rule
+            description: Rule for handling ties in playoff matchups
+            data_type: varchar
+          - name: playoff_matchup_period_length
+            description: Number of weeks per playoff matchup
+            data_type: integer
+          - name: playoff_seed_tie_rule
+            description: Tiebreaker rule for determining playoff seeding
+            data_type: varchar
+          - name: scoring_type
+            description: League scoring type (e.g., H2H_POINTS, H2H_CATEGORY)
+            data_type: varchar
+          - name: faab
+            description: Whether FAAB (Free Agent Acquisition Budget) is enabled
+            data_type: boolean
+          - name: acquisition_budget
+            description: Total FAAB budget amount per team
+            data_type: integer
+          - name: scoring_format
+            description: Array of scoring rules with stat abbreviations, labels, IDs, and point values
+            data_type: json
+          - name: position_slot_counts
+            description: Roster configuration showing number of slots for each position
+            data_type: json

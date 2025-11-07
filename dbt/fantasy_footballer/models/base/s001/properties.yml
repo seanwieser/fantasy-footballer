@@ -1,34 +1,83 @@
 version: 2
 
 models:
+  - name: base_s001__matchups
+    description: >
+      Splits home and away matchup data into individual team records, creating one row per team per matchup.
+      This model unpivots the matchups table to facilitate team-level analysis and aggregations.
+      Excludes bye weeks where no opponent exists.
+
+    columns:
+      - name: team_id
+        description: Unique identifier for the team
+        data_type: int
+        data_tests:
+          - not_null
+      - name: team_year_id
+        description: Composite key combining team_id and year
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        description: Season year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: matchup_week
+        description: Week number of the matchup within the season
+        data_type: int
+        data_tests:
+          - not_null
+      - name: score_for
+        description: Points scored by the team in this matchup
+        data_type: double
+        data_tests:
+          - not_null
+      - name: projected_score_for
+        description: Projected points for the team in this matchup (set to 0 when actual score is 0)
+        data_type: double
+        data_tests:
+          - not_null
+      - name: matchup_lineup
+        description: Array of player IDs that were in the team's starting lineup for this matchup
+        data_type: varchar[]
+      - name: is_playoff
+        description: Flag indicating whether this matchup occurred during the playoff period
+        data_type: boolean
+        data_tests:
+          - not_null
+      - name: matchup_type
+        description: Type or category of the matchup (e.g., regular season, playoff round)
+        data_type: varchar
+
   - name: base_s001__players
     description: Staging model for fantasy football players with season-level statistics and metadata
     columns:
       - name: player_year_id
         description: Unique identifier combining player ID and year
         data_type: varchar
-        tests:
+        data_tests:
           - unique
           - not_null
       - name: team_year_id
         description: Unique identifier combining team ID and year
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: player_id
         description: Unique identifier for the player
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: player_name
         description: Player's full name
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: year
         description: Season year
         data_type: integer
-        tests:
+        data_tests:
           - not_null
       - name: eligible_slots
         description: Array of eligible roster slots for the player (e.g., RB, FLEX, BENCH)
@@ -42,6 +91,9 @@ models:
       - name: position_slot
         description: Primary fantasy position (QB, RB, WR, TE, K, D/ST)
         data_type: varchar
+      - name: is_flex
+        description: Flag indicating whether player can be put in FLEX
+        data_type: boolean
       - name: is_injured
         description: Boolean flag indicating if player is currently injured
         data_type: boolean
@@ -73,24 +125,104 @@ models:
         description: Current injury designation (e.g., OUT, QUESTIONABLE, DOUBTFUL, IR)
         data_type: varchar
 
+  - name: base_s001__settings
+    description: >
+      League settings and configuration by year. Contains all rule-based parameters that govern
+      league operations including season structure, playoff format, roster requirements, 
+      scoring rules, and trade/acquisition settings.
+
+    columns:
+      - name: year
+        description: Season year for these league settings
+        data_type: int
+        data_tests:
+          - not_null
+          - unique
+      - name: reg_season_count
+        description: Number of regular season weeks
+        data_type: int
+        data_tests:
+          - not_null
+      - name: matchup_weeks
+        description: Structured data defining the matchup periods throughout the season
+        data_type: struct("1" bigint[], "2" bigint[], "3" bigint[], "4" bigint[], "5" bigint[], "6" bigint[], "7" bigint[], "8" bigint[], "9" bigint[], "10" bigint[], "11" bigint[], "12" bigint[], "13" bigint[], "14" bigint[], "15" bigint[], "16" bigint[], "17" bigint[])
+      - name: veto_votes_required
+        description: Number of votes required to veto a trade
+        data_type: int
+        data_tests:
+          - not_null
+      - name: team_count
+        description: Total number of teams in the league
+        data_type: int
+        data_tests:
+          - not_null
+      - name: playoff_team_count
+        description: Number of teams that qualify for playoffs
+        data_type: int
+        data_tests:
+          - not_null
+      - name: keeper_count
+        description: Number of players each team can keep from the previous season
+        data_type: int
+        data_tests:
+          - not_null
+      - name: trade_deadline
+        description: Timestamp of the trade deadline for this season
+        data_type: timestamp
+      - name: division_map
+        description: Mapping of teams to divisions
+        data_type: struct("0" varchar, "1" varchar)
+      - name: name
+        description: Name of the league
+        data_type: varchar
+      - name: tie_rule
+        description: Rule for handling ties in regular season matchups
+        data_type: varchar
+      - name: playoff_tie_rule
+        description: Rule for handling ties in playoff matchups
+        data_type: varchar
+      - name: playoff_matchup_period_length
+        description: Number of weeks per playoff matchup round
+        data_type: int
+      - name: playoff_seed_tie_rule
+        description: Rule for breaking ties when determining playoff seeding
+        data_type: varchar
+      - name: scoring_type
+        description: Type of scoring system used (e.g., head-to-head, points)
+        data_type: varchar
+      - name: faab
+        description: Flag indicating whether FAAB (Free Agent Acquisition Budget) is enabled
+        data_type: boolean
+        data_tests:
+          - not_null
+      - name: acquisition_budget
+        description: Total FAAB budget available to each team for the season
+        data_type: int
+      - name: scoring_format
+        description: Detailed scoring format rules and point values
+        data_type: struct(abbr varchar, "label" varchar, id bigint, points double)[]
+#      - name: position_slot_counts
+#        description: Number of roster slots for each position type
+#        data_type: ?
+
   - name: base_s001__teams
     description: Staging model for fantasy football teams with season-level performance and owner information
     columns:
       - name: team_year_id
         description: Unique identifier for the fantasy team
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
           - unique
       - name: team_id
         description: Unique identifier for the fantasy team
         data_type: integer
-        tests:
+        data_tests:
           - not_null
       - name: year
         description: Season year
         data_type: integer
-        tests:
+        data_tests:
           - not_null
       - name: team_abbrev
         description: Team abbreviation or short name
@@ -143,10 +275,7 @@ models:
       - name: final_standing
         description: Final league standing at end of season
         data_type: integer
-      - name: roster
-        description: Array of player IDs on the team roster
-        data_type: varchar[]
-      - name: matchups_raw
+      - name: weeks_raw
         description: Raw nested matchup data containing matchup details by week
         data_type: varchar[]
       - name: first_name

@@ -1,7 +1,9 @@
 """Source s001 extractor to handle everything associated with the source."""
 import os
 
+from backend.sources.s001.transformers.matchups import MatchupTransformer
 from backend.sources.s001.transformers.players import PlayersTransformer
+from backend.sources.s001.transformers.settings import SettingsTransformer
 from backend.sources.s001.transformers.teams import TeamsTransformer
 from backend.utils import Transformer, write_source_data
 from espn_api.football import League
@@ -10,7 +12,7 @@ from espn_api.football import League
 class S001Extractor:
     """Class containing definitions and methods for source s001."""
 
-    ALL_TRANSFORMERS = [PlayersTransformer, TeamsTransformer]
+    ALL_TRANSFORMERS = [PlayersTransformer, TeamsTransformer, MatchupTransformer, SettingsTransformer]
     SOURCE_NAME = "s001"
 
     @staticmethod
@@ -35,7 +37,7 @@ class S001Extractor:
         return [t.TABLE_NAME for t in S001Extractor.ALL_TRANSFORMERS]
 
     @staticmethod
-    def run(log, years, tables):
+    def run(queue, years, tables):
         """Interface method to extract, transform, and write data."""
         # Resolve parameters
         transformer_classes = [t for t in S001Extractor.ALL_TRANSFORMERS if t.TABLE_NAME in tables]
@@ -45,5 +47,10 @@ class S001Extractor:
 
         # Transform to native datatypes, write data to files, and load from files to database
         for transformer in transformers:
-            rows = transformer.transform(log)
-            write_source_data(rows, S001Extractor.SOURCE_NAME, transformer.TABLE_NAME, transformer.year)
+            rows = transformer.transform(queue)
+            write_source_data(rows=rows,
+                              source=S001Extractor.SOURCE_NAME,
+                              table=transformer.TABLE_NAME,
+                              year=transformer.year,
+                              queue=queue
+                              )

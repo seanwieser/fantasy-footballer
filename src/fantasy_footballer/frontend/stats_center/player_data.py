@@ -2,8 +2,7 @@
 from backend.db import DbManager
 from frontend.utils import (VALID_POSITIONS, common_header, format_field_name,
                             get_current_year, get_nfl_teams,
-                            get_owner_names_by_year, get_years_by_owner_id,
-                            table)
+                            get_years_by_owner_id, table)
 from nicegui import ui
 
 
@@ -13,7 +12,6 @@ class DropDownSelection:
     DEFAULT = {
         "year": get_current_year(),
         "position": "ALL",
-        "owner_name": "ALL",
         "nfl_team": "ALL",
     }
 
@@ -52,7 +50,6 @@ def filter_ui(selection: DropDownSelection):
         with ui.row().classes("w-full gap-4 my-auto mx-auto"):
             filter_dropdown_button(selection,"year", [str(year) for year in get_years_by_owner_id()])
             filter_dropdown_button(selection, "position", VALID_POSITIONS)
-            filter_dropdown_button(selection, "owner_name", get_owner_names_by_year())
             filter_dropdown_button(selection,
                                    "nfl_team",
                                    get_nfl_teams(),
@@ -71,16 +68,12 @@ def player_data_table(selection):
             position        as Position, 
             position_rank   as "Position Rank", 
             nfl_team        as "NFL Team",
-            owner_name      as "Owner Name",
-            team_name       as "Team Name" , 
             total_points    as "Total Points", 
             avg_points      as "Average Points" 
         from main_marts.player_data_table
         where   
-            not is_playoff and
             {selection.get_filter('year')} and
             {selection.get_filter('position')} and
-            {selection.get_filter('owner_name')} and
             {selection.get_filter('nfl_team')}
     """)
 

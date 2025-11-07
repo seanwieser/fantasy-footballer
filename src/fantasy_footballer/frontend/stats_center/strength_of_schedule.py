@@ -8,4 +8,4 @@ from nicegui import ui
 async def page():
     """Strength of Schedule page."""
     common_header()
-    ui.label("Coming Soon...")
+    ui.label("Coming Soon... ")

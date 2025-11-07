@@ -7,22 +7,22 @@ models:
       - name: year
         description: "Season year"
         data_type: integer
-        tests:
+        data_tests:
           - not_null
       - name: player_name
         description: "Full name of the player"
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: position
         description: "Player's position slot designation"
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: is_flex
         description: "Boolean flag indicating if player is eligible for flex position"
         data_type: boolean
-        tests:
+        data_tests:
           - not_null
       - name: position_rank
         description: "Rank of player within their position"
@@ -30,28 +30,13 @@ models:
       - name: nfl_team
         description: "NFL team abbreviation"
         data_type: varchar
-      - name: owner_name
-        description: "Name of the team owner, empty string if not rostered"
-        data_type: varchar
-        tests:
-          - not_null
-      - name: team_name
-        description: "Name of the fantasy team, 'Available' if not rostered"
-        data_type: varchar
-        tests:
-          - not_null
-      - name: is_playoff
-        description: "Boolean flag indicating if the stats include playoff weeks"
-        data_type: boolean
-        tests:
-          - not_null
       - name: total_points
         description: "Total fantasy points scored, rounded to 2 decimal places"
         data_type: double
-        tests:
+        data_tests:
           - not_null
       - name: avg_points
         description: "Average fantasy points per week, rounded to 2 decimal places"
         data_type: double
-        tests:
+        data_tests:
           - not_null

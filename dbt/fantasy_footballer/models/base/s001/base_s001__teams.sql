@@ -1,6 +1,6 @@
 select
-    team_id::varchar || '_' || year::varchar as team_year_id,
     team_id::int as team_id,
+    team_id::varchar || '_' || year::varchar as team_year_id,
     year::int as year,
     team_abbrev::varchar as team_abbrev,
     team_name::varchar as team_name,
@@ -19,8 +19,7 @@ select
     draft_projected_rank::int as draft_projected_rank,
     standing::int as standing,
     final_standing::int as final_standing,
-    roster::varchar[] as roster,
-    schedule::varchar[] as matchups_raw,
+    schedule::varchar[] as weeks_raw,
     upper(left(trim(owners[1].firstname::varchar), 1)) ||
     lower(substring(trim(owners[1].firstname::varchar), 2, length(trim(owners[1].firstname::varchar))))
         as first_name,

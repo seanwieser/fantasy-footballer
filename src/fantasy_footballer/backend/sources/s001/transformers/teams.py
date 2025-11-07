@@ -28,7 +28,6 @@ class TeamSchema(BaseModel):
     standing: int
     final_standing: int
     owners: list
-    roster: list
     schedule: list
 
 
@@ -39,27 +38,33 @@ class TeamsTransformer(Transformer):
     TABLE_SCHEMA = TeamSchema
 
     def __init__(self, league):
-        self.teams = league.teams
+        self.league = league
         super().__init__(table_schema=TeamsTransformer.TABLE_SCHEMA, year=league.year)
 
-
+    # pylint: disable=too-many-locals
     def transform(self, queue):
         """Override parent abstract method to be run by associated s001 extractor."""
-        queue.put(f"0 / {len(self.teams)}")
+        queue.put(f"teams - {self.year}: 0 / {len(self.league.teams)}")
         teams = []
-        for team_idx, team in enumerate(self.teams):
+        for team_idx, team in enumerate(self.league.teams):
             team = team.__dict__
-
-            # Convert roster Player objects into playerId's
-            team["roster"] =  [player.playerId for player in team["roster"]]
 
             # Convert schedule, scores, outcomes to single object describing a weekly matchup
             new_schedule = []
             schedule_infos = list(zip(team["schedule"], team["scores"], team["outcomes"]))
-            for schedule_idx, schedule_info in enumerate(schedule_infos):
+            for week, schedule_info in enumerate(schedule_infos, start=1):
                 opponent, score, outcome = schedule_info
+
+                lineup = []
+                self.league.load_roster_week(week=week)
+                for team_data in self.league.teams:
+                    if team_data.team_id == team["team_id"]:
+                        for player in team_data.roster:
+                            lineup.append({"playerId": player.playerId, "lineupSlot": player.lineupSlot})
+
                 matchup = {
-                    "week": schedule_idx + 1,
+                    "week": week,
+                    "lineup": lineup,
                     "score_for": score,
                     "outcome": outcome,
                     "opponent": self.convert_to_dict(opponent)["team_name"]
@@ -71,6 +76,6 @@ class TeamsTransformer(Transformer):
             teams.append(self.apply_schema(team))
 
             # Update queue for frontend progress bar
-            queue.put(f"{team_idx + 1} / {len(self.teams)}")
+            queue.put(f"teams - {self.year}: {team_idx + 1} / {len(self.league.teams)}")
 
         return teams

@@ -48,9 +48,10 @@ class S001Extractor:
         # Transform to native datatypes, write data to files, and load from files to database
         for transformer in transformers:
             rows = transformer.transform(queue)
-            write_source_data(rows=rows,
-                              source=S001Extractor.SOURCE_NAME,
-                              table=transformer.TABLE_NAME,
-                              year=transformer.year,
-                              queue=queue
-                              )
+            write_source_data(
+                rows=rows,
+                source=S001Extractor.SOURCE_NAME,
+                table=transformer.TABLE_NAME,
+                year=transformer.year,
+                queue=queue
+            )

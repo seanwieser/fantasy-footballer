@@ -172,6 +172,33 @@ models:
         tests:
           - not_null
 
+  - name: int__source_freshness
+    description: >
+      Filtered view of source metadata for the current season only. Provides a simplified
+      reference for checking data freshness and effective dates of current season source tables.
+      Automatically updates to reflect the most recent season year.
+
+    columns:
+      - name: src
+        description: Name of the source within the source system
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['s001']
+      - name: src_table
+        description: Name of the source table within the source system
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['matchups', 'players', 'settings', 'teams']
+      - name: meta__date_effective
+        description: Date when the current season source data became effective or valid
+        data_type: date
+
   - name: int__weeks_played_by_year
     columns:
       - name: year

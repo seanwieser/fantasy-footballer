@@ -9,7 +9,10 @@ with matchups_split as (
         if(home_score::double = 0, 0, home_projected::double) as projected_score_for,
         home_lineup::varchar[] as matchup_lineup,
         is_playoff,
-        matchup_type::varchar as matchup_type
+        matchup_type::varchar as matchup_type,
+        meta__source_path::varchar as meta__source_path,
+        meta__date_effective::date as meta__date_effective,
+        meta__date_pulled::date as meta__date_pulled
     from {{ source("s001", "matchups") }}
 
     union all
@@ -24,7 +27,10 @@ with matchups_split as (
         if(away_score::double = 0, 0, away_projected::double) as projected_score_for,
         away_lineup::varchar[] as matchup_lineup,
         is_playoff,
-        matchup_type::varchar as matchup_type
+        matchup_type::varchar as matchup_type,
+        meta__source_path::varchar as meta__source_path,
+        meta__date_effective::date as meta__date_effective,
+        meta__date_pulled::date as meta__date_pulled
     from {{ source("s001", "matchups") }}
     where away_team is not null -- Opponent of bye matchup week is empty
 )

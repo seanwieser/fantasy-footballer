@@ -188,16 +188,54 @@ models:
     columns:
       - name: year
         data_type: int
-        tests:
+        data_tests:
           - not_null
       - name: matchup_week
         data_type: int
-        tests:
+        data_tests:
           - not_null
       - name: week
         data_type: int
-        tests:
+        data_tests:
           - not_null
+
+  - name: stg__source_metadata
+    description: >
+      Consolidated metadata tracking for all source tables. Provides a unified view of data lineage,
+      freshness, and provenance across all base layer tables. Each row represents metadata for a
+      specific source table and year, enabling data quality monitoring and audit trails.
+
+    columns:
+      - name: src
+        description: Source system identifier (e.g., 's001')
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['s001']
+      - name: src_table
+        description: Name of the source table within the source system
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['matchups', 'players', 'settings', 'teams']
+      - name: year
+        description: Season year the source data represents
+        data_type: int
+        data_tests:
+          - not_null
+      - name: meta__source_path
+        description: File path or location where the source data originated
+        data_type: varchar
+      - name: meta__date_effective
+        description: Date when this source data became effective or valid
+        data_type: date
+      - name: meta__date_pulled
+        description: Timestamp when the source data was extracted or loaded
+        data_type: date
 
   - name: stg__team_week_players
     description: >
@@ -208,7 +246,7 @@ models:
       - name: team_id
         description: Unique identifier for the team
         data_type: int
-        tests:
+        data_tests:
           - not_null
           - relationships:
               arguments:
@@ -217,17 +255,17 @@ models:
       - name: team_year_id
         description: Composite key combining team_id and year (format 'team_id_year')
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: team_name
         description: Name of the team
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: team_week_id
         description: Composite key combining team_year_id and week (format 'team_year_id_week')
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
           - relationships:
               arguments:
@@ -236,49 +274,49 @@ models:
       - name: opponent_team_id
         description: Unique identifier for the opposing team in this week's matchup
         data_type: int
-        tests:
+        data_tests:
           - not_null
       - name: opponent_team_year_id
         description: Composite key for the opponent combining team_id and year
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: opponent_team_week_id
         description: Composite key for the opponent's week (format 'opponent_team_year_id_week')
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: player_id
         description: Unique identifier for the player
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: player_year_id
         description: Composite key combining player_id and year (format 'player_id_year')
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: player_week_id
         description: Composite key combining player_id, year, and week (format 'player_id_year_week')
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: lineup_slot
         description: >
           Roster position the player occupied in the lineup (e.g., QB, RB, WR, TE, FLEX, K, D/ST, BN).
           Standardized so 'RB/WR/TE' positions are converted to 'FLEX'.
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: year
         description: Season year
         data_type: int
-        tests:
+        data_tests:
           - not_null
       - name: week
         description: Week number within the season
         data_type: int
-        tests:
+        data_tests:
           - not_null
 
   - name: stg__team_weeks
@@ -291,7 +329,7 @@ models:
       - name: team_id
         description: Unique identifier for the team
         data_type: int
-        tests:
+        data_tests:
           - not_null
           - relationships:
               arguments:
@@ -300,23 +338,23 @@ models:
       - name: team_year_id
         description: Composite key combining team_id and year (format 'team_id_year')
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: team_week_id
         description: Composite key combining team_year_id and week (format 'team_year_id_week')
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
           - unique
       - name: team_name
         description: Name of the team
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: opponent_team_id
         description: Unique identifier for the opposing team in this week's matchup
         data_type: int
-        tests:
+        data_tests:
           - not_null
           - relationships:
               arguments:
@@ -325,22 +363,22 @@ models:
       - name: opponent_team_year_id
         description: Composite key for the opponent combining team_id and year
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: opponent_team_week_id
         description: Composite key for the opponent's week (format 'opponent_team_year_id_week')
         data_type: varchar
-        tests:
+        data_tests:
           - not_null
       - name: year
         description: Season year
         data_type: int
-        tests:
+        data_tests:
           - not_null
       - name: week
         description: Week number within the season
         data_type: int
-        tests:
+        data_tests:
           - not_null
       - name: lineup
         description: >

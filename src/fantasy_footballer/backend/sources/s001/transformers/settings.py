@@ -22,7 +22,6 @@ class SettingsSchema(BaseModel):
     playoff_seed_tie_rule: str
     scoring_type: str
     faab: bool
-    acquisition_budget: None | int
     scoring_format: list[dict]
     position_slot_counts: dict
 
@@ -42,4 +41,4 @@ class SettingsTransformer(Transformer):
         """Override parent abstract method to be run by associated s001 extractor."""
         settings = self.apply_schema(self.settings.__dict__)
         queue.put(f"settings: {self.year}")
-        return settings
+        return [settings]

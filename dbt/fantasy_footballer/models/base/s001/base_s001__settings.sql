@@ -15,7 +15,9 @@ select
     playoff_seed_tie_rule::varchar as playoff_seed_tie_rule,
     scoring_type::varchar as scoring_type,
     faab::bool as faab,
-    acquisition_budget::int as acquisition_budget,
-    scoring_format
---    position_slot_counts
+    scoring_format,
+--    position_slot_counts,
+    meta__source_path::varchar as meta__source_path,
+    meta__date_effective::date as meta__date_effective,
+    meta__date_pulled::date as meta__date_pulled
 from {{ source("s001", "settings") }}

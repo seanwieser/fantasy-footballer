@@ -11,8 +11,10 @@ from string import Template
 import bcrypt
 import duckdb
 from backend.sources.s001.extract import S001Extractor
-from backend.utils import get_s3_client, write_dbt_seeds
+from backend.utils import get_s3_client, write_dbt_seeds, get_date_partition
 from dbt.cli.main import dbtRunner, dbtRunnerResult
+
+from fantasy_footballer.backend.utils import get_date_partition
 
 DB_NAME = "fantasy_footballer"
 DB_PATH = f"resources/{DB_NAME}.duckdb"
@@ -30,7 +32,13 @@ CREATE OR REPLACE SECRET cloud_storage_secret (
 );
 """
 CREATE_SCHEMA_TEMPLATE = Template("CREATE SCHEMA IF NOT EXISTS ${db_name}.${source_name}")
-CREATE_TABLE_TEMPLATE = Template("CREATE OR REPLACE TABLE ${fqtn} AS SELECT * FROM read_json(${file_paths});")
+CREATE_TABLE_TEMPLATE = Template("""
+    CREATE OR REPLACE TABLE ${fqtn} AS 
+    SELECT 
+        *, 
+        '${date_pulled}' as meta__date_pulled
+    FROM read_json(${file_paths});
+""")
 
 
 class DbManager:
@@ -106,7 +114,12 @@ class DbManager:
                 for table in SOURCE_EXTRACTOR_MAP[source].get_table_names():
                     fqtn = f"{DB_NAME}.{source}.{table}"
                     file_paths_str = json.dumps(table_paths[table])
-                    conn.sql(CREATE_TABLE_TEMPLATE.substitute(fqtn=fqtn, file_paths=file_paths_str))
+                    create_sql = CREATE_TABLE_TEMPLATE.substitute(
+                        fqtn=fqtn,
+                        date_pulled=get_date_partition(),
+                        file_paths=file_paths_str
+                    )
+                    conn.sql(create_sql)
                     if queue:
                         queue.put(f"Loaded: {source} - {fqtn}")
 
@@ -185,14 +198,16 @@ class DbManager:
             ])
         else:
             raise RuntimeError("Not a supported dbt action.")
+
         if queue:
-            queue.put("dbt transform started...")
+            queue.put("dbt execution started")
+
         res: dbtRunnerResult = dbt.invoke(cli_args)
 
         if queue:
-            output_msg = "Data transformed..."
+            output_msg = "dbt execution finished"
             if not res.success:
-                output_msg = "Error while transforming data..."
+                output_msg = "ERROR: dbt execution"
             queue.put(output_msg)
 
     @staticmethod

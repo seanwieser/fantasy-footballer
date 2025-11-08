@@ -28,5 +28,8 @@ select
     first_name || ' ' || last_name as display_name,
     (streak_type::varchar)[1] as streak_type,
     streak_length::varchar as streak_length,
-    (streak_type::varchar)[1] || streak_length::varchar as streak
+    (streak_type::varchar)[1] || streak_length::varchar as streak,
+    meta__source_path::varchar as meta__source_path,
+    meta__date_effective::date as meta__date_effective,
+    meta__date_pulled::date as meta__date_pulled
 from {{ source("s001", "teams") }}

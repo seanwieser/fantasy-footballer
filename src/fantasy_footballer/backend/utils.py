@@ -45,13 +45,24 @@ def get_date_partition():
     """Utility to return today's date in the standard format."""
     return datetime.datetime.now().strftime("%Y-%m-%d")
 
-
 def write_source_data(rows: list[dict], source: str, table: str, year: int, queue=None) -> None:
     """Write jsonl file to cloud storage with constructed path from source, table, year parameters."""
+
+    # Generate metadata info
     date_partition = get_date_partition()
     dir_path = f"data/sources/{source}/{table}/{year}/{date_partition}"
     file_name = f"{source}_{table}_{year}_{date_partition}.json"
     s3_key = f"{dir_path}/{file_name}"
+
+    # Add metadata to each row
+    metadata = {
+        "meta__source_path": s3_key,
+        "meta__date_effective": date_partition
+    }
+    for row in rows:
+        row.update(metadata)
+
+    # Upload data to cloud
     s3_client = get_s3_client()
     s3_client.put_object(Body=json.dumps(rows), Bucket=os.getenv("BUCKET_NAME"), Key=s3_key)
     if queue:

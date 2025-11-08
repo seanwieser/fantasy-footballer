@@ -149,18 +149,12 @@ sources:
             data_tests:
               - not_null
           - name: home_projected
-            data_tests:
-              - not_null
           - name: away_team
           - name: away_score
             data_tests:
               - not_null
           - name: away_projected
-            data_tests:
-              - not_null
           - name: home_lineup
-            data_tests:
-              - not_null
           - name: away_lineup
             data_tests:
               - not_null

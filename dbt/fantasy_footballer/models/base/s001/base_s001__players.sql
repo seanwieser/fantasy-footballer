@@ -18,5 +18,8 @@ select
     percent_started::double as percent_started,
     stats as stats_raw,
     try_cast(posrank as int) as position_rank,
-    if(injurystatus != '[]', replace(injurystatus::varchar, '"', '')::varchar, null) as injury_status
+    if(injurystatus != '[]', replace(injurystatus::varchar, '"', '')::varchar, null) as injury_status,
+    meta__source_path::varchar as meta__source_path,
+    meta__date_effective::date as meta__date_effective,
+    meta__date_pulled::date as meta__date_pulled
 from {{ source("s001", "players") }}

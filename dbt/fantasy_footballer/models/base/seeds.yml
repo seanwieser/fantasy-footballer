@@ -29,6 +29,7 @@ seeds:
         description: "Owner id that persists over years."
         data_tests:
           - not_null
+
   - name: users
     description: "Mapping between username and password hash."
     columns:

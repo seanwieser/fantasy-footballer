@@ -11,7 +11,7 @@ from string import Template
 import bcrypt
 import duckdb
 from backend.sources.s001.extract import S001Extractor
-from backend.utils import get_s3_client, write_dbt_seeds, get_date_partition
+from backend.utils import get_date_partition, get_s3_client, write_dbt_seeds
 from dbt.cli.main import dbtRunner, dbtRunnerResult
 
 from fantasy_footballer.backend.utils import get_date_partition

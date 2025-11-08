@@ -16,7 +16,7 @@ select
     scoring_type::varchar as scoring_type,
     faab::bool as faab,
     scoring_format,
---    position_slot_counts,
+    --    position_slot_counts,
     meta__source_path::varchar as meta__source_path,
     meta__date_effective::date as meta__date_effective,
     meta__date_pulled::date as meta__date_pulled

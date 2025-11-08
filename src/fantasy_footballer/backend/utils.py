@@ -47,7 +47,6 @@ def get_date_partition():
 
 def write_source_data(rows: list[dict], source: str, table: str, year: int, queue=None) -> None:
     """Write jsonl file to cloud storage with constructed path from source, table, year parameters."""
-
     # Generate metadata info
     date_partition = get_date_partition()
     dir_path = f"data/sources/{source}/{table}/{year}/{date_partition}"

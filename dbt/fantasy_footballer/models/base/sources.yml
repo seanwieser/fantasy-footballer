@@ -51,6 +51,16 @@ sources:
           - name: percent_started
             data_tests:
               - not_null
+          - name: meta__source_path
+            data_tests:
+              - not_null
+          - name: meta__date_effective
+            data_tests:
+              - not_null
+          - name: meta__date_pulled
+            data_tests:
+              - not_null
+
       - name: teams
         columns:
           - name: owners
@@ -111,6 +121,19 @@ sources:
           - name: final_standing
             data_tests:
               - not_null
+          - name: meta__source_path
+            data_type: varchar
+            data_tests:
+              - not_null
+          - name: meta__date_effective
+            data_type: date
+            data_tests:
+              - not_null
+          - name: meta__date_pulled
+            data_type: date
+            data_tests:
+              - not_null
+
       - name: matchups
         columns:
           - name: year
@@ -147,6 +170,12 @@ sources:
           - name: matchup_type
             data_tests:
               - not_null
+          - name: meta__source_path
+            data_type: varchar
+          - name: meta__date_effective
+            data_type: date
+          - name: meta__date_pulled
+            data_type: date
 
       - name: settings
         description: League configuration and settings including scoring rules, roster positions, and playoff structure
@@ -199,12 +228,15 @@ sources:
           - name: faab
             description: Whether FAAB (Free Agent Acquisition Budget) is enabled
             data_type: boolean
-          - name: acquisition_budget
-            description: Total FAAB budget amount per team
-            data_type: integer
           - name: scoring_format
             description: Array of scoring rules with stat abbreviations, labels, IDs, and point values
             data_type: json
           - name: position_slot_counts
             description: Roster configuration showing number of slots for each position
             data_type: json
+          - name: meta__source_path
+            data_type: varchar
+          - name: meta__date_effective
+            data_type: date
+          - name: meta__date_pulled
+            data_type: date

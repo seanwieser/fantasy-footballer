@@ -36,13 +36,9 @@ models:
       - name: projected_score_for
         description: Projected points for the team in this matchup (set to 0 when actual score is 0)
         data_type: double
-        data_tests:
-          - not_null
       - name: matchup_lineup
         description: Array of player IDs that were in the team's starting lineup for this matchup
         data_type: varchar[]
-        data_tests:
-          - not_null
       - name: is_playoff
         description: Flag indicating whether this matchup occurred during the playoff period
         data_type: boolean

@@ -71,9 +71,11 @@ def access_control_ui():
 
 def update_log(queue, log_element):
     """Update log element with items in queue."""
-    if not queue.empty():
-        message = queue.get()
-        log_element.push(message)
+    items = []
+    while not queue.empty():
+        items.append(queue.get())
+    message = "\n".join(items)
+    log_element.push(message)
 
 def clear_log(queue, log_element):
     """Empty the queue and log element."""

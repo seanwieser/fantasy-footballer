@@ -17,4 +17,4 @@ down:
 	docker container stop fantasy_footballer && docker container rm fantasy_footballer
 
 run-dbt:
-	poetry run dbt build --full-refresh --profiles-dir ./dbt/fantasy_footballer --project-dir ./dbt/fantasy_footballer --target app
+	./scripts/run_dbt_local.sh

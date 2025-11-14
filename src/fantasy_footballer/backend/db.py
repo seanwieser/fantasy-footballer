@@ -183,23 +183,30 @@ class DbManager:
     def run_dbt(action: str = "build", queue: multiprocessing.Queue = None):
         """Function to execute dbt actions on database."""
         dbt = dbtRunner()
+
         cli_args = [action]
+        cli_args_tail = [
+            "--profiles-dir",
+            "dbt/fantasy_footballer",
+            "--project-dir",
+            "dbt/fantasy_footballer",
+            "--target",
+            "app"
+        ]
         if action in ["build", "seed"]:
             cli_args.extend([
                 "--full-refresh",
-                "--profiles-dir",
-                "dbt/fantasy_footballer",
-                "--project-dir",
-                "dbt/fantasy_footballer",
-                "--target",
-                "app"
+                "--no-partial-parse",
+                "--show-all-deprecations"
             ])
+            cli_args.extend(cli_args_tail)
         else:
             raise RuntimeError("Not a supported dbt action.")
 
         if queue:
             queue.put("dbt execution started")
 
+        dbt.invoke(["deps"] + cli_args_tail)
         res: dbtRunnerResult = dbt.invoke(cli_args)
 
         if queue:

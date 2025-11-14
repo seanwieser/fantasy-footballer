@@ -14,40 +14,25 @@ team_weeks_expanded as (
         team_year_id,
         team_name,
         year,
-        unnest( --noqa
-            weeks_flat::struct(
-                week int,
-                lineup struct(
-                    playerId varchar,
-                    lineupSlot varchar
-                )[],
-                score_for double,
-                outcome varchar,
-                opponent varchar
-            )
-        )
+        unnest(weeks_flat)
     from team_weeks_unnested
 ),
 
 team_weeks_enriched as (
     select
-        team_weeks.team_id,
-        team_weeks.team_year_id,
-        team_weeks.team_year_id || '_' || team_weeks.week as team_week_id,
-        team_weeks.team_name,
-        opponents.team_id as opponent_team_id,
-        opponents.team_year_id as opponent_team_year_id,
-        opponents.team_year_id || '_' || team_weeks.week as opponent_team_week_id,
-        team_weeks.year,
-        team_weeks.week,
-        team_weeks.lineup,
-        team_weeks.score_for,
-        team_weeks.outcome
-    from team_weeks_expanded as team_weeks
-    inner join {{ ref("base_s001__teams") }} as opponents
-        on
-            team_weeks.opponent = opponents.team_name and
-            team_weeks.year = opponents.year
+        team_id,
+        team_year_id,
+        team_year_id || '_' || week as team_week_id,
+        team_name,
+        opponent_team_id,
+        opponent_team_id || '_' || year opponent_team_year_id,
+        opponent_team_id || '_' || year || '_' || week as opponent_team_week_id,
+        year,
+        week,
+        lineup,
+        score_for,
+        outcome
+    from team_weeks_expanded
 )
 
 select *

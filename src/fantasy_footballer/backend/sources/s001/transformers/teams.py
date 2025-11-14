@@ -67,7 +67,7 @@ class TeamsTransformer(Transformer):
                     "lineup": lineup,
                     "score_for": score,
                     "outcome": outcome,
-                    "opponent": self.convert_to_dict(opponent)["team_name"]
+                    "opponent_team_id": self.convert_to_dict(opponent)["team_id"]
                 }
                 new_schedule.append(matchup)
             team["schedule"] = new_schedule

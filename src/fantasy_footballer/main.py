@@ -25,4 +25,5 @@ if __name__ in {"__main__", "__mp_main__"}:
     ui.run(title="Sco Chos",
            host="0.0.0.0",
            dark=None,
-           storage_secret=os.getenv("STORAGE_SECRET"))
+           storage_secret=os.getenv("STORAGE_SECRET"),
+           uvicorn_reload_dirs="src/")

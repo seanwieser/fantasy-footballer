@@ -186,7 +186,7 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['s001']
+                values: [ 's001' ]
       - name: src_table
         description: Name of the source table within the source system
         data_type: varchar
@@ -194,7 +194,7 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['matchups', 'players', 'settings', 'teams']
+                values: [ 'matchups', 'players', 'settings', 'teams' ]
       - name: meta__date_effective
         description: Date when the current season source data became effective or valid
         data_type: date
@@ -202,18 +202,15 @@ models:
   - name: int__strength_of_schedule
     description: >
       Calculates Strength of Schedule (SOS) metrics for each team-year combination
-      based on opponent winning percentages. The model computes three key metrics:
-      Opponent Wins (OW), Opponent's Opponent Wins (OOW), and a composite SOS score
-      using the formula: SOS = (2/3)*OW + (1/3)*OOW.
-    data_Tests:
-      - dbt_utils.expression_is_true:
-          arguments:
-            expression: "avg(ow) = 0.5"
-      - dbt_utils.expression_is_true:
-          arguments:
-            expression: "avg(oow) = 0.5"
+      based on opponent winning percentages. The model computes metrics for both
+      games already played and games remaining in the season. Key metrics include:
+      Opponent Wins (OW), Opponent's Opponent Wins (OOW), and composite SOS scores
+      using the formula: SOS = (2/3)*OW + (1/3)*OOW. The 'R' suffix (e.g., OWR, SOSR)
+      indicates metrics calculated for remaining games only.
     columns:
       - name: year
+        description: >
+          The season year for which the strength of schedule is calculated.
         data_type: int
         data_tests:
           - not_null
@@ -230,22 +227,73 @@ models:
       - name: ow
         description: >
           Opponent Wins metric representing the weighted average winning percentage
-          of all opponents faced during the regular season. Weighted by the number
-          of times each opponent was played.
+          of all opponents faced during games already played in the regular season.
+          Weighted by the number of times each opponent was played.
         data_type: double
         data_tests:
           - not_null
+          - test_average_equals:
+              arguments:
+                value: 0.5
+                tolerance: 0.01
           - dbt_utils.accepted_range:
               arguments:
                 min_value: 0
                 max_value: 1
                 inclusive: true
+
+      - name: owr
+        description: >
+          Opponent Wins Remaining metric representing the weighted average winning
+          percentage of opponents in games yet to be played. This provides a
+          forward-looking measure of remaining schedule difficulty.
+        data_type: double
+        data_tests:
+          - test_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+                inclusive: true
+                allow_null: true
 
       - name: oow
         description: >
           Opponent's Opponent Wins metric representing the average winning percentage
-          of the opponents' opponents. This provides a second-order measure of
-          schedule difficulty.
+          of the opponents' opponents for games already played. This provides a
+          second-order measure of historical schedule difficulty.
+        data_type: double
+        data_tests:
+          - not_null
+          - test_average_equals:
+              arguments:
+                value: 0.5
+                tolerance: 0.01
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+                inclusive: true
+
+      - name: oowr
+        description: >
+          Opponent's Opponent Wins Remaining metric representing the average winning
+          percentage of the opponents' opponents for games yet to be played. This
+          provides a second-order measure of future schedule difficulty.
+        data_type: double
+        data_tests:
+          - test_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+                inclusive: true
+                allow_null: true
+
+      - name: sos
+        description: >
+          Composite Strength of Schedule score for games already played, calculated
+          as (2/3)*OW + (1/3)*OOW. Higher values indicate a more difficult schedule
+          faced so far. This weighted formula gives more importance to direct
+          opponent quality than indirect opponent quality.
         data_type: double
         data_tests:
           - not_null
@@ -255,19 +303,12 @@ models:
                 max_value: 1
                 inclusive: true
 
-      - name: sos
+      - name: sosr
         description: >
-          Composite Strength of Schedule score calculated as (2/3)*OW + (1/3)*OOW.
-          Higher values indicate a more difficult schedule. This weighted formula
-          gives more importance to direct opponent quality than indirect opponent quality.
+          Composite Strength of Schedule Remaining score for games yet to be played,
+          calculated as (2/3)*OWR + (1/3)*OOWR. Higher values indicate a more
+          difficult remaining schedule. Useful for projecting end-of-season outcomes.
         data_type: double
-        data_tests:
-          - not_null
-          - dbt_utils.accepted_range:
-              arguments:
-                min_value: 0
-                max_value: 1
-                inclusive: true
 
   - name: int__weeks_played_by_year
     columns:

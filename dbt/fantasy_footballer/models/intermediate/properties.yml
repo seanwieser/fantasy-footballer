@@ -236,7 +236,7 @@ models:
               arguments:
                 value: 0.5
                 tolerance: 0.01
-          - dbt_utils.accepted_range:
+          - test_range:
               arguments:
                 min_value: 0
                 max_value: 1
@@ -268,7 +268,7 @@ models:
               arguments:
                 value: 0.5
                 tolerance: 0.01
-          - dbt_utils.accepted_range:
+          - test_range:
               arguments:
                 min_value: 0
                 max_value: 1
@@ -297,7 +297,7 @@ models:
         data_type: double
         data_tests:
           - not_null
-          - dbt_utils.accepted_range:
+          - test_range:
               arguments:
                 min_value: 0
                 max_value: 1

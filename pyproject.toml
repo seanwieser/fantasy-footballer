@@ -32,7 +32,7 @@ build-backend = "poetry.core.masonry.api"
 init-hook = "import sys; sys.path.append('.venv/lib/python3.10/site-packages/')"
 
 [tool.pylint."MESSAGE CONTROL"]
-disable = ["import-error", "no-member", "R0903", "consider-using-in", "no-name-in-module"]
+disable = ["import-error", "no-member", "R0903", "consider-using-in", "no-name-in-module", "R0801"]
 good-names = ["db", "id"]
 
 [tool.pylint.FORMAT]

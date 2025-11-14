@@ -12,7 +12,8 @@ from frontend.login.home import AuthMiddleware
 from frontend.owner_history import home, spotlight
 from frontend.splash import home
 from frontend.stats_center import (draft_analysis, h2h_dashboard, home,
-                                   league_highlights, player_data)
+                                   league_highlights, player_data,
+                                   strength_of_schedule)
 from nicegui import app, ui
 
 if __name__ in {"__main__", "__mp_main__"}:

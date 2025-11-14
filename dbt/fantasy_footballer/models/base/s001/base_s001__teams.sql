@@ -9,6 +9,7 @@ select
     wins::int as wins,
     losses::int as losses,
     ties::int as ties,
+    wins::int + losses::int + ties::int as games_played,
     points_for::double as points_for,
     points_against::double as points_against,
     acquisitions::int as acquisitions,
@@ -19,7 +20,16 @@ select
     draft_projected_rank::int as draft_projected_rank,
     standing::int as standing,
     final_standing::int as final_standing,
-    schedule::varchar[] as weeks_raw,
+    schedule::struct(
+        week int,
+        lineup struct(
+            playerId varchar,
+            lineupSlot varchar
+        )[],
+        score_for double,
+        outcome varchar,
+        opponent_team_id int
+    )[] as weeks_raw,
     upper(left(trim(owners[1].firstname::varchar), 1)) ||
     lower(substring(trim(owners[1].firstname::varchar), 2, length(trim(owners[1].firstname::varchar))))
         as first_name,

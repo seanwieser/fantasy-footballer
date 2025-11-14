@@ -3,13 +3,17 @@ version: 2
 seeds:
   - name: display_names
     description: "Mapping between owner_id and display_name."
+    data_tests:
+      - assert_model_has_rows
     columns:
       - name: display_name
         description: "Owner display name set by owner."
+        data_type: varchar
         data_tests:
           - not_null
       - name: owner_id
         description: "Owner id that persists over years."
+        data_type: int
         data_tests:
           - not_null
           - relationships:
@@ -19,6 +23,8 @@ seeds:
 
   - name: owner_names
     description: "Mapping between owner_id and owner_name."
+    data_tests:
+      - assert_model_has_rows
     columns:
       - name: owner_name
         description: "Owner name that persists over years."
@@ -27,11 +33,14 @@ seeds:
           - not_null
       - name: owner_id
         description: "Owner id that persists over years."
+        data_type: int
         data_tests:
           - not_null
 
   - name: users
     description: "Mapping between username and password hash."
+    data_tests:
+      - assert_model_has_rows
     columns:
       - name: username
         description: "Username for a credential set."

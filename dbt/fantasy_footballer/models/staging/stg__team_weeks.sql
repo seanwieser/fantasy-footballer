@@ -14,7 +14,7 @@ team_weeks_expanded as (
         team_year_id,
         team_name,
         year,
-        unnest(weeks_flat)
+        unnest(weeks_flat) --noqa
     from team_weeks_unnested
 ),
 
@@ -25,7 +25,7 @@ team_weeks_enriched as (
         team_year_id || '_' || week as team_week_id,
         team_name,
         opponent_team_id,
-        opponent_team_id || '_' || year opponent_team_year_id,
+        opponent_team_id || '_' || year as opponent_team_year_id,
         opponent_team_id || '_' || year || '_' || week as opponent_team_week_id,
         year,
         week,

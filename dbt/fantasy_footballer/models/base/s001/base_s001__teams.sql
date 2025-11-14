@@ -21,15 +21,15 @@ select
     standing::int as standing,
     final_standing::int as final_standing,
     schedule::struct(
-                week int,
-                lineup struct(
-                    playerId varchar,
-                    lineupSlot varchar
-                )[],
-                score_for double,
-                outcome varchar,
-                opponent_team_id int
-            )[] as weeks_raw,
+        week int,
+        lineup struct(
+            playerId varchar,
+            lineupSlot varchar
+        )[],
+        score_for double,
+        outcome varchar,
+        opponent_team_id int
+    )[] as weeks_raw,
     upper(left(trim(owners[1].firstname::varchar), 1)) ||
     lower(substring(trim(owners[1].firstname::varchar), 2, length(trim(owners[1].firstname::varchar))))
         as first_name,

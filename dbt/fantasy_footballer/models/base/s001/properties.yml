@@ -88,7 +88,7 @@ models:
           - not_null
       - name: year
         description: Season year
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: eligible_slots
@@ -103,7 +103,7 @@ models:
           - not_null
       - name: team_id
         description: Fantasy team ID the player is assigned to
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: position_slot
@@ -158,7 +158,7 @@ models:
           - not_null
       - name: position_rank
         description: Player's rank within their position
-        data_type: integer
+        data_type: int
       - name: injury_status
         description: Current injury designation (e.g., OUT, QUESTIONABLE, DOUBTFUL, IR)
         data_type: varchar
@@ -295,12 +295,12 @@ models:
           - unique
       - name: team_id
         description: Unique identifier for the fantasy team
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: year
         description: Season year
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: team_abbrev
@@ -315,7 +315,7 @@ models:
           - not_null
       - name: division_id
         description: Unique identifier for the division
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: division_name
@@ -325,17 +325,22 @@ models:
           - not_null
       - name: wins
         description: Total wins for the season
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: losses
         description: Total losses for the season
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: ties
         description: Total ties for the season
-        data_type: integer
+        data_type: int
+        data_tests:
+          - not_null
+      - name: games_played
+        description: Total ties for the season
+        data_type: int
         data_tests:
           - not_null
       - name: points_for
@@ -350,22 +355,22 @@ models:
           - not_null
       - name: acquisitions
         description: Total number of player acquisitions (waiver pickups and free agent adds)
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: acquisition_budget_spent
         description: Total FAAB (Free Agent Acquisition Budget) spent
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: drops
         description: Total number of players dropped
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: trades
         description: Total number of trades completed
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: playoff_pct
@@ -375,22 +380,32 @@ models:
           - not_null
       - name: draft_projected_rank
         description: Projected rank based on draft results
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: standing
         description: Current league standing
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: final_standing
         description: Final league standing at end of season
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
       - name: weeks_raw
         description: Raw nested matchup data containing matchup details by week
-        data_type: varchar[]
+        data_type: >
+          struct(
+            week int,
+            lineup struct(
+              playerId varchar, 
+              lineupSlot varchar
+            )[], 
+            score_for double, 
+            outcome varchar, 
+            opponent_team_id int
+          )[]
         data_tests:
           - not_null
       - name: first_name

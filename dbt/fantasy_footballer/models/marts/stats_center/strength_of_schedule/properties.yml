@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: strength_of_schedule
+    description: >
+      Strength of Schedule metrics aggregated by owner and year. This model joins
+      SOS calculations with owner information to provide a user-friendly view of
+      schedule difficulty for each owner's team in each season. Values are rounded
+      to 4 decimal places for display purposes.
+    columns:
+      - name: year
+        description: >
+          The season year for which the strength of schedule is calculated.
+        data_type: integer
+        data_tests:
+          - not_null
+
+      - name: owner_name
+        description: >
+          The name of the team owner. Used to identify the team in a human-readable format.
+        data_type: varchar
+        data_tests:
+          - not_null
+
+      - name: sos
+        description: >
+          Composite Strength of Schedule score for games already played, calculated
+          as (2/3)*OW + (1/3)*OOW and rounded to 4 decimal places. Higher values 
+          indicate a more difficult schedule faced so far.
+        data_type: double
+        data_tests:
+          - not_null
+          - test_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+                inclusive: true
+
+      - name: sosr
+        description: >
+          Composite Strength of Schedule Remaining score for games yet to be played,
+          calculated as (2/3)*OWR + (1/3)*OOWR and rounded to 4 decimal places. 
+          Higher values indicate a more difficult remaining schedule. May be null
+          if no games remain in the season.
+        data_type: double
+        data_tests:
+          - test_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+                inclusive: true
+                allow_null: true

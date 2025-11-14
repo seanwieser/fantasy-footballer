@@ -15,5 +15,6 @@ dbt_packages/
 logs
 dbt/fantasy_footballer/ignore
 **.user.yml
+**package-lock.yml
 
 resources

@@ -110,7 +110,7 @@ class DbManager:
                 create_schema_sql = CREATE_SCHEMA_TEMPLATE.substitute(db_name=DB_NAME, source_name=source)
                 try:
                     conn.sql(create_schema_sql)
-                except Exception as e:
+                except Exception: # pylint: disable=broad-exception-caught
                     if queue:
                         queue.put(f"Failed to create db schema: {source}")
                     print(create_schema_sql)
@@ -126,7 +126,7 @@ class DbManager:
                     )
                     try:
                         conn.sql(create_table_sql)
-                    except Exception as e:
+                    except Exception: # pylint: disable=broad-exception-caught
                         if queue:
                             queue.put(f"Failed to create db table: {fqtn}")
                         print(create_table_sql)
@@ -227,7 +227,7 @@ class DbManager:
         try:
             with duckdb.connect(DB_PATH) as conn:
                 results_df = conn.sql(sql).fetchdf()
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-exception-caught
             print(sql)
             raise e
 

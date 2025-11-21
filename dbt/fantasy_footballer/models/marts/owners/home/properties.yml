@@ -6,7 +6,7 @@ models:
     columns:
       - name: year
         description: Season year
-        data_type: integer
+        data_type: int
         tests:
           - unique
           - not_null

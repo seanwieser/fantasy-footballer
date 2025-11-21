@@ -107,17 +107,30 @@ class DbManager:
         with duckdb.connect(DB_PATH) as conn:
             conn.sql(SECRET_SQL)
             for source in sources:
-                conn.sql(CREATE_SCHEMA_TEMPLATE.substitute(db_name=DB_NAME, source_name=source))
+                create_schema_sql = CREATE_SCHEMA_TEMPLATE.substitute(db_name=DB_NAME, source_name=source)
+                try:
+                    conn.sql(create_schema_sql)
+                except Exception: # pylint: disable=broad-exception-caught
+                    if queue:
+                        queue.put(f"Failed to create db schema: {source}")
+                    print(create_schema_sql)
+
                 table_paths = DbManager.get_fresh_table_paths(source)
                 for table in SOURCE_EXTRACTOR_MAP[source].get_table_names():
                     fqtn = f"{DB_NAME}.{source}.{table}"
                     file_paths_str = json.dumps(table_paths[table])
-                    create_sql = CREATE_TABLE_TEMPLATE.substitute(
+                    create_table_sql = CREATE_TABLE_TEMPLATE.substitute(
                         fqtn=fqtn,
                         date_pulled=get_date_partition(),
                         file_paths=file_paths_str
                     )
-                    conn.sql(create_sql)
+                    try:
+                        conn.sql(create_table_sql)
+                    except Exception: # pylint: disable=broad-exception-caught
+                        if queue:
+                            queue.put(f"Failed to create db table: {fqtn}")
+                        print(create_table_sql)
+
                     if queue:
                         queue.put(f"Loaded: {source} - {fqtn}")
 
@@ -214,7 +227,7 @@ class DbManager:
         try:
             with duckdb.connect(DB_PATH) as conn:
                 results_df = conn.sql(sql).fetchdf()
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-exception-caught
             print(sql)
             raise e
 

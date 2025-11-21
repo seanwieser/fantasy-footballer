@@ -11,7 +11,7 @@ models:
           - not_null
       - name: year
         description: Season year
-        data_type: integer
+        data_type: int
         tests:
           - not_null
       - name: record
@@ -19,16 +19,16 @@ models:
         data_type: varchar
       - name: acquisitions
         description: Total number of player acquisitions (waiver pickups and free agent adds)
-        data_type: integer
+        data_type: int
       - name: budget
         description: Remaining FAAB (Free Agent Acquisition Budget) after spending
-        data_type: integer
+        data_type: int
       - name: standing
         description: Current league standing
-        data_type: integer
+        data_type: int
       - name: trades
         description: Total number of trades completed
-        data_type: integer
+        data_type: int
       - name: streak
         description: Current streak in format of type + length (e.g., W3, L2)
         data_type: varchar
@@ -37,7 +37,7 @@ models:
         data_type: varchar
       - name: shotguns
         description: Number of shotgun weeks (scored under 100 points or had lowest score in league)
-        data_type: integer
+        data_type: int
       - name: points_for
         description: Total points scored by the team in regular season, rounded to 2 decimal places
         data_type: double
@@ -61,12 +61,12 @@ models:
           - not_null
       - name: year
         description: Season year
-        data_type: integer
+        data_type: int
         tests:
           - not_null
       - name: Week
         description: Week number of the matchup
-        data_type: integer
+        data_type: int
         tests:
           - not_null
       - name: Team_Name

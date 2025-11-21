@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: draftpicks_table
+    description: "Fact table containing draft pick details with owner and team information for each year"
+    columns:
+      - name: year
+        description: "The year of the draft"
+        data_type: int
+        data_tests:
+          - not_null
+
+      - name: owner_name
+        description: "Name of the team owner"
+        data_type: varchar
+        data_tests:
+          - not_null
+
+      - name: team_name
+        description: "Name of the fantasy team"
+        data_type: varchar
+        data_tests:
+          - not_null
+
+      - name: player_name
+        description: "Name of the player drafted"
+        data_type: varchar
+        data_tests:
+          - not_null
+
+      - name: round_num
+        description: "Draft round number"
+        data_type: int
+        data_tests:
+          - not_null
+
+      - name: round_pick
+        description: "Pick number within the round"
+        data_type: int
+        data_tests:
+          - not_null
+
+      - name: bid_amount
+        description: "Bid amount for the player (applicable for auction drafts)"
+        data_type: int
+
+      - name: keeper_status
+        description: "Indicates if the player was kept from a previous year"
+        data_type: bool
+
+      - name: nominating_team_id
+        description: "ID of the team that nominated the player (for auction drafts)"
+        data_type: int
+
+      - name: is_auction
+        description: "Flag indicating if this was an auction draft"
+        data_type: bool
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]

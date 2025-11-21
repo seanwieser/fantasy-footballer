@@ -1,6 +1,7 @@
 """Source s001 extractor to handle everything associated with the source."""
 import os
 
+from backend.sources.s001.transformers.draftpicks import DraftPickTransformer
 from backend.sources.s001.transformers.matchups import MatchupTransformer
 from backend.sources.s001.transformers.players import PlayersTransformer
 from backend.sources.s001.transformers.settings import SettingsTransformer
@@ -12,7 +13,13 @@ from espn_api.football import League
 class S001Extractor:
     """Class containing definitions and methods for source s001."""
 
-    ALL_TRANSFORMERS = [PlayersTransformer, TeamsTransformer, MatchupTransformer, SettingsTransformer]
+    ALL_TRANSFORMERS = [
+        PlayersTransformer,
+        TeamsTransformer,
+        MatchupTransformer,
+        SettingsTransformer,
+        DraftPickTransformer
+    ]
     SOURCE_NAME = "s001"
 
     @staticmethod

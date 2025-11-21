@@ -21,7 +21,7 @@ models:
           - not_null
       - name: is_playoff
         description: Flag indicating whether this matchup occurred during the playoff period
-        data_type: boolean
+        data_type: bool
         data_tests:
           - not_null
       - name: matchup_type
@@ -173,7 +173,7 @@ models:
         data_type: int
       - name: is_flex
         description: "Boolean flag indicating if player is eligible for flex position"
-        data_type: boolean
+        data_type: bool
       - name: nfl_team
         description: "NFL team abbreviation"
         data_type: varchar

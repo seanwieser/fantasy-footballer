@@ -55,7 +55,7 @@ models:
         data_tests:
           - not_null
       - name: is_playoff
-        data_type: boolean
+        data_type: bool
         data_tests:
           - not_null
 
@@ -68,7 +68,7 @@ models:
     columns:
       - name: owner_id
         description: Unique identifier for the owner
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
           - relationships:
@@ -99,7 +99,7 @@ models:
     columns:
       - name: owner_id
         description: Unique identifier for the owner
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
           - relationships:
@@ -158,17 +158,17 @@ models:
           - not_null
       - name: year
         description: Season year
-        data_type: integer
+        data_type: int
         tests:
           - not_null
       - name: week
         description: Week number of the matchup
-        data_type: integer
+        data_type: int
         tests:
           - not_null
       - name: is_shotgun
         description: Boolean flag indicating if the team had a shotgun week (scored under 100 points or had the lowest score in the league that week)
-        data_type: boolean
+        data_type: bool
         tests:
           - not_null
 

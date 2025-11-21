@@ -11,7 +11,7 @@ models:
       - name: year
         description: >
           The season year for which the strength of schedule is calculated.
-        data_type: integer
+        data_type: int
         data_tests:
           - not_null
 

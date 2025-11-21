@@ -24,7 +24,7 @@ models:
     columns:
       - name: standing
         description: Current league standing position
-        data_type: integer
+        data_type: int
         tests:
           - not_null
           - unique
@@ -36,10 +36,10 @@ models:
         data_type: varchar
       - name: wins
         description: Total wins for the season
-        data_type: integer
+        data_type: int
       - name: losses
         description: Total losses for the season
-        data_type: integer
+        data_type: int
       - name: points_for
         description: Total points scored by the team, rounded to 2 decimal places
         data_type: double

@@ -1,6 +1,97 @@
 version: 2
 
 models:
+  - name: base_s001__draftpicks
+    description: "Fantasy draft picks with team assignments, player details, and draft metadata"
+    columns:
+      - name: team_year_id
+        description: "Unique identifier for the team that drafted the player"
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('base_s001__teams')
+                field: team_year_id
+      - name: player_year_id
+        description: "Unique identifier for the team that drafted the player"
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('base_s001__players')
+                field: player_year_id
+      - name: team_id
+        description: "Unique identifier for the team that drafted the player"
+        data_type: int
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('base_s001__teams')
+                field: team_id
+      - name: player_id
+        description: "Unique identifier for the player"
+        data_type: int
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('base_s001__players')
+                field: player_id
+      - name: year
+        description: Season year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: player_name
+        description: "Full name of the drafted player"
+        data_type: varchar
+        tests:
+          - not_null
+      - name: round_num
+        description: "Draft round number"
+        data_type: int
+        tests:
+          - not_null
+      - name: round_pick
+        description: "Pick number within the round"
+        data_type: int
+        tests:
+          - not_null
+      - name: bid_amount
+        description: "Amount bid for the player (in auction drafts) or null for snake drafts"
+        data_type: int
+      - name: keeper_status
+        description: "Indicates if the player was kept from a previous season"
+        data_type: bool
+        tests:
+          - not_null
+      - name: nominating_team_id
+        description: "Team that nominated the player (relevant for auction drafts)"
+        data_type: int
+      - name: is_auction
+        description: "Team that nominated the player (relevant for auction drafts)"
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: meta__source_path
+        description: "Source file path for data lineage tracking"
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: meta__date_effective
+        description: "Date when this draft pick record became effective"
+        data_type: date
+        data_tests:
+          - not_null
+      - name: meta__date_pulled
+        description: "Date when this data was extracted from the source system"
+        data_type: date
+        data_tests:
+          - not_null
+
   - name: base_s001__matchups
     description: >
       Splits home and away matchup data into individual team records, creating one row per team per matchup.
@@ -41,7 +132,7 @@ models:
         data_type: varchar[]
       - name: is_playoff
         description: Flag indicating whether this matchup occurred during the playoff period
-        data_type: boolean
+        data_type: bool
         data_tests:
           - not_null
       - name: matchup_type
@@ -71,11 +162,6 @@ models:
         data_tests:
           - unique
           - not_null
-      - name: team_year_id
-        description: Unique identifier combining team ID and year
-        data_type: varchar
-        data_tests:
-          - not_null
       - name: player_id
         description: Unique identifier for the player
         data_type: varchar
@@ -101,11 +187,6 @@ models:
         data_type: varchar
         data_tests:
           - not_null
-      - name: team_id
-        description: Fantasy team ID the player is assigned to
-        data_type: int
-        data_tests:
-          - not_null
       - name: position_slot
         description: Primary fantasy position (QB, RB, WR, TE, K, D/ST)
         data_type: varchar
@@ -113,12 +194,12 @@ models:
           - not_null
       - name: is_flex
         description: Flag indicating whether player can be put in FLEX
-        data_type: boolean
+        data_type: bool
         data_tests:
           - not_null
       - name: is_injured
         description: Boolean flag indicating if player is currently injured
-        data_type: boolean
+        data_type: bool
         data_tests:
           - not_null
       - name: total_points
@@ -260,7 +341,7 @@ models:
           - not_null
       - name: faab
         description: Flag indicating whether FAAB (Free Agent Acquisition Budget) is enabled
-        data_type: boolean
+        data_type: bool
         data_tests:
           - not_null
       - name: scoring_format

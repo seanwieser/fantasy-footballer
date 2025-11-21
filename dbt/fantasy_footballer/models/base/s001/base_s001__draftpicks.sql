@@ -3,10 +3,10 @@ select
     playerid::varchar || '_' || year::varchar as player_year_id,
 
     team_id::int as team_id,
-    playerId::int as player_id,
+    playerid::int as player_id,
     year::int as year,
 
-    playerName::varchar as player_name,
+    playername::varchar as player_name,
     round_num::int as round_num,
     round_pick::int as round_pick,
     bid_amount::int as bid_amount,

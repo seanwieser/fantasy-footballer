@@ -7,7 +7,7 @@ from nicegui import app, context, ui
 from pandas import DataFrame
 
 START_YEAR = 2018
-VALID_POSITIONS = ["QB", "RB", "WR", "TE", "FLEX", "D/ST", "K"]
+VALID_POSITIONS = ["QB", "RB", "WR", "TE", "D/ST", "K"]
 
 def get_valid_years() -> list[int]:
     """Get all years that fantasy data is available for."""
@@ -19,6 +19,26 @@ def get_years_by_owner_id(owner_id: str = None) -> list[str]:
     if owner_id:
         return list({row["year"] for row in all_years_by_owner if row["owner_id"] == int(owner_id)})
     return list({row["year"] for row in all_years_by_owner})
+
+def get_draftpicks_rounds() -> list[str]:
+    """Get all auction round values in the snake draft table."""
+    round_nums = DbManager.query("select round from main_marts.snake_draft_table order by round", to_dict=True)
+    return list({row["round"] for row in round_nums})
+
+def get_draftpicks_round_picks() -> list[str]:
+    """Get all auction round pick values in the snake draft table."""
+    round_picks_sql = "select round_pick from main_marts.snake_draft_table order by round_pick"
+    round_nums = DbManager.query(round_picks_sql, to_dict=True)
+    return list({row["round_pick"] for row in round_nums})
+
+def get_draft_type_years(is_auction: bool):
+    """Get years for each draft type (auction/snake)."""
+    table_name = "snake_draft_table"
+    if is_auction:
+        table_name = "auction_draft_table"
+
+    years = DbManager.query(f"select distinct year from main_marts.{table_name} order by year", to_dict=True)
+    return [row["year"] for row in years]
 
 def get_owner_names_by_year(year: int = None) -> list[str]:
     """Get all owner names (by year if passed)."""
@@ -42,8 +62,6 @@ def get_current_year() -> int:
 def owner_id_to_owner_name(owner_id: str) -> str:
     """Return owner name given an owner id."""
     owner_name_sql = f"select * from main_seed_data.owner_names where owner_id == {owner_id}"
-    print(owner_id)
-    print(DbManager.query(owner_name_sql, to_dict=True))
     return DbManager.query(owner_name_sql, to_dict=True)[0]["owner_name"]
 
 def image_path_to_owner_id(image_path: str) -> str:
@@ -122,6 +140,7 @@ def table(data_df: DataFrame,
     not_sortable = not_sortable or []
     hidden_fields = [format_field_name(field) for field in hidden_fields or []]
     for col in tab.columns:
+        print(col, hidden_fields)
         col["sortable"] = col["name"] not in not_sortable and not_sortable != "all"
         col['classes'] = '' if col["name"] not in hidden_fields else 'hidden'
         col['headerClasses'] = '' if col["name"] not in hidden_fields else 'hidden'

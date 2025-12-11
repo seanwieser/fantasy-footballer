@@ -13,6 +13,14 @@ models:
               arguments:
                 to: ref('base_s001__teams')
                 field: team_year_id
+      - name: nominating_team_year_id
+        description: "Unique identifier for the team that nominated the player"
+        data_type: varchar
+        tests:
+          - relationships:
+              arguments:
+                to: ref('base_s001__teams')
+                field: team_year_id
       - name: player_year_id
         description: "Unique identifier for the team that drafted the player"
         data_type: varchar
@@ -31,6 +39,9 @@ models:
               arguments:
                 to: ref('base_s001__teams')
                 field: team_id
+      - name: nominating_team_id
+        description: "Team that nominated the player (relevant for auction drafts)"
+        data_type: int
       - name: player_id
         description: "Unique identifier for the player"
         data_type: int
@@ -68,9 +79,6 @@ models:
         data_type: bool
         tests:
           - not_null
-      - name: nominating_team_id
-        description: "Team that nominated the player (relevant for auction drafts)"
-        data_type: int
       - name: is_auction
         description: "Team that nominated the player (relevant for auction drafts)"
         data_type: bool

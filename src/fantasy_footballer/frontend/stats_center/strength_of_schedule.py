@@ -8,7 +8,7 @@ from nicegui import ui
 
 
 class SosDropDownSelection:
-    """Class for dropdown selection for Players table."""
+    """Class for dropdown selection for strength of schedule table."""
 
     DEFAULT = {
         "year": get_current_year(),
@@ -57,7 +57,7 @@ def filter_ui(selection: SosDropDownSelection):
 @ui.refreshable
 def sos_data_table(selection):
     """Data table displaying all sos data."""
-    player_data_df = DbManager.query(f"""
+    sos_data_df = DbManager.query(f"""
         select 
             year            as Year, 
             owner_name      as "Owner Name",
@@ -67,15 +67,15 @@ def sos_data_table(selection):
         where   
             {selection.get_filter('year')} and
             {selection.get_filter('owner_name')}
-        order by 3 desc
+        order by sos desc
     """)
 
-    table(player_data_df,
+    table(sos_data_df,
           pagination=25,
           classes="mx-auto w-full",
           format_field_names=False,
           hidden_fields=[field for field, value in selection.__dict__.items() if value != "ALL"],
-          )
+    )
 
 
 def refresh_table(selection, field, value):

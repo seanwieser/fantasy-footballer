@@ -87,7 +87,7 @@ def auction_draft_data_table(selection):
             {selection.get_filter('nominating_owner')} and
             {selection.get_filter('keeper')} and
             {selection.get_filter('position')}
-        order by year desc, round, round_pick
+        order by bid_amount desc
     """)
 
     table(

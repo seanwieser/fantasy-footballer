@@ -140,7 +140,6 @@ def table(data_df: DataFrame,
     not_sortable = not_sortable or []
     hidden_fields = [format_field_name(field) for field in hidden_fields or []]
     for col in tab.columns:
-        print(col, hidden_fields)
         col["sortable"] = col["name"] not in not_sortable and not_sortable != "all"
         col['classes'] = '' if col["name"] not in hidden_fields else 'hidden'
         col['headerClasses'] = '' if col["name"] not in hidden_fields else 'hidden'

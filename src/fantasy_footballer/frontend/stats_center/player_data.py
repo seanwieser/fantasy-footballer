@@ -81,19 +81,7 @@ def player_data_table(selection):
           pagination=25,
           classes="mx-auto w-full",
           format_field_names=False,
-          hidden_fields = [field for field, value in selection.__dict__.items() if value != "ALL"],
-          slots=[{
-              "name": "body-cell-Team Name",
-              "template": r"""
-                  <q-td 
-                      :props="props"
-                      :class="
-                          props.value.includes('Available') ? 'bg-light-green-7' : 
-                          'primary'      
-                      ">
-                      {{ props.value }}
-                  </q-td>"""}
-          ]
+          hidden_fields = [field for field, value in selection.__dict__.items() if value != "ALL"]
     )
 
 def refresh_table(selection, field, value):

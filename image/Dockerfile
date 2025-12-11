@@ -16,6 +16,7 @@ RUN poetry install --no-interaction --no-ansi
 
 COPY ./src/fantasy_footballer .
 COPY ./dbt/fantasy_footballer ./dbt/fantasy_footballer/
+COPY ./resources ./resources/
 COPY ./README.md .
 
 EXPOSE 8080

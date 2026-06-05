@@ -1,6 +1,8 @@
 .PHONY: test
 .ONESHELL:
 
+FORMAT ?= table
+
 run-pre-commit:
 	poetry run pre-commit run --all-files
 
@@ -21,3 +23,6 @@ run-dbt:
 
 truncate-dbt-seeds:
 	poetry run python3 scripts/truncate_dbt_seeds.py
+
+query:
+	poetry run python3 scripts/query_db.py --format $(FORMAT) "$(SQL)"

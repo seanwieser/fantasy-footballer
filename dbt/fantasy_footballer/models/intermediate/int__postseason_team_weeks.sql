@@ -1,6 +1,3 @@
--- Team-week grain for the postseason only. Reconstructs bracket progression and flags which
--- games are "meaningful" (count toward metrics) vs. dead "kiss my sister" placement games.
--- See dbt/fantasy_footballer/MODELS.md (Postseason) for the league's bracket rules.
 with league_settings as (
     select
         year,

@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg__owner_display_names
+    description: "Combines owner information with their display names from separate source tables"
+    columns:
+      - name: owner_id
+        description: "Unique identifier for the owner"
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        description: "Official name of the owner from the owner_names table"
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: display_name
+        description: "Display name for the owner, may be null if not present in display_names table"
+        data_type: varchar
+        data_tests:
+          - not_null

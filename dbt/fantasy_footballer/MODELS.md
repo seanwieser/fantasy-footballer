@@ -55,7 +55,7 @@ seeds (owner_names,            (unnest arrays,        (reusable computations)   
 | `base_s001__settings` | season (`year`) | League config: `reg_season_count`, `playoff_team_count`, `team_count`, **`matchup_weeks`** (matchup_period→weeks map), `scoring_format`, tie rules. | `source(s001, settings)` |
 | `base_s001__draftpicks` | pick (`team_year_id` + `player_year_id`) | Draft results: `round_num`, `round_pick`, `bid_amount`, `keeper_status`, `is_auction` (= `nominating_team_id is not null`), `nominating_team_year_id`. | `source(s001, draftpicks)` |
 
-## Seeds (`main_seed_data`) — populated from B2 at boot, truncated in git
+## Seeds (`main_seed_data`) — populated from B2 at boot, git-ignored
 
 | Seed | Grain | Purpose |
 |---|---|---|
@@ -84,13 +84,22 @@ seeds (owner_names,            (unnest arrays,        (reusable computations)   
 | `int__current_season_year` | single row | `max(year)` as `current_season_year`. Cross-join into any mart that should auto-update each season. **Never hard-code the year.** | `int__owner_team_year_map` |
 | `int__matchup_week_playoff_map` | year-week | `is_playoff` flag per calendar week. | `stg__settings_matchup_weeks_map`, `base_s001__matchups` |
 | `int__weeks_played_by_year` | year | Min regular-season weeks played that season. | `stg__team_weeks`, `int__matchup_week_playoff_map` |
-| `int__clutch_records` | team-season | Clutch W-L `record` string (regular-season games decided by `< 10` pts) + season points for/against. | `stg__team_weeks` (self-join), `int__matchup_week_playoff_map` |
+| `int__clutch_records` | team-season (`team_year_id` unique) | Clutch W-L `record` string (regular-season games decided by `< 10` pts), derived from the `is_clutch` flag. Season points for/against moved to `int__owner_season_scoring`. | `int__team_week_results` |
 | `int__shotguns` | team-week | `is_shotgun` = `score_for < 100` **or** the week's league-minimum score (regular season). | `stg__team_weeks`, `int__matchup_week_playoff_map` |
 | `int__strength_of_schedule` | team-season (`team_year_id` unique) | Opponent-Wins (`ow`), Opponent's-Opponent-Wins (`oow`), composite `sos = ⅔·ow + ⅓·oow`; `*r` variants = remaining games. | `stg__team_weeks`, `base_s001__teams`, `base_s001__settings` |
 | `int__source_freshness` | src_table (current season) | Current-season slice of `stg__source_metadata` for freshness display. | `stg__source_metadata`, `int__current_season_year` |
-| `int__owner_season_scoring` | owner-season (`owner_year_id` unique) | Regular-season scoring per owner-season: `reg_points_total`, `reg_points_per_game`, `games_played`, `best_week_score`, `worst_week_score`, `made_playoffs`. Scoring workhorse for League Highlights. | `stg__team_weeks`, `int__matchup_week_playoff_map`, `int__owner_team_year_map`, `int__team_postseason` |
+| `int__owner_season_scoring` | owner-season (`owner_year_id` unique) | **The canonical season-scoring model** (points for AND against): `reg_points_total`, `reg_points_against`, `reg_points_per_game`, `games_played`, `best_week_score`, `worst_week_score`, `made_playoffs`. Non-clutch marts read season points from here. | `int__team_week_results`, `int__owner_team_year_map`, `int__team_postseason` |
 | `int__postseason_team_weeks` | team-week (postseason only, `team_week_id` unique) | Reconstructs bracket progression. Per postseason game: `bracket`, `matchup_type`, `is_championship_game`, `is_third_place_game`, `is_toilet_game`, and **`is_meaningful`** (does the game count toward metrics). See Postseason gotcha below. | `stg__team_weeks`, `base_s001__teams`, `base_s001__settings`, `stg__settings_matchup_weeks_map`, `base_s001__matchups` |
 | `int__team_postseason` | team-season (`team_year_id` unique) | End-of-regular-season status + final placement: `bracket` ∈ {winners, toilet_bowl, kiss_my_sister}, `made_playoffs`, placement flags (`is_champion`, `is_runner_up`, `is_third`, `is_second_to_last`, `is_last`), `reconstructed_place`, plus ESPN `final_standing` (validated against the reconstruction for places 1-3). | `int__postseason_team_weeks`, `base_s001__teams` |
+| `int__matchup_margins` | regular-season game (`team_week_id` unique) | One row per head-to-head game: `winner_team_year_id`, `loser_team_year_id`, scores, `margin`, `is_tie`. Feeds tightest-matchups / biggest-blowouts. | `stg__team_weeks`, `int__matchup_week_playoff_map` |
+| `int__lucky_records` | owner-week (regular season, `team_week_id` unique) | Median-based luck: `is_lucky_win` (won below week median), `is_unlucky_loss` (lost above it), and experimental `luck_points` (teams above on a win / below on a loss). | `stg__team_weeks`, `int__matchup_week_playoff_map` |
+| `int__season_titles` | owner-season (`owner_year_id` unique) | Title roll-up: amount columns + a boolean flag per season title (scoring/non-scoring, matchup, snub, playoff luck-in, clutch win/lose, lucky/unlucky, shotgun, no-shotgun). Co-title semantics (rank()=1). | `int__owner_season_scoring`, `int__clutch_records`, `int__shotguns`, `int__lucky_records` |
+| `int__season_titles_long` | owner-season × title metric | **Tidy/unpivoted `int__season_titles`** — the single place the title → `amount` → `is_title_holder` mapping is defined. Every owner-season fans out to one row per title metric. Consumed by `season_highlights` (holders) and `int__owner_career_summary` (counts/sums). | `int__season_titles` |
+| `int__owner_career_summary` | owner (`owner_id` unique) | Career roll-ups per owner: tennis-style title counts, cumulative lucky/unlucky/shotgun + clutch W-L totals, `points_total`/`games_total`/`points_per_game`/`clutch_win_pct`. Keeps `all_time_records` a thin select. | `int__season_titles_long`, `int__owner_season_scoring` |
+| `int__team_shotgun_counts` | team-season (`team_year_id` unique) | Regular-season `shotgun_count` + sorted `shotgun_weeks` list per team-season (count 0 if none). Centralizes the tally summed inline by `current_shotgun_counter` + `season_overview`. | `int__shotguns` |
+| `int__player_season_stats` | player-season (`player_year_id` unique) | Per player-season `total_points` + `num_weeks` (week 0 excluded) plus position/flex/rank/team. Backs `player_data_table`. | `stg__player_weeks` |
+| `int__team_week_results` | team-week (`team_week_id` unique) | Team's-perspective weekly result with opponent resolved: `opponent_team_name`/`opponent_owner_name`, `score_for`/`score_against`, `outcome`, `margin`, `is_clutch`, `is_shotgun`, `is_playoff`. Backs `season_schedule`. | `stg__team_weeks` (self-join), `int__owner_team_year_map`, `int__matchup_week_playoff_map`, `int__shotguns` |
+| `int__team_season_summary` | team-season (`team_year_id` unique) | Owner-spotlight card: record, acquisitions, FAAB budget, standing, trades, streak, clutch record, shotguns, regular-season points for/against + per-week. Owner is the actual per-season owner; points for/against from `int__owner_season_scoring`, clutch record from `int__clutch_records`. Backs `season_overview`. | `base_s001__teams`, `int__owner_season_scoring`, `int__clutch_records`, `int__owner_team_year_map`, `int__weeks_played_by_year`, `int__team_shotgun_counts` |
 
 ## Marts (`main_marts`) — page-specific final tables
 
@@ -108,8 +117,11 @@ for display.
 | `stats_center/strength_of_schedule/strength_of_schedule` | `/stats_center` SOS | SOS leaderboard. |
 | `stats_center/draft_analysis/snake_draft_table` | `/stats_center` draft | Snake-draft board. |
 | `stats_center/draft_analysis/auction_draft_table` | `/stats_center` draft | Auction-draft board. |
-| `stats_center/league_highlights/all_time_records` *(in progress)* | `/stats_center` league highlights | All-time best/worst/extreme records (tidy/long). See `docs/39-league-highlights-page.md`. |
-| `stats_center/league_highlights/season_highlights` *(planned)* | `/stats_center` league highlights | Per-season title holders + leaderboards. |
+| `stats_center/league_highlights/all_time_records` | `/stats_center` league highlights | One row per metric x ranked owner (tidy/long): tennis-style title counts, career totals, single-extreme records. Counts/totals read `int__owner_career_summary`; records read the season/week/game intermediates. Driven by a `metric_meta` VALUES table (key→section/category/label/sort_sign/result_n/value_format); leaderboards keep top 3, records keep rank 1. See `docs/39-league-highlights-page.md`. |
+| `stats_center/league_highlights/season_highlights` | `/stats_center` league highlights | One row per `year` x `metric_key` x `rank`. Title holders (co-titles included) read straight from `int__season_titles_long where is_title_holder`; margin leaderboards (tightest/blowouts) from `int__matchup_margins`, keeping season top 3 with `opponent_name` + `week`. |
+| `utilities/current_year` | frontend `utils.py` | Single row, latest season `year` (dropdown default). Wraps `int__current_season_year`. |
+| `utilities/owner_year_map` | frontend `utils.py` | One row per owner-season (`owner_id`, `owner_name`, `year`) for owner/year dropdowns. Wraps `int__owner_team_year_map`. |
+| `utilities/nfl_teams` | frontend `utils.py` | Distinct `nfl_team` list (incl. `'None'` sentinel) for the NFL-team filter. Wraps `base_s001__players`. |
 
 ---
 

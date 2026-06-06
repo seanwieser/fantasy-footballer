@@ -1,0 +1,111 @@
+version: 2
+
+models:
+  - name: int__owner_career_summary
+    description: >
+      One row per owner with their career roll-ups across all seasons: tennis-style title counts
+      (seasons each title was held), cumulative lucky/unlucky/shotgun and clutch win-loss totals,
+      and career points / games / points-per-game / clutch win %. Aggregates
+      [[int__season_titles_long]] and [[int__owner_season_scoring]]; feeds the all-time
+      league-highlights mart so the mart stays a thin select.
+    columns:
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+          - unique
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: scoring_title_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: non_scoring_title_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: matchup_title_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: bad_matchup_title_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: non_playoff_scoring_title_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: playoff_non_scoring_title_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: clutch_winning_title_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: clutch_losing_title_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: lucky_winner_title_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: unlucky_loser_title_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: shotgun_title_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: no_shotgun_season_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: lucky_wins_total
+        description: Career cumulative lucky wins
+        data_type: double
+        data_tests:
+          - not_null
+      - name: unlucky_losses_total
+        description: Career cumulative unlucky losses
+        data_type: double
+        data_tests:
+          - not_null
+      - name: shotgun_total
+        description: Career cumulative shotguns
+        data_type: double
+        data_tests:
+          - not_null
+      - name: clutch_wins_total
+        description: Career cumulative clutch wins (games decided by < 10)
+        data_type: double
+        data_tests:
+          - not_null
+      - name: clutch_losses_total
+        description: Career cumulative clutch losses
+        data_type: double
+        data_tests:
+          - not_null
+      - name: points_total
+        description: Career cumulative regular-season points
+        data_type: double
+        data_tests:
+          - not_null
+      - name: games_total
+        description: Career regular-season games played
+        data_type: double
+        data_tests:
+          - not_null
+      - name: points_per_game
+        description: Career regular-season points per game
+        data_type: double
+        data_tests:
+          - not_null
+      - name: clutch_win_pct
+        description: Career clutch win percentage (null if the owner never played a clutch game)
+        data_type: double

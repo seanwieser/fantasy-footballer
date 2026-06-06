@@ -1,0 +1,86 @@
+version: 2
+
+models:
+  - name: int__postseason_team_weeks
+    description: >
+      Team-week grain for the postseason only. Reconstructs the bracket progression and flags
+      which games are "meaningful" (count toward metrics) vs. dead placement / "kiss my sister"
+      games. See MODELS.md (Postseason) for the league's bracket rules.
+    columns:
+      - name: team_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int__team_postseason')
+                field: team_year_id
+      - name: team_week_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: postseason_week_num
+        description: 1-based week index within the postseason (week - reg_season_count)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: seed
+        description: Regular-season standing (seed) used to assign the bracket
+        data_type: int
+        data_tests:
+          - not_null
+      - name: bracket
+        description: The team's end-of-regular-season bracket
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [ 'winners', 'toilet_bowl', 'kiss_my_sister' ]
+      - name: matchup_type
+        description: ESPN bracket category for the matchup
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: score_for
+        data_type: double
+        data_tests:
+          - not_null
+      - name: outcome
+        description: W or L (byes excluded)
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: opponent_team_year_id
+        data_type: varchar
+      - name: is_championship_game
+        description: Winners-bracket game in the final postseason week (decides 1st vs 2nd)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_third_place_game
+        description: Final-week consolation game between the two semifinal losers (decides 3rd)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_toilet_game
+        description: Real toilet-bowl game (both teams bottom-4, within the 2-week window)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_meaningful
+        description: >
+          Whether the game counts toward metrics: a winners-bracket game, the 3rd-place game,
+          or a real toilet-bowl game. False for dead placement / kiss-my-sister games.
+        data_type: bool
+        data_tests:
+          - not_null

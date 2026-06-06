@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: owner_year_map
+    description: >
+      One row per distinct owner-season. A frontend lookup mart wrapping
+      [[int__owner_team_year_map]] for owner/year dropdown options from the marts layer.
+    columns:
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null

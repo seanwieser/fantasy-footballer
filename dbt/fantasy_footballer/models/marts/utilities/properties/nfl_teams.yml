@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: nfl_teams
+    description: >
+      Distinct NFL team abbreviations seen in player data (includes the free-agent sentinel
+      'None'). A frontend lookup mart wrapping [[base_s001__players]] for the NFL-team filter.
+    columns:
+      - name: nfl_team
+        description: NFL team abbreviation
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique

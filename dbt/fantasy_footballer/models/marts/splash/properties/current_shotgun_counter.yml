@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: current_shotgun_counter
+    description: Model aggregating shotgun weeks by owner for the current season, showing total count and list of weeks
+    columns:
+      - name: owner
+        description: Display name of the team owner
+        data_type: varchar
+        tests:
+          - not_null
+      - name: count
+        description: Total number of shotgun weeks for the owner in the current season
+        data_type: int
+        tests:
+          - not_null
+      - name: weeks
+        data_type: varchar
+        tests:
+          - not_null

@@ -237,20 +237,26 @@ Each bullet is one new model: **name** — grain, then the columns / what it fee
 
 ### Marts (`marts/stats_center/league_highlights/`)
 
-The three stub files already exist. Proposed split:
+Both marts are **built**. The original `season_records` + `season_superlatives` stubs were
+collapsed into a single `season_highlights` (same "rank within a season, take top-N" operation
+at different N's). `top_n` (= 3) is a Jinja var at the top of each mart so the leaderboard depth
+is trivially tweakable. ✅
 
 - **`all_time_records.sql`** — the §3.1 catalog in **tidy/long** form (one row per
   metric × ranked owner), so the frontend filters by section/category without column
-  sprawl.
+  sprawl. ✅ *Built.*
   - Columns: `section`, `category`, `metric_key`, `metric_label`, `metric_type`,
     `owner_id`, `owner_name`, `value`, `display_value`, `season_or_week`, `rank`.
+  - A `metric_meta` VALUES table maps each `metric_key` → section/category/label/type plus
+    `sort_sign` (+1 desc / −1 asc) and `result_n` (1 for single records, `top_n` for
+    leaderboards). One ranked pool, one filter (`rank <= result_n`).
   - Records → a single row (`rank = 1`); leaderboards → `rank 1..N` (N = top-3, §6.5).
 
-- **`season_highlights.sql`** — **one merged per-season tidy table** (collapses the old
-  `season_records` + `season_superlatives` stubs — they were the same "rank within a season,
-  take top-N" operation at different N's, so we unify them).
+- **`season_highlights.sql`** — **one merged per-season tidy table**. ✅ *Built.*
   - Grain: one row per `year` × `metric_key` × `rank`.
-  - Title metrics → `rank = 1` (1–2 for a co-title tie); leaderboard metrics (tightest /
+  - Title holders come straight from the `int__season_titles` flags (co-titles included) via a
+    struct-list `unnest` — one owner-season fans out to one row per title it holds.
+  - Title metrics → `rank = 1` (co-title ties keep every holder); leaderboard metrics (tightest /
     blowouts) → `rank 1..N` (N = top-3, §6.5).
   - Columns: `category`, `metric_key`, `metric_label`, `metric_type`, `year`, `owner_id`,
     `owner_name`, `value`, `display_value`, `rank`, plus **nullable** `opponent_name` /
@@ -268,9 +274,14 @@ The three stub files already exist. Proposed split:
 
 ---
 
-## 5. Frontend plan (phase 2)
+## 5. Frontend plan (phase 2) — ✅ Built
 
-- New page `frontend/stats_center/league_highlights/home.py` at `/stats_center/league_highlights`,
+Built as `frontend/stats_center/league_highlights.py` (single module, not a `home.py` dir) at
+`/stats_center/league_highlights`. Two tabs — **All-Time** (record hero cards + medal leaderboards,
+grouped by section → category) and **By Season** (`ui.select` year → `@ui.refreshable` panel of title
+cards + tightest/blowout boards). See `frontend/FRONTEND.md`. Original plan below:
+
+- Page at `/stats_center/league_highlights`,
   registered like the other stats-center subpages, `common_header()` first.
 - **All-time** tab: record "cards" for the `record`/`amount` metrics + leaderboard tables
   for the `count`/`total` metrics, grouped by category (Scoring / Clutch / Matchups /

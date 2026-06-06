@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: int__player_season_stats
+    description: >
+      One row per player-season aggregating regular-season weekly stats (week 0 excluded):
+      total fantasy points and number of weeks played, plus the player's position/flex/rank/team.
+      Backs the player-data mart so the mart only rounds + renames. See [[stg__player_weeks]].
+    columns:
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: player_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: player_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: position_slot
+        description: Player's position slot designation
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: is_flex
+        description: Whether the player is flex-eligible
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: position_rank
+        description: Rank of the player within their position
+        data_type: int
+      - name: nfl_team
+        description: NFL team abbreviation
+        data_type: varchar
+      - name: total_points
+        description: Total regular-season fantasy points
+        data_type: double
+        data_tests:
+          - not_null
+      - name: num_weeks
+        description: Number of regular-season weeks played (week 0 excluded)
+        data_type: int
+        data_tests:
+          - not_null

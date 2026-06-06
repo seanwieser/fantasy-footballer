@@ -61,7 +61,7 @@ dbt/fantasy_footballer/
   macros/                       (currently empty)
 
 resources/
-  dbt_seeds/*.csv               truncated in git; populated at boot from B2
+  dbt_seeds/*.csv               git-ignored (all of resources/); populated at boot from B2
   fantasy_footballer.duckdb     built locally; never committed
   media/owners/<owner_id>.jpg   owner headshots
 ```
@@ -105,7 +105,22 @@ properties.yml first.
 
 ### properties.yml conventions
 
-- One `properties.yml` per directory (next to the SQL files).
+- **One yml file per model**, named exactly like the SQL file, living in a `properties/`
+  subdir of that model's layer directory — e.g. `models/intermediate/int__season_titles.sql`
+  → `models/intermediate/properties/int__season_titles.yml`. (We split the old consolidated
+  `properties.yml` files because the model count per layer grew too large.) Each file is a
+  standalone `version: 2` + `models:` doc containing that one model's block.
+- **No top-of-file description comments in `.sql` models.** The model description lives only in
+  the yml `description:` key. Keep it concise, convey the model's spirit, and **lead with the
+  grain** (e.g. "One row per owner-season ..."). No issue/PR numbers. Genuine mid-file comments
+  that explain non-obvious *logic* are still fine.
+- **Never collapse `data_tests` to an inline array.** Always one test per line:
+  ```yaml
+  data_tests:
+    - not_null
+    - unique
+  ```
+  not `data_tests: [ not_null ]`.
 - Use `data_tests:` (newer dbt syntax). Some older models still use `tests:` — match
   the file you're editing rather than mixing both in one model block.
 - Lean heavily on `relationships` tests for join integrity:
@@ -191,6 +206,12 @@ Never hard-code the current year.
 
 ### Pages
 
+**Before working in the frontend, read [`src/fantasy_footballer/frontend/FRONTEND.md`](src/fantasy_footballer/frontend/FRONTEND.md)**
+— the page/route map (every route, its module, access level, which marts it reads, and the shared
+`utils.py` helpers + filter-page pattern). It exists so you don't have to re-read every module.
+**Keep it current: if you add/remove a page or route, change which marts a page reads, or add a
+shared `utils.py` helper, update FRONTEND.md in the same change.**
+
 Every NiceGUI page module follows the same shape:
 
 ```python
@@ -215,6 +236,13 @@ See `frontend/stats_center/player_data.py` or
 that file rather than reinventing.
 
 ### Database access
+
+**Before working in the backend, read [`src/fantasy_footballer/backend/BACKEND.md`](src/fantasy_footballer/backend/BACKEND.md)**
+— the backend map (the two data paths — extract ESPN→B2 vs ingest B2→DuckDB; the boot lifecycle;
+the `DbManager` method reference; the source/transformer table; cloud-storage layout; env vars). It
+exists so you don't have to re-read `db.py` / `utils.py` / every transformer. **Keep it current: if
+you add/remove a `DbManager` method, change the boot path, add a source or transformer, or change the
+cloud layout/env vars, update BACKEND.md in the same change.**
 
 - All queries go through `DbManager.query(sql, to_dict=False)`. Never instantiate
   `duckdb.connect` from a frontend module.
@@ -256,7 +284,6 @@ make run-local              # poetry run python3 src/fantasy_footballer/main.py
 make run-local ARGS=--dev-mode   # skip the boot data fetch if seeds are populated
 make run-dbt                # local dbt build (target=default, path is ../../resources/...)
 make run-pre-commit         # all hooks
-make truncate-dbt-seeds     # empty seed CSVs (run BEFORE committing)
 make build && make up       # docker run on :8080 (requires image/.env)
 make down                   # tear down container
 
@@ -290,9 +317,9 @@ That's why `make run-dbt` and `DbManager.run_dbt` use different `--target`s.
 
 ## Gotchas / don'ts
 
-- **Never commit populated seed CSVs.** `resources/dbt_seeds/*.csv` contain real
-  owner data + auth hashes. Run `make truncate-dbt-seeds` before committing if
-  you've booted the app locally. The README also calls this out.
+- **Seed CSVs hold real owner data + auth hashes** (`resources/dbt_seeds/*.csv`).
+  They are untracked and the whole `resources/` dir is git-ignored (`.gitignore`), so a
+  plain `git add` can't stage them — only a deliberate `git add -f` would. Never force them in.
 - **`.envrc` is git-ignored but contains real secrets** (B2 keys, ESPN cookies).
   Don't ever check it in, and don't surface its contents in agent output.
 - **Contracts are enforced.** Adding/removing a column without updating

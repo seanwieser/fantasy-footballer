@@ -21,8 +21,5 @@ down:
 run-dbt:
 	./scripts/run_dbt_local.sh
 
-truncate-dbt-seeds:
-	poetry run python3 scripts/truncate_dbt_seeds.py
-
 query:
 	poetry run python3 scripts/query_db.py --format $(FORMAT) "$(SQL)"

@@ -10,18 +10,21 @@ from nicegui import ui
 class SosDropDownSelection:
     """Class for dropdown selection for strength of schedule table."""
 
-    DEFAULT = {
-        "year": get_current_year(),
-        "owner_name": "ALL",
-    }
+    @classmethod
+    def defaults(cls):
+        """Default selections, resolved at call time so there is no DB access at import."""
+        return {
+            "year": get_current_year(),
+            "owner_name": "ALL",
+        }
 
     def __init__(self):
         """Initialize DropDownSelection."""
         self.reset()
 
     def reset(self):
-        """Reset all instance attributes to DEFAULT constant."""
-        for attribute, value in SosDropDownSelection.DEFAULT.items():
+        """Reset all instance attributes to their defaults."""
+        for attribute, value in self.defaults().items():
             setattr(self, attribute, value)
         sos_data_table.refresh()
 

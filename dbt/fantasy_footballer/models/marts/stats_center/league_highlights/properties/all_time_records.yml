@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: all_time_records
+    description: >
+      One row per metric x ranked owner (tidy/long) covering the all-time league-highlights
+      catalog. Tennis-style title counts, career totals, and single-extreme records are unioned
+      into a shared shape; leaderboards keep the top 3 (rank 1..N), single records keep rank 1.
+      The frontend filters by section/category and renders value/display_value. See the
+      league-highlights doc and MODELS.md.
+    columns:
+      - name: section
+        description: Top-level grouping (Scoring, Clutch, Matchups, Shotgun)
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: category
+        description: Sub-group within a section (Season, Matchup, Playoff, Luck, Margins, Clutch, Shotgun)
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: metric_key
+        description: Stable identifier for the metric
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: metric_label
+        description: Human-readable metric name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: metric_type
+        description: count (tennis-style or cumulative), total (career aggregate), or record (single extreme)
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [ 'count', 'total', 'record' ]
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: value
+        description: Numeric metric value, rounded for display
+        data_type: double
+        data_tests:
+          - not_null
+      - name: display_value
+        description: Pre-formatted value string (integer, points, or percentage)
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: season_or_week
+        description: Context for record rows (year, "year Wnn", or "year (W-L)"); null for career aggregates
+        data_type: varchar
+      - name: rank
+        description: Rank within the metric (1 = best); leaderboards keep 1..3, single records keep 1
+        data_type: int
+        data_tests:
+          - not_null

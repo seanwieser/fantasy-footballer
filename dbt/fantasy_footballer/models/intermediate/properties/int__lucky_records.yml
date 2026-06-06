@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: int__lucky_records
+    description: >
+      Per owner-week luck classification (regular season). Median-based flags are the primary
+      metric; luck_points is an experimental granular measure. See the league-highlights doc.
+    columns:
+      - name: team_week_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: team_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: score_for
+        data_type: double
+        data_tests:
+          - not_null
+      - name: is_lucky_win
+        description: Won while scoring below the week's league median
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_unlucky_loss
+        description: Lost while scoring above the week's league median
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: luck_points
+        description: Teams that outscored you on a win (+) or that you outscored on a loss (-)
+        data_type: bigint
+        data_tests:
+          - not_null

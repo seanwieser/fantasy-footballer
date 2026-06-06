@@ -9,19 +9,22 @@ from nicegui import ui
 class DropDownSelection:
     """Class for dropdown selection for Players table."""
 
-    DEFAULT = {
-        "year": get_current_year(),
-        "position": "ALL",
-        "nfl_team": "ALL",
-    }
+    @classmethod
+    def defaults(cls):
+        """Default selections, resolved at call time so there is no DB access at import."""
+        return {
+            "year": get_current_year(),
+            "position": "ALL",
+            "nfl_team": "ALL",
+        }
 
     def __init__(self):
         """Initialize DropDownSelection."""
         self.reset()
 
     def reset(self):
-        """Reset all instance attributes to DEFAULT constant."""
-        for attribute, value in DropDownSelection.DEFAULT.items():
+        """Reset all instance attributes to their defaults."""
+        for attribute, value in self.defaults().items():
             setattr(self, attribute, value)
         player_data_table.refresh()
 

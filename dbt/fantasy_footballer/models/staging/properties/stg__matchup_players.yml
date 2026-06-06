@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: stg__matchup_players
+    description: >
+      Granular view of players who participated in each matchup, unnested from the lineup arrays.
+      Creates one row per player per matchup week. Excludes future matchups where games have not
+      yet been played (score_for = 0) to focus on completed matchups only.
+
+    columns:
+      - name: year
+        description: Season year of the matchup
+        data_type: int
+        data_tests:
+          - not_null
+      - name: matchup_week
+        description: Week number of the matchup within the season
+        data_type: int
+        data_tests:
+          - not_null
+      - name: is_playoff
+        description: Flag indicating whether this matchup occurred during the playoff period
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: matchup_type
+        description: Type or category of the matchup (e.g., regular season, playoff round)
+        data_type: varchar
+      - name: player_id
+        description: Unique identifier for the player in the starting lineup for this matchup
+        data_type: varchar
+        data_tests:
+          - not_null

@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: current_year
+    description: >
+      Single row holding the current (latest) season year. A frontend lookup mart wrapping
+      [[int__current_season_year]] so dropdown defaults read from the marts layer.
+    columns:
+      - name: year
+        description: The latest season year with data
+        data_type: int
+        data_tests:
+          - not_null
+          - unique

@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: int__current_season_year
+    description: >
+      Single-row reference table containing the most recent season year available in the data.
+      Used as a lookup for filtering and reporting on current season data across the warehouse.
+    columns:
+      - name: current_season_year
+        description: The maximum (most recent) season year present in the owner_team_year_map
+        data_type: int
+        data_tests:
+          - not_null

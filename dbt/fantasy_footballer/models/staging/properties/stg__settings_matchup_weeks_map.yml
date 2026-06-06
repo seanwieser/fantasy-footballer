@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: stg__settings_matchup_weeks_map
+    columns:
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: matchup_week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        data_type: int
+        data_tests:
+          - not_null

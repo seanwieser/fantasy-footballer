@@ -1,26 +1,19 @@
 with reg_season_weeks as (
     select
-        team_weeks.team_year_id,
-        team_weeks.year,
-        team_weeks.week,
-        team_weeks.score_for
-    from {{ ref("stg__team_weeks") }} as team_weeks
-    inner join {{ ref("int__matchup_week_playoff_map") }} as matchup_week_playoff_map
-        on
-            team_weeks.year = matchup_week_playoff_map.year and
-            team_weeks.week = matchup_week_playoff_map.week
-    where
-        team_weeks.outcome != 'U' and
-        not matchup_week_playoff_map.is_playoff
+        team_year_id,
+        score_for,
+        score_against
+    from {{ ref("int__team_week_results") }}
+    where not is_playoff and outcome != 'U'
 ),
 
 season_scoring as (
     select
         team_year_id,
-        year,
-        count(week)::int as games_played,
+        count(*)::int as games_played,
         sum(score_for)::double as reg_points_total,
-        (sum(score_for) / count(week))::double as reg_points_per_game,
+        sum(score_against)::double as reg_points_against,
+        (sum(score_for) / count(*))::double as reg_points_per_game,
         max(score_for)::double as best_week_score,
         min(score_for)::double as worst_week_score
     from reg_season_weeks
@@ -36,6 +29,7 @@ owner_season_scoring as (
         owner_team_year_map.year,
         season_scoring.games_played,
         season_scoring.reg_points_total,
+        season_scoring.reg_points_against,
         season_scoring.reg_points_per_game,
         season_scoring.best_week_score,
         season_scoring.worst_week_score,

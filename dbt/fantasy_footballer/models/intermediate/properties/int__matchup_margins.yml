@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: int__matchup_margins
+    description: >
+      One row per played regular-season game with the victory margin and winning/losing team.
+      Feeds the tightest-matchups and biggest-blowouts highlights.
+    columns:
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: team_week_id
+        description: The winning (or, for ties, lower-id) team's team_week_id; one per game
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: winner_team_year_id
+        description: Higher-scoring team (or lower team_year_id on a tie)
+        data_type: varchar
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: loser_team_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: winner_score
+        data_type: double
+        data_tests:
+          - not_null
+      - name: loser_score
+        data_type: double
+        data_tests:
+          - not_null
+      - name: margin
+        description: abs(winner_score - loser_score); 0 for ties
+        data_type: double
+        data_tests:
+          - not_null
+      - name: is_tie
+        data_type: bool
+        data_tests:
+          - not_null

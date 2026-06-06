@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: season_schedule
+    description: Model containing weekly schedule with matchup results, including clutch game and shotgun indicators for regular season games
+    columns:
+      - name: owner_id
+        description: Unique identifier for the team owner
+        data_type: int
+        tests:
+          - not_null
+      - name: year
+        description: Season year
+        data_type: int
+        tests:
+          - not_null
+      - name: Week
+        description: Week number of the matchup
+        data_type: int
+        tests:
+          - not_null
+      - name: Team_Name
+        description: Name of the opponent's team
+        data_type: varchar
+      - name: Owner
+        description: Display name of the opponent owner
+        data_type: varchar
+      - name: Outcome
+        description: Result of the matchup (W for win, L for loss, T for tie, U for unplayed, Wcw for clutch win, Lcl for clutch loss)
+        data_type: varchar
+      - name: Points_For
+        description: Points scored by the team (includes 'sg' suffix for shotgun weeks, empty string for unplayed games)
+        data_type: varchar
+      - name: Points_Against
+        description: Points scored by the opponent (empty string for unplayed games)
+        data_type: varchar

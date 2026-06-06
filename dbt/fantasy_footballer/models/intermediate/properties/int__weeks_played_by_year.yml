@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: int__weeks_played_by_year
+    columns:
+      - name: year
+        description: Unique identifier for the team owner
+        data_type: int
+      - name: weeks_played
+        description: Unique identifier for the team owner
+        data_type: int

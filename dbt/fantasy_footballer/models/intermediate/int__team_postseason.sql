@@ -1,7 +1,3 @@
--- Team-season postseason status: which bracket the team entered, whether they made the
--- (winners) playoffs, and final placement reconstructed from bracket progression. ESPN
--- final_standing is carried through to validate the reconstruction for places 1-3
--- (see tests/assert_postseason_placements_match_espn.sql).
 with team_brackets as (
     select distinct
         team_year_id,

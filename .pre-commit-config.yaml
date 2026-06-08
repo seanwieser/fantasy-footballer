@@ -41,6 +41,17 @@ repos:
     hooks:
       - id: isort
         additional_dependencies: [toml]
+  # Stub the gitignored sensitive seeds (only if absent) so the sqlfluff dbt templater below can
+  # build its manifest in a public checkout (pre-commit.ci). No-op locally where real seeds exist.
+  - repo: local
+    hooks:
+      - id: stub-sensitive-seeds
+        name: stub sensitive seeds for dbt compile
+        entry: bash scripts/stub_sensitive_seeds.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+
   - repo: https://github.com/sqlfluff/sqlfluff
     rev: 3.4.2
     hooks:

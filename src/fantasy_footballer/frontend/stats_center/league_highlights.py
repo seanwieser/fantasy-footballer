@@ -4,18 +4,16 @@ from collections import namedtuple
 from contextlib import contextmanager
 
 from backend.db import DbManager
-from frontend.utils import common_header, get_current_year
+from frontend.utils import (SECTION_COLORS, common_header, get_current_year,
+                            medal)
 from nicegui import ui
 
 SECTIONS = ["Scoring", "Matchups", "Shotgun", "Clutch"]
-SECTION_COLORS = {"Scoring": "blue", "Clutch": "red", "Matchups": "orange", "Shotgun": "green"}
 SECTION_ICONS = {"Scoring": "sports_football", "Clutch": "bolt", "Matchups": "sports_kabaddi", "Shotgun": "sports_bar"}
 
 # Within a section, cards cluster by `category` for scannability (order comes from the seed's
 # display_order); these are the friendly sub-cluster headers.
 CATEGORY_LABELS = {"Season": "Full Season", "Matchup": "Single Week", "Playoff": "Playoff Races"}
-
-MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
 
 # Owner-level context shared across cards: retired flag (set of owner_ids) + seasons-played (dict).
 OwnerInfo = namedtuple("OwnerInfo", ["retired", "seasons"])
@@ -34,11 +32,6 @@ def _runs(rows, field):
             runs.append((row[field], []))
         runs[-1][1].append(row)
     return [rows for _, rows in runs]
-
-
-def _medal(rank):
-    """Return a medal emoji for top-3 ranks, else a numbered label."""
-    return MEDALS.get(rank, f"{rank}.")
 
 
 def _balanced_cols(n, max_cols=3):
@@ -121,9 +114,10 @@ def podium_card(rows, color, owners):
     """
     Unified ranked tile used for every metric (records, titles, leaderboards).
 
-    Rank 1 is the headline — a tinted band with a headshot and a larger, bold name + value —
-    so the leader pops; ranks 2-3 sit below, compact and left-aligned to the same column.
-    Values share the right edge across rows. Context sits under each name.
+    Rank 1 is the headline — a ring-bordered headshot with a larger, bold name + value — so the
+    leader pops; a thin divider separates it from ranks 2-3, which sit below compact and
+    left-aligned to the same column. Values share the right edge across rows. Context sits under
+    each name.
     """
     head = rows[0]
     with metric_card(head["description"]):
@@ -137,7 +131,7 @@ def podium_card(rows, color, owners):
                     ui.separator().classes("opacity-30")
                     divided = True
                 with ui.row().classes("w-full items-center gap-3 no-wrap"):
-                    ui.label(_medal(row["rank"])).classes("text-base w-7 text-center shrink-0")
+                    ui.label(medal(row["rank"])).classes("text-base w-7 text-center shrink-0")
                     if lead:
                         _headshot(row["owner_id"], px=44, ring=color)
                     else:
@@ -244,9 +238,6 @@ def render_season(year, owners):
         order by display_order, rank
     """)
     board_groups = _runs(boards, "metric_key")
-    for group in board_groups:
-        for row in group:
-            row["detail"] = f"def. {row['opponent_name']} · {row['detail']} · Wk {row['week']}"
     with ui.row().classes("w-full items-center gap-2 mt-8 mb-1"):
         ui.icon("compare_arrows", size="1.9rem").classes("text-orange-7")
         ui.label("Closest & Most Lopsided").classes("text-2xl font-bold text-orange-8")

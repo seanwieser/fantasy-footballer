@@ -9,6 +9,15 @@ from pandas import DataFrame
 START_YEAR = 2018
 VALID_POSITIONS = ["QB", "RB", "WR", "TE", "D/ST", "K"]
 
+# Highlight section -> Quasar color + medal emoji by podium rank. Shared by the League
+# Highlights page and the owner-spotlight Highlights card so the visual language stays in sync.
+SECTION_COLORS = {"Scoring": "blue", "Clutch": "red", "Matchups": "orange", "Shotgun": "green"}
+MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
+
+def medal(rank):
+    """Medal emoji for a top-3 rank, else a plain numbered label (e.g. '4.')."""
+    return MEDALS.get(rank, f"{rank}.")
+
 def get_valid_years() -> list[int]:
     """Get all years that fantasy data is available for."""
     return list(range(START_YEAR, datetime.datetime.now().year + 1))

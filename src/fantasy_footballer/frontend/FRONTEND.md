@@ -53,7 +53,9 @@ shared helper in `utils.py`, update the matching row/section here in the same ch
 | `image_path_to_owner_id/name(path)` | gallery headshot path → owner. | — |
 | `logout()` | Clear session, go to `/login`. | — |
 
-Constants: `START_YEAR = 2018`, `VALID_POSITIONS = [QB, RB, WR, TE, D/ST, K]`.
+Constants: `START_YEAR = 2018`, `VALID_POSITIONS = [QB, RB, WR, TE, D/ST, K]`,
+`SECTION_COLORS` (highlight section → Quasar color), `MEDALS` (rank → emoji) + `medal(rank)`
+(emoji or numbered fallback) — shared by the League Highlights page and the owner-spotlight Highlights card.
 
 ## Pages
 
@@ -62,7 +64,7 @@ Constants: `START_YEAR = 2018`, `VALID_POSITIONS = [QB, RB, WR, TE, D/ST, K]`.
 | `/` | `splash/home.py` | public | `current_standings`, `current_shotgun_counter` | Landing; standings + shotgun tables. |
 | `/login` | `login/home.py` | — | `main_seed_data.users` | `AuthMiddleware` + bcrypt login form. |
 | `/owner_history` | `owner_history/home.py` | 0 | `owners_by_year` | Owner grid per year; links to spotlight. |
-| `/owner_history/{owner_id}/{year}` | `owner_history/spotlight.py` | 0 | `season_overview`, `season_schedule` | `season_overview_card`s; queries `where owner_id=.. and year=..` then `[0]`. |
+| `/owner_history/{owner_id}/{year}` | `owner_history/spotlight.py` | 0 | `season_overview`, `season_schedule`, `season_highlights` | `season_overview_card`s; queries `where owner_id=.. and year=..` then `[0]`. **Highlights card** (`highlights_card`) lists that owner-year's podium finishes from `season_highlights` (medal by `rank`, value tinted by `SECTION_COLORS`, subtitle = the mart's precomposed `detail`); empty-state when none. **Schedule** (`season_schedule_table`) is the dense `table()` q-table with a `body-cell-Highlights` slot rendering one section-colored chip (icon + tooltip) per active week flag, driven by `SCHEDULE_FLAGS` (flag → icon/section/label); the boolean flag columns from `season_schedule` are passed as `hidden_fields` and read by the slot. |
 | `/stats_center` | `stats_center/home.py` | 0 | — | Card grid (`stats_center_card`) linking subpages. |
 | `/stats_center/player_data` | `stats_center/player_data.py` | 0 | `player_data_table` | Filter pattern (year / position / …). |
 | `/stats_center/strength_of_schedule` | `stats_center/strength_of_schedule.py` | 0 | `strength_of_schedule` | **Canonical** filter pattern (year, owner_name). |

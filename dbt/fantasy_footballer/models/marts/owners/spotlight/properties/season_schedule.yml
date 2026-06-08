@@ -2,7 +2,10 @@ version: 2
 
 models:
   - name: season_schedule
-    description: Model containing weekly schedule with matchup results, including clutch game and shotgun indicators for regular season games
+    description: >
+      One row per owner-week of the regular season: the matchup result, scores, and a boolean
+      flag per week-grain highlight (best/worst single week, lucky win / unlucky loss, shotgun,
+      clutch). The spotlight page renders the flags as section-colored chips with a legend.
     columns:
       - name: owner_id
         description: Unique identifier for the team owner
@@ -14,23 +17,50 @@ models:
         data_type: int
         tests:
           - not_null
-      - name: Week
+      - name: week
         description: Week number of the matchup
         data_type: int
         tests:
           - not_null
-      - name: Team_Name
+      - name: opponent_team_name
         description: Name of the opponent's team
         data_type: varchar
-      - name: Owner
+      - name: opponent_owner_name
         description: Display name of the opponent owner
         data_type: varchar
-      - name: Outcome
-        description: Result of the matchup (W for win, L for loss, T for tie, U for unplayed, Wcw for clutch win, Lcl for clutch loss)
+      - name: outcome
+        description: Result of the matchup (W / L / T; empty string for an unplayed week)
         data_type: varchar
-      - name: Points_For
-        description: Points scored by the team (includes 'sg' suffix for shotgun weeks, empty string for unplayed games)
-        data_type: varchar
-      - name: Points_Against
-        description: Points scored by the opponent (empty string for unplayed games)
-        data_type: varchar
+      - name: score_for
+        description: Points scored by the owner (0 for an unplayed week)
+        data_type: double
+      - name: score_against
+        description: Points scored by the opponent (0 for an unplayed week)
+        data_type: double
+      - name: is_clutch_win
+        description: Won a game decided by fewer than 10 points
+        data_type: boolean
+      - name: is_clutch_loss
+        description: Lost a game decided by fewer than 10 points
+        data_type: boolean
+      - name: is_shotgun
+        description: Scored under 100 points or the week's league low
+        data_type: boolean
+      - name: is_lucky_win
+        description: Won the week while scoring below the league median
+        data_type: boolean
+      - name: is_unlucky_loss
+        description: Lost the week while scoring above the league median
+        data_type: boolean
+      - name: is_best_week
+        description: Held the league Best-week title that week (single highest score in the league this season)
+        data_type: boolean
+      - name: is_worst_week
+        description: Held the league Worst-week title that week (single lowest score in the league this season)
+        data_type: boolean
+      - name: is_tightest_game
+        description: Won the season's single tightest game (smallest league margin of victory)
+        data_type: boolean
+      - name: is_biggest_blowout
+        description: Won the season's single biggest blowout (largest league margin of victory)
+        data_type: boolean

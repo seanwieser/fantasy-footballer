@@ -27,6 +27,7 @@ reference it in conversation, branches, and commits.
 | FF-007 | Gallery: video upload / display / metadata | frontend, backend | Low | L | Idea |
 | FF-008 | Refactor website navigation | frontend | Low | M | Idea |
 | FF-009 | Quantify luck via all-play / expected wins | dbt | Low | M | Idea |
+| FF-010 | Notification / events dashboard | dbt, backend, frontend | Low | L | Idea |
 
 ---
 
@@ -237,3 +238,46 @@ the current snapshots are good enough. This is the "(d)" option from the snub-de
 **Pieces it will need:** an `int__all_play_records` (team-week vs the whole league → weekly all-play
 W-L) rolled up to owner-season expected wins; optional wiring into `int__season_titles` to offer an
 all-play variant of the snub/luck flags; maybe a dedicated luck mart/page.
+
+---
+
+## FF-010 — Notification / events dashboard (consolidated event feed)
+
+**Area:** dbt, backend, frontend · **Priority:** Low · **Effort:** L · **Status:** Idea
+
+**Done when:** there's a single consolidated **events feed** capturing notable things happening across
+the site — at minimum new League-Highlights events and all-time-leaderboard rank changes — in one
+queryable place that downstream products can source.
+
+**What:** build a unified stream of "what's going on" across the website, so any number of products can
+read from one consolidated event layer instead of each re-deriving "what changed." The dashboard /
+consumer surface is undecided on purpose — the value here is the **event-sourcing layer underneath it**.
+
+**First events to emit (League Highlights):**
+- A **new highlight event** occurs — e.g. a fresh shotgun, clutch game, best/worst week, a new title
+  holder (the same week-grain events we just chip on the spotlight schedule + the season titles).
+- An **all-time leaderboard change** — someone enters/moves on an `all_time_records` leaderboard (rank
+  change in the All-Time view), e.g. a new career-points leader or a new biggest snub.
+
+**Why build it as a shared layer:** "consolidate the events once, source them many times." Candidate
+consumers (none committed yet):
+- a **Current Events / activity-feed page** in the app;
+- an **iMessage (or GroupMe — see the dormant `groupme/` puller) push hook** to alert the league;
+- **context for an LLM-generated news/recap report** (feed the event list to a model → weekly writeup).
+
+**The hard part — detecting "new":** the app **full-refreshes dbt on every boot** (`DbManager.setup`),
+so there's no built-in notion of "since last time." An events feed needs **state across runs**: persist a
+prior snapshot (e.g. a stored events/leaderboard table in B2, or dbt **snapshots**) and **diff** the new
+build against it to materialize *change* events. This is the core design decision; without it we only
+have current state, not a stream.
+
+**Pieces it will need:**
+- An **event schema / model** (one row per event: type, timestamp/season-week, subject owner(s),
+  payload/summary) — likely a new `marts`/`intermediate` layer that unions per-source event producers.
+- **Snapshotting + diffing** to turn full-refresh state into append-only events (the state problem above).
+- Per-area **event producers** (League Highlights first; later: standings swings, draft, gallery uploads).
+- One or more **consumers** (page / push / LLM) — decided later, deliberately out of scope for v1.
+
+**Open questions:** event granularity + schema; where prior state lives (B2 snapshot vs dbt snapshots vs
+a small persisted table); de-duplication / "already notified" tracking; which consumer to build first;
+whether this wants the eventual FastAPI seam (see `architecture-roadmap.md`) as its read API.

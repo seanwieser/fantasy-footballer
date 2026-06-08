@@ -30,7 +30,7 @@ highest_shotgun_season_record,Shotgun,Shotgun,Most shotguns in a season,record,1
 most_shotgun_total_count,Shotgun,Shotgun,Most career shotguns,count,1,3,int,tenure,29,"Career total shotguns — weeks scoring under 100 points or the week's league low."
 shotgun_title_count,Shotgun,Shotgun,Shotgun titles,count,1,3,int,years,30,"Seasons with the most shotguns — weeks scoring under 100 points or the week's league low."
 least_shotgun_per_season,Shotgun,Shotgun,Fewest shotguns per season,total,-1,3,points,tenure,31,"Fewest shotguns per season — weeks scoring under 100 points or the week's league low, averaged over seasons played."
-no_shotgun_season_count,Shotgun,Shotgun,Clean seasons,count,1,3,int,years,32,"Seasons with zero shotguns — never scored under 100 points or the week's league low."
+no_shotgun_season_count,Shotgun,Shotgun,Sober seasons,count,1,3,int,years,32,"Seasons with zero shotguns — never scored under 100 points or the week's league low."
 clutchest_season,Clutch,Clutch,Clutchest season,record,1,3,int,context,33,"Best single-season clutch record — wins in games decided by under 10 points."
 unclutchest_season,Clutch,Clutch,Least clutch season,record,1,3,int,context,34,"Worst single-season clutch record — losses in games decided by under 10 points."
 best_clutch_pct,Clutch,Clutch,Best career clutch win %,total,1,3,pct,context,35,"Career win rate in clutch games — regular-season games decided by under 10 points."

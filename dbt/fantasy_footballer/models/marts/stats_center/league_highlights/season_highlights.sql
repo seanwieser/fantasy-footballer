@@ -12,14 +12,13 @@ title_candidates as (
         owner_name,
         metric_key,
         amount as metric_value,
-        null::varchar as opponent_name,
-        null::int as week,
         null::varchar as detail
     from {{ ref("int__season_titles_long") }}
     where is_title_holder
 ),
 
--- Per-season margin leaderboards (winner is the owner, loser the opponent)
+-- Per-season margin leaderboards (winner is the owner, loser the opponent). The full display
+-- subtitle is composed here so the frontend stays thin (mirrors all_time_records.margin_records).
 margin_candidates as (
     select
         margins.year,
@@ -28,9 +27,9 @@ margin_candidates as (
         winner.owner_name,
         directions.metric_key,
         margins.margin as metric_value,
-        loser.owner_name as opponent_name,
-        margins.week,
-        round(margins.winner_score, 2)::varchar || '-' || round(margins.loser_score, 2)::varchar as detail
+        'def. ' || loser.owner_name || ' · ' ||
+        round(margins.winner_score, 2)::varchar || '-' || round(margins.loser_score, 2)::varchar ||
+        ' · Wk ' || margins.week::varchar as detail
     from {{ ref("int__matchup_margins") }} as margins
     inner join {{ ref("int__owner_team_year_map") }} as winner
         on margins.winner_team_year_id = winner.team_year_id
@@ -128,11 +127,9 @@ ranked as (
         candidates.owner_id,
         candidates.owner_name,
         candidates.metric_value,
-        candidates.opponent_name,
-        candidates.week,
         ctx.clutch_record,
-        -- Margin rows keep their winner-loser score; title rows get a "how/when/where earned"
-        -- subtitle: end-of-season seed, the key week(s), or the clutch record.
+        -- Margin rows already carry their full composed subtitle; title rows get a "how/when/where
+        -- earned" line: end-of-season seed, the key week(s), or the clutch record.
         coalesce(candidates.detail, case candidates.metric_key
             when 'scoring_title' then ctx.seed_label
             when 'non_scoring_title' then ctx.seed_label
@@ -174,8 +171,6 @@ select
         when value_format = 'pct' then round(metric_value, 1)::varchar || '%'
         else round(metric_value, 2)::varchar
     end as display_value,
-    opponent_name,
-    week,
     detail,
     metric_rank::int as rank
 from ranked

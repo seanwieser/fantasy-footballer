@@ -15,7 +15,7 @@ from nicegui import app, ui
 PORT = 8099
 
 
-def _row(week, opp, outcome, sf, sa, flags=()):
+def _row(week, opp, outcome, sf, sa, flags=()):  # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Build one result-frame row matching season_schedule_table's SELECT aliases."""
     played = outcome != ""
     row = {"Week": week, "Team_Name": opp, "Owner": opp, "Outcome": outcome,

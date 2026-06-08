@@ -2,8 +2,11 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 
+# Pin hooks to Python 3.12 (the project's version). Left at the floating `python3`, pre-commit.ci
+# builds on its newest interpreter (3.14), where dbt-common/mashumaro fail to import and crash the
+# sqlfluff dbt templater. Pinning 3.12 keeps the dbt stack importable.
 default_language_version:
-  python: python3
+  python: python3.12
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks

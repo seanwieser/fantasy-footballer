@@ -35,8 +35,8 @@ games as (
     inner join reg_season_team_weeks as opponent_weeks
         on team_weeks.opponent_team_week_id = opponent_weeks.team_week_id
     where
-        team_weeks.outcome = 'W'
-        or (team_weeks.outcome = 'T' and team_weeks.team_year_id < team_weeks.opponent_team_year_id)
+        team_weeks.outcome = 'W' or
+        (team_weeks.outcome = 'T' and team_weeks.team_year_id < team_weeks.opponent_team_year_id)
 )
 
 select

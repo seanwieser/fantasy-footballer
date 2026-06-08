@@ -1,35 +1,20 @@
-{% set top_n = 3 %}
-
-with metric_meta (
-    metric_key, category, metric_label, metric_type, sort_sign, result_n, value_format
-) as (
-    values
-    ('scoring_title', 'Season', 'Scoring title', 'title', 1, 1, 'points'),
-    ('non_scoring_title', 'Season', 'Non-scoring title', 'title', -1, 1, 'points'),
-    ('matchup_title', 'Matchup', 'Best-week title', 'title', 1, 1, 'points'),
-    ('bad_matchup_title', 'Matchup', 'Worst-week title', 'title', -1, 1, 'points'),
-    ('non_playoff_scoring_title', 'Playoff', 'Snub title', 'title', 1, 1, 'points'),
-    ('playoff_non_scoring_title', 'Playoff', 'Lucky-in title', 'title', -1, 1, 'points'),
-    ('clutch_winning_title', 'Clutch', 'Clutch-winning title', 'title', 1, 1, 'int'),
-    ('clutch_losing_title', 'Clutch', 'Clutch-losing title', 'title', 1, 1, 'int'),
-    ('lucky_winner_title', 'Luck', 'Lucky-winner title', 'title', 1, 1, 'int'),
-    ('unlucky_loser_title', 'Luck', 'Unlucky-loser title', 'title', 1, 1, 'int'),
-    ('shotgun_title', 'Shotgun', 'Shotgun title', 'title', 1, 1, 'int'),
-    ('no_shotgun_season', 'Shotgun', 'Clean season', 'title', 1, 1, 'int'),
-    ('tightest_matchups', 'Margins', 'Tightest game', 'leaderboard', -1, {{ top_n }}, 'points'),
-    ('biggest_blowouts', 'Margins', 'Biggest blowout', 'leaderboard', 1, {{ top_n }}, 'points')
+-- Metric metadata (key -> category/label/type/sort/format/tooltip) lives in a seed.
+with metric_meta as (
+    select * from {{ ref("season_highlight_metrics") }}
 ),
 
 -- Per-season title holders (co-titles included) — read straight from the tidy long table
 title_candidates as (
     select
         year,
+        team_year_id,
         owner_id,
         owner_name,
         metric_key,
         amount as metric_value,
         null::varchar as opponent_name,
-        null::int as week
+        null::int as week,
+        null::varchar as detail
     from {{ ref("int__season_titles_long") }}
     where is_title_holder
 ),
@@ -38,12 +23,14 @@ title_candidates as (
 margin_candidates as (
     select
         margins.year,
+        winner.team_year_id,
         winner.owner_id,
         winner.owner_name,
         directions.metric_key,
         margins.margin as metric_value,
         loser.owner_name as opponent_name,
-        margins.week
+        margins.week,
+        round(margins.winner_score, 2)::varchar || '-' || round(margins.loser_score, 2)::varchar as detail
     from {{ ref("int__matchup_margins") }} as margins
     inner join {{ ref("int__owner_team_year_map") }} as winner
         on margins.winner_team_year_id = winner.team_year_id
@@ -59,12 +46,82 @@ candidates as (
     select * from margin_candidates
 ),
 
+-- Regular-season weekly scores, used to find each team's best/worst single week.
+reg_results as (
+    select
+        team_year_id,
+        week,
+        score_for
+    from {{ ref("int__team_week_results") }}
+    where not is_playoff and outcome != 'U'
+),
+
+extreme_weeks as (
+    select
+        team_year_id,
+        arg_max(week, score_for) as best_week,
+        arg_min(week, score_for) as worst_week
+    from reg_results
+    group by team_year_id
+),
+
+shotgun_weeks as (
+    select
+        team_year_id,
+        if(count(*) = 1, 'Wk ', 'Wks ') || string_agg(week::varchar, ', ' order by week) as label
+    from {{ ref("int__shotguns") }}
+    where is_shotgun
+    group by team_year_id
+),
+
+luck_weeks as (
+    select
+        team_year_id,
+        if(count(*) filter (where is_lucky_win) = 1, 'Wk ', 'Wks ') ||
+        string_agg(week::varchar, ', ' order by week) filter (where is_lucky_win) as lucky_label,
+        if(count(*) filter (where is_unlucky_loss) = 1, 'Wk ', 'Wks ') ||
+        string_agg(week::varchar, ', ' order by week) filter (where is_unlucky_loss) as unlucky_label
+    from {{ ref("int__lucky_records") }}
+    group by team_year_id
+),
+
+-- One row per team-season of subtitle context: reg-season seed, clutch record, key weeks.
+title_context as (
+    select
+        teams.team_year_id,
+        clutch.record as clutch_record,
+        extreme_weeks.best_week,
+        extreme_weeks.worst_week,
+        shotgun_weeks.label as shotgun_label,
+        luck_weeks.lucky_label,
+        luck_weeks.unlucky_label,
+        season_titles.playoff_teams_outscored,
+        season_titles.nonplayoff_teams_outscoring,
+        -- Ordinal of the end-of-regular-season standing, e.g. "7th seed".
+        teams.standing::varchar || case
+            when teams.standing % 100 in (11, 12, 13) then 'th'
+            when teams.standing % 10 = 1 then 'st'
+            when teams.standing % 10 = 2 then 'nd'
+            when teams.standing % 10 = 3 then 'rd'
+            else 'th'
+        end || ' seed' as seed_label
+    from {{ ref("base_s001__teams") }} as teams
+    left join {{ ref("int__clutch_records") }} as clutch on teams.team_year_id = clutch.team_year_id
+    left join {{ ref("int__season_titles") }} as season_titles on teams.team_year_id = season_titles.team_year_id
+    left join extreme_weeks on teams.team_year_id = extreme_weeks.team_year_id
+    left join shotgun_weeks on teams.team_year_id = shotgun_weeks.team_year_id
+    left join luck_weeks on teams.team_year_id = luck_weeks.team_year_id
+),
+
 ranked as (
     select
         meta.category,
+        meta.section,
         candidates.metric_key,
         meta.metric_label,
         meta.metric_type,
+        meta.description,
+        meta.display_order,
         meta.value_format,
         meta.result_n,
         candidates.year,
@@ -73,31 +130,54 @@ ranked as (
         candidates.metric_value,
         candidates.opponent_name,
         candidates.week,
+        ctx.clutch_record,
+        -- Margin rows keep their winner-loser score; title rows get a "how/when/where earned"
+        -- subtitle: end-of-season seed, the key week(s), or the clutch record.
+        coalesce(candidates.detail, case candidates.metric_key
+            when 'scoring_title' then ctx.seed_label
+            when 'non_scoring_title' then ctx.seed_label
+            when 'non_playoff_scoring_title'
+                then ctx.seed_label || ' · outscored ' || ctx.playoff_teams_outscored::varchar || ' who made it'
+            when 'playoff_non_scoring_title'
+                then ctx.seed_label || ' · snuck in over ' || ctx.nonplayoff_teams_outscoring::varchar
+            when 'matchup_title' then 'Wk ' || ctx.best_week::varchar
+            when 'bad_matchup_title' then 'Wk ' || ctx.worst_week::varchar
+            when 'shotgun_title' then ctx.shotgun_label
+            when 'lucky_winner_title' then ctx.lucky_label
+            when 'unlucky_loser_title' then ctx.unlucky_label
+        end) as detail,
         rank() over (
             partition by candidates.year, candidates.metric_key
             order by candidates.metric_value * meta.sort_sign desc
         ) as metric_rank
     from candidates
     inner join metric_meta as meta on candidates.metric_key = meta.metric_key
+    left join title_context as ctx on candidates.team_year_id = ctx.team_year_id
 )
 
 select
     category,
+    section,
     metric_key,
     metric_label,
     metric_type,
+    description,
+    display_order::int as display_order,
     year,
     owner_id,
     owner_name,
     round(metric_value, 2) as value,
-    case value_format
-        when 'int' then round(metric_value, 0)::bigint::varchar
-        when 'pct' then round(metric_value, 1)::varchar || '%'
+    case
+        -- Clutch titles headline the W-L record itself, not the raw clutch-win/loss count.
+        when metric_key in ('clutch_winning_title', 'clutch_losing_title') then clutch_record
+        when value_format = 'int' then round(metric_value, 0)::bigint::varchar
+        when value_format = 'pct' then round(metric_value, 1)::varchar || '%'
         else round(metric_value, 2)::varchar
     end as display_value,
     opponent_name,
     week,
+    detail,
     metric_rank::int as rank
 from ranked
 where metric_rank <= result_n
-order by year, category, metric_key, rank
+order by year, display_order, rank

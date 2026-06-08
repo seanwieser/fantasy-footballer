@@ -66,6 +66,21 @@ models:
         data_type: int
         data_tests:
           - not_null
+      - name: seasons_played
+        description: Number of regular seasons the owner fielded a team
+        data_type: int
+        data_tests:
+          - not_null
+      - name: snub_total
+        description: Career count of snubbed seasons (missed playoffs but outscored a team that made it)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: luck_in_total
+        description: Career count of lucked-in seasons (made playoffs but outscored by a team that missed)
+        data_type: int
+        data_tests:
+          - not_null
       - name: lucky_wins_total
         description: Career cumulative lucky wins
         data_type: double

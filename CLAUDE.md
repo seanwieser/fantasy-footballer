@@ -59,9 +59,10 @@ dbt/fantasy_footballer/
   models/{base,staging,intermediate,marts}/...
   tests/generic/                custom generic tests
   macros/                       (currently empty)
+  seeds/*.csv                   git-TRACKED constant seeds (non-sensitive metadata, e.g. league_highlights metric catalogs)
 
 resources/
-  dbt_seeds/*.csv               git-ignored (all of resources/); populated at boot from B2
+  sensitive_seeds/*.csv         git-ignored (all of resources/); SENSITIVE seeds (owner data, auth) populated at boot from B2
   fantasy_footballer.duckdb     built locally; never committed
   media/owners/<owner_id>.jpg   owner headshots
 ```
@@ -85,7 +86,7 @@ columns, or upstream refs), update its entry in MODELS.md in the same change.**
 | `staging/`     | `staging`           | `stg__<entity>.sql`                 | Unnest arrays/structs, flatten weekly grain, light enrichment via joins to other `base_*` or seeds. Flat tables, no business logic. |
 | `intermediate/`| `intermediate`      | `int__<concept>.sql`                | Reusable computations referenced by multiple marts (`int__owner_team_year_map`, `int__strength_of_schedule`, `int__current_season_year`, etc.). |
 | `marts/<page>/`| `marts`             | `<table>.sql` (no prefix)           | Page-specific final tables. Dir structure mirrors the frontend page that consumes it (e.g. `marts/stats_center/draft_analysis/snake_draft_table.sql` ↔ `frontend/stats_center/draft_analysis/snake_draft_table.py`). Do display formatting here (rounding, `owner_name` lookup, column renames) so the frontend stays thin. |
-| `seeds`        | `seed_data`         | CSV in `resources/dbt_seeds/`       | `owner_names`, `display_names`, `users` (auth). |
+| `seeds`        | `seed_data`         | CSV in `resources/sensitive_seeds/` (sensitive, gitignored) or `dbt/.../seeds/` (constants, git-tracked) | Sensitive: `owner_names`, `display_names`, `users` (auth). Constant/git-tracked: `all_time_record_metrics`, `season_highlight_metrics`. Both land in `main_seed_data`. `seed-paths` lists both dirs. |
 
 The double underscore (`__`) is intentional — it separates the layer-prefix from the
 entity name. Don't change to single underscore.
@@ -110,6 +111,10 @@ properties.yml first.
   → `models/intermediate/properties/int__season_titles.yml`. (We split the old consolidated
   `properties.yml` files because the model count per layer grew too large.) Each file is a
   standalone `version: 2` + `models:` doc containing that one model's block.
+- **Seeds follow the same pattern**: one yml per seed in `dbt/fantasy_footballer/seeds/properties/`
+  (a standalone `version: 2` + `seeds:` doc), named like the seed — e.g. `owner_names.yml`,
+  `all_time_record_metrics.yml`. (dbt parses these regardless of where the seed CSV lives, so the
+  sensitive seeds in `resources/sensitive_seeds/` are documented here too.)
 - **No top-of-file description comments in `.sql` models.** The model description lives only in
   the yml `description:` key. Keep it concise, convey the model's spirit, and **lead with the
   grain** (e.g. "One row per owner-season ..."). No issue/PR numbers. Genuine mid-file comments
@@ -200,7 +205,7 @@ Never hard-code the current year.
 3. If it needs reusable logic, factor into `models/intermediate/int__*.sql` first.
 4. Update `dbt/fantasy_footballer/MODELS.md` with the new model(s) (and any new
    intermediate) — grain, purpose, key columns, upstream.
-5. Run `make run-dbt` (full-refresh + sqlfluff). Then `make run-pre-commit`.
+5. Run `make run-dbt` (full-refresh dbt build). Then `make run-pre-commit` (runs sqlfluff + the Python hooks).
 
 ## Python conventions
 
@@ -280,9 +285,10 @@ A "source" = one upstream data provider (currently just `s001` = ESPN). To add o
 ## Local dev
 
 ```bash
-make run-local              # poetry run python3 src/fantasy_footballer/main.py
-make run-local ARGS=--dev-mode   # skip the boot data fetch if seeds are populated
+make run-local-fresh        # full boot: fetch cloud data + dbt build, then run
+make run-local-dev          # --dev-mode: skip the boot data fetch if seeds are populated
 make run-dbt                # local dbt build (target=default, path is ../../resources/...)
+make push-sensitive-seeds   # upload local resources/sensitive_seeds/*.csv to B2 (needs .envrc creds)
 make run-pre-commit         # all hooks
 make build && make up       # docker run on :8080 (requires image/.env)
 make down                   # tear down container
@@ -307,19 +313,44 @@ Schemas as seen here match the frontend: `main_marts.*`, `main_intermediate.*`,
 `main_staging.*`, `main_base.*`, `main_seed_data.*`. This is the preferred way to spot-check
 data — don't hand-roll one-off `duckdb.connect(...)` Python each time.
 
-`run-local` will block on data ingest the first time (downloads cloud data, runs
-dbt). Pass `--dev-mode` after the first run if the seed CSVs are populated — it
-skips ingest entirely and reuses the existing `.duckdb` file.
+`make run-local-fresh` will block on data ingest (downloads cloud data, runs dbt).
+Use `make run-local-dev` after the first run if the seed CSVs are populated — it
+passes `--dev-mode`, skipping ingest entirely and reusing the existing `.duckdb` file.
 
 The dbt `default` target uses path `../../resources/...` (run from `dbt/fantasy_footballer/`),
 while `app` target uses `./resources/...` (run from repo root by the Python app).
 That's why `make run-dbt` and `DbManager.run_dbt` use different `--target`s.
 
+## Feature backlog (project management)
+
+Future work is tracked in [`docs/feature-backlog.md`](docs/feature-backlog.md) — a lightweight,
+in-repo backlog (not GitHub Issues). When asked to add/triage/update backlog items, follow its
+conventions:
+
+- **IDs are `FF-XXX`** (zero-padded, **assigned in strict order, never reused**). New item → next
+  number after the highest existing id.
+- **Two places per item, always kept in sync:** a row in the top **Index** table *and* a detail
+  section below. Adding, editing status/priority/effort, or renaming an item means updating
+  **both** the Index row and the item's metadata header line.
+- **Fields are fixed** (see the doc's `Fields` legend): `Area` (multi-valued), `Priority`
+  (`Low`/`Med`/`High`), `Effort` (`S`/`M`/`L`), `Status` (`Idea`/`Ready`/`Doing`/`Done`), and a
+  one-line **Done when**. Don't invent new fields or values without asking — the point is to stay
+  small.
+- **Finishing an item:** set `Status: Done` and move its section to the bottom of the doc.
+- **Architecture-level direction** (not discrete features) lives in
+  [`docs/architecture-roadmap.md`](docs/architecture-roadmap.md), not the backlog.
+- **Open questions / decisions to discuss** (often with the league, not yet actionable) live in
+  [`docs/open-discussion.md`](docs/open-discussion.md), with `OD-XXX` ids. Resolved ones graduate to
+  the backlog or are decided and removed.
+- **Branch/commit convention:** branch `FF-00X-short-name`; reference the id in commit messages.
+
 ## Gotchas / don'ts
 
-- **Seed CSVs hold real owner data + auth hashes** (`resources/dbt_seeds/*.csv`).
+- **Sensitive seed CSVs hold real owner data + auth hashes** (`resources/sensitive_seeds/*.csv`).
   They are untracked and the whole `resources/` dir is git-ignored (`.gitignore`), so a
   plain `git add` can't stage them — only a deliberate `git add -f` would. Never force them in.
+  (Non-sensitive *constant* seeds live in `dbt/fantasy_footballer/seeds/` and ARE git-tracked —
+  only put metadata/constants there, never owner data or secrets.)
 - **`.envrc` is git-ignored but contains real secrets** (B2 keys, ESPN cookies).
   Don't ever check it in, and don't surface its contents in agent output.
 - **Contracts are enforced.** Adding/removing a column without updating

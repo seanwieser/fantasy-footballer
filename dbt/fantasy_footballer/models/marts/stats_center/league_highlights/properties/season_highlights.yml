@@ -14,6 +14,11 @@ models:
         data_type: varchar
         data_tests:
           - not_null
+      - name: section
+        description: Top-level grouping (Scoring, Matchups, Shotgun, Clutch) the cards cluster under
+        data_type: varchar
+        data_tests:
+          - not_null
       - name: metric_key
         description: Stable identifier for the metric
         data_type: varchar
@@ -22,6 +27,16 @@ models:
       - name: metric_label
         description: Human-readable metric name
         data_type: varchar
+        data_tests:
+          - not_null
+      - name: description
+        description: One-line explanation of the metric, surfaced as a card tooltip
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: display_order
+        description: Reading order; within a section titles render by this, then the margin leaderboards
+        data_type: int
         data_tests:
           - not_null
       - name: metric_type
@@ -50,7 +65,9 @@ models:
         data_tests:
           - not_null
       - name: display_value
-        description: Pre-formatted value string (integer, points, or percentage)
+        description: >
+          Pre-formatted value string (integer, points, or percentage). Clutch titles instead
+          headline the clutch W-L record (e.g. "3-0").
         data_type: varchar
         data_tests:
           - not_null
@@ -60,6 +77,12 @@ models:
       - name: week
         description: Week for margin leaderboard rows; null for title rows
         data_type: int
+      - name: detail
+        description: >
+          Card subtitle. Margin rows: winner-loser score. Title rows: how/when/where the title
+          was earned — end-of-regular-season seed ("7th seed"), the key week(s) ("Wks 3, 7, 11"),
+          per metric. Null for clutch titles (the record is the value) and clean-season titles.
+        data_type: varchar
       - name: rank
         description: Rank within the year x metric (1 = holder); leaderboards keep 1..3
         data_type: int

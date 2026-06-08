@@ -1,46 +1,35 @@
-{% set top_n = 3 %}
+-- Metric metadata (key -> section/category/label/type/sort/format/tooltip) lives in a seed.
+with metric_meta as (
+    select * from {{ ref("all_time_record_metrics") }}
+),
 
-with metric_meta (
-    metric_key, section, category, metric_label, metric_type, sort_sign, result_n, value_format
-) as (
-    values
-    ('scoring_title_count', 'Scoring', 'Season', 'Scoring titles', 'count', 1, {{ top_n }}, 'int'),
-    ('non_scoring_title_count', 'Scoring', 'Season', 'Wooden-spoon titles', 'count', 1, {{ top_n }}, 'int'),
-    ('most_points_total', 'Scoring', 'Season', 'Most career points', 'total', 1, {{ top_n }}, 'points'),
-    ('least_points_total', 'Scoring', 'Season', 'Fewest career points', 'total', -1, {{ top_n }}, 'points'),
-    ('most_points_ppg', 'Scoring', 'Season', 'Highest career PPG', 'total', 1, {{ top_n }}, 'points'),
-    ('least_points_ppg', 'Scoring', 'Season', 'Lowest career PPG', 'total', -1, {{ top_n }}, 'points'),
-    ('highest_scoring_season', 'Scoring', 'Season', 'Highest-scoring season', 'record', 1, 1, 'points'),
-    ('lowest_scoring_season', 'Scoring', 'Season', 'Lowest-scoring season', 'record', -1, 1, 'points'),
-    ('highest_scoring_season_ppg', 'Scoring', 'Season', 'Highest-scoring season (PPG)', 'record', 1, 1, 'points'),
-    ('lowest_scoring_season_ppg', 'Scoring', 'Season', 'Lowest-scoring season (PPG)', 'record', -1, 1, 'points'),
-    ('matchup_title_count', 'Scoring', 'Matchup', 'Best-week titles', 'count', 1, {{ top_n }}, 'int'),
-    ('bad_matchup_title_count', 'Scoring', 'Matchup', 'Worst-week titles', 'count', 1, {{ top_n }}, 'int'),
-    ('best_matchup_amount', 'Scoring', 'Matchup', 'Highest single-week score', 'record', 1, 1, 'points'),
-    ('worst_matchup_amount', 'Scoring', 'Matchup', 'Lowest single-week score', 'record', -1, 1, 'points'),
-    ('non_playoff_scoring_title_count', 'Scoring', 'Playoff', 'Snub titles', 'count', 1, {{ top_n }}, 'int'),
-    ('playoff_non_scoring_title_count', 'Scoring', 'Playoff', 'Lucky-in titles', 'count', 1, {{ top_n }}, 'int'),
-    ('best_non_playoff_scoring_amount', 'Scoring', 'Playoff', 'Highest playoff miss', 'record', 1, 1, 'points'),
-    ('worst_playoff_non_scoring_amount', 'Scoring', 'Playoff', 'Lowest playoff team', 'record', -1, 1, 'points'),
-    ('clutch_winning_title_count', 'Clutch', 'Clutch', 'Clutch-winning titles', 'count', 1, {{ top_n }}, 'int'),
-    ('clutch_losing_title_count', 'Clutch', 'Clutch', 'Clutch-losing titles', 'count', 1, {{ top_n }}, 'int'),
-    ('best_clutch_pct', 'Clutch', 'Clutch', 'Best career clutch win %', 'total', 1, {{ top_n }}, 'pct'),
-    ('worst_clutch_pct', 'Clutch', 'Clutch', 'Worst career clutch win %', 'total', -1, {{ top_n }}, 'pct'),
-    ('clutchest_season', 'Clutch', 'Clutch', 'Clutchest season', 'record', 1, 1, 'int'),
-    ('unclutchest_season', 'Clutch', 'Clutch', 'Least clutch season', 'record', 1, 1, 'int'),
-    ('lucky_winner_title_count', 'Matchups', 'Luck', 'Lucky-winner titles', 'count', 1, {{ top_n }}, 'int'),
-    ('unlucky_loser_title_count', 'Matchups', 'Luck', 'Unlucky-loser titles', 'count', 1, {{ top_n }}, 'int'),
-    ('lucky_wins_total_count', 'Matchups', 'Luck', 'Most career lucky wins', 'count', 1, {{ top_n }}, 'int'),
-    ('unlucky_losses_total_count', 'Matchups', 'Luck', 'Most career unlucky losses', 'count', 1, {{ top_n }}, 'int'),
-    ('luckiest_win_amount', 'Matchups', 'Luck', 'Luckiest win', 'record', 1, 1, 'int'),
-    ('unluckiest_loss_amount', 'Matchups', 'Luck', 'Unluckiest loss', 'record', -1, 1, 'int'),
-    ('tightest_matchups', 'Matchups', 'Margins', 'Tightest games', 'record', -1, {{ top_n }}, 'points'),
-    ('biggest_blowouts', 'Matchups', 'Margins', 'Biggest blowouts', 'record', 1, {{ top_n }}, 'points'),
-    ('shotgun_title_count', 'Shotgun', 'Shotgun', 'Shotgun titles', 'count', 1, {{ top_n }}, 'int'),
-    ('no_shotgun_season_count', 'Shotgun', 'Shotgun', 'Clean seasons (no shotguns)', 'count', 1, {{ top_n }}, 'int'),
-    ('most_shotgun_total_count', 'Shotgun', 'Shotgun', 'Most career shotguns', 'count', 1, {{ top_n }}, 'int'),
-    ('least_shotgun_total_count', 'Shotgun', 'Shotgun', 'Fewest career shotguns', 'count', -1, {{ top_n }}, 'int'),
-    ('highest_shotgun_season_record', 'Shotgun', 'Shotgun', 'Most shotguns in a season', 'record', 1, 1, 'int')
+-- Chronological list of years each owner held a season title, keyed to its `_count` metric.
+-- Powers the "years won" subtitle on season-award cards (subtitle_kind = 'years').
+title_years as (
+    select
+        owner_id,
+        metric_key || '_count' as metric_key,
+        string_agg(year::varchar, ', ' order by year) as years_won
+    from {{ ref("int__season_titles_long") }}
+    where is_title_holder
+    group by owner_id, metric_key
+    union all
+    -- Snub / lucky-in occurrences aren't titles, so list their years straight from the wide table.
+    select
+        owner_id,
+        'snub_total_count' as metric_key,
+        string_agg(year::varchar, ', ' order by year) as years_won
+    from {{ ref("int__season_titles") }}
+    where is_snubbed
+    group by owner_id
+    union all
+    select
+        owner_id,
+        'luck_in_total_count' as metric_key,
+        string_agg(year::varchar, ', ' order by year) as years_won
+    from {{ ref("int__season_titles") }}
+    where is_lucked_in
+    group by owner_id
 ),
 
 -- Career roll-ups (one row per owner) — all aggregation lives in the intermediate
@@ -83,7 +72,8 @@ title_count_shaped as (
         metric_key,
         metric_value::double as metric_value,
         0::double as tiebreak,
-        null::varchar as season_or_week
+        null::varchar as season_or_week,
+        null::varchar as detail
     from title_count_candidates
 ),
 
@@ -95,7 +85,8 @@ career_count_candidates as (
         'lucky_wins_total_count' as metric_key,
         career.lucky_wins_total as metric_value,
         0::double as tiebreak,
-        null::varchar as season_or_week
+        null::varchar as season_or_week,
+        null::varchar as detail
     from career
     union all
     select
@@ -104,7 +95,8 @@ career_count_candidates as (
         'unlucky_losses_total_count' as metric_key,
         career.unlucky_losses_total as metric_value,
         0::double as tiebreak,
-        null::varchar as season_or_week
+        null::varchar as season_or_week,
+        null::varchar as detail
     from career
     union all
     select
@@ -113,9 +105,30 @@ career_count_candidates as (
         directions.metric_key,
         career.shotgun_total as metric_value,
         0::double as tiebreak,
-        null::varchar as season_or_week
+        null::varchar as season_or_week,
+        null::varchar as detail
     from career
-    cross join (values ('most_shotgun_total_count'), ('least_shotgun_total_count')) as directions (metric_key)
+    cross join (values ('most_shotgun_total_count')) as directions (metric_key)
+    union all
+    select
+        career.owner_id,
+        career.owner_name,
+        'snub_total_count' as metric_key,
+        career.snub_total as metric_value,
+        0::double as tiebreak,
+        null::varchar as season_or_week,
+        null::varchar as detail
+    from career
+    union all
+    select
+        career.owner_id,
+        career.owner_name,
+        'luck_in_total_count' as metric_key,
+        career.luck_in_total as metric_value,
+        0::double as tiebreak,
+        null::varchar as season_or_week,
+        null::varchar as detail
+    from career
 ),
 
 -- Career totals (points, PPG, clutch %)
@@ -126,9 +139,10 @@ career_total_candidates as (
         directions.metric_key,
         career.points_total as metric_value,
         0::double as tiebreak,
-        null::varchar as season_or_week
+        null::varchar as season_or_week,
+        null::varchar as detail
     from career
-    cross join (values ('most_points_total'), ('least_points_total')) as directions (metric_key)
+    cross join (values ('most_points_total')) as directions (metric_key)
     union all
     select
         career.owner_id,
@@ -136,7 +150,8 @@ career_total_candidates as (
         directions.metric_key,
         career.points_per_game as metric_value,
         0::double as tiebreak,
-        null::varchar as season_or_week
+        null::varchar as season_or_week,
+        null::varchar as detail
     from career
     cross join (values ('most_points_ppg'), ('least_points_ppg')) as directions (metric_key)
     union all
@@ -146,10 +161,22 @@ career_total_candidates as (
         directions.metric_key,
         career.clutch_win_pct as metric_value,
         0::double as tiebreak,
-        null::varchar as season_or_week
+        null::varchar as season_or_week,
+        career.clutch_wins_total::int::varchar || '-' || career.clutch_losses_total::int::varchar || ' record'
+            as detail
     from career
     cross join (values ('best_clutch_pct'), ('worst_clutch_pct')) as directions (metric_key)
     where career.clutch_win_pct is not null
+    union all
+    select
+        career.owner_id,
+        career.owner_name,
+        'least_shotgun_per_season' as metric_key,
+        career.shotgun_total / nullif(career.seasons_played, 0) as metric_value,
+        0::double as tiebreak,
+        null::varchar as season_or_week,
+        null::varchar as detail
+    from career
 ),
 
 -- Single-extreme records sourced at owner-season grain
@@ -160,7 +187,8 @@ season_scoring_records as (
         directions.metric_key,
         titles.reg_points_total as metric_value,
         0::double as tiebreak,
-        titles.year::varchar as season_or_week
+        titles.year::varchar as season_or_week,
+        null::varchar as detail
     from {{ ref("int__season_titles") }} as titles
     cross join (values ('highest_scoring_season'), ('lowest_scoring_season')) as directions (metric_key)
     union all
@@ -170,7 +198,8 @@ season_scoring_records as (
         directions.metric_key,
         titles.reg_points_per_game as metric_value,
         0::double as tiebreak,
-        titles.year::varchar as season_or_week
+        titles.year::varchar as season_or_week,
+        null::varchar as detail
     from {{ ref("int__season_titles") }} as titles
     cross join (values ('highest_scoring_season_ppg'), ('lowest_scoring_season_ppg')) as directions (metric_key)
 ),
@@ -182,7 +211,8 @@ playoff_scoring_records as (
         'best_non_playoff_scoring_amount' as metric_key,
         titles.reg_points_total as metric_value,
         0::double as tiebreak,
-        titles.year::varchar as season_or_week
+        titles.year::varchar as season_or_week,
+        null::varchar as detail
     from {{ ref("int__season_titles") }} as titles
     where not titles.made_playoffs
     union all
@@ -192,9 +222,38 @@ playoff_scoring_records as (
         'worst_playoff_non_scoring_amount' as metric_key,
         titles.reg_points_total as metric_value,
         0::double as tiebreak,
-        titles.year::varchar as season_or_week
+        titles.year::varchar as season_or_week,
+        null::varchar as detail
     from {{ ref("int__season_titles") }} as titles
     where titles.made_playoffs
+),
+
+-- Biggest snub / lucky-in: ranked by how many teams you out/under-scored across the cutoff,
+-- tiebroken by points (so the higher scorer wins a tie). Only snubbed/lucked-in seasons qualify.
+snub_records as (
+    select
+        titles.owner_id,
+        titles.owner_name,
+        'biggest_snub' as metric_key,
+        titles.playoff_teams_outscored::double as metric_value,
+        -- Higher points-for is the bigger snub when teams-outscored ties.
+        titles.reg_points_total as tiebreak,
+        titles.year::varchar as season_or_week,
+        'playoff teams outscored · ' || round(titles.reg_points_total, 0)::bigint::varchar || ' PF' as detail
+    from {{ ref("int__season_titles") }} as titles
+    where titles.is_snubbed
+    union all
+    select
+        titles.owner_id,
+        titles.owner_name,
+        'biggest_luck_in' as metric_key,
+        titles.nonplayoff_teams_outscoring::double as metric_value,
+        -- Fewer points-for is the luckier sneak-in when teams-outscored-by ties.
+        -titles.reg_points_total as tiebreak,
+        titles.year::varchar as season_or_week,
+        'higher scorers left out · ' || round(titles.reg_points_total, 0)::bigint::varchar || ' PF' as detail
+    from {{ ref("int__season_titles") }} as titles
+    where titles.is_lucked_in
 ),
 
 clutch_season_records as (
@@ -204,8 +263,8 @@ clutch_season_records as (
         'clutchest_season' as metric_key,
         titles.clutch_wins::double as metric_value,
         titles.clutch_wins::double / nullif(titles.clutch_wins + titles.clutch_losses, 0) as tiebreak,
-        titles.year::varchar || ' (' || titles.clutch_wins::varchar || '-' || titles.clutch_losses::varchar || ')'
-            as season_or_week
+        titles.year::varchar as season_or_week,
+        titles.clutch_wins::varchar || '-' || titles.clutch_losses::varchar as detail
     from {{ ref("int__season_titles") }} as titles
     where titles.clutch_wins + titles.clutch_losses > 0
     union all
@@ -215,8 +274,8 @@ clutch_season_records as (
         'unclutchest_season' as metric_key,
         titles.clutch_losses::double as metric_value,
         -titles.clutch_wins::double / nullif(titles.clutch_wins + titles.clutch_losses, 0) as tiebreak,
-        titles.year::varchar || ' (' || titles.clutch_wins::varchar || '-' || titles.clutch_losses::varchar || ')'
-            as season_or_week
+        titles.year::varchar as season_or_week,
+        titles.clutch_wins::varchar || '-' || titles.clutch_losses::varchar as detail
     from {{ ref("int__season_titles") }} as titles
     where titles.clutch_wins + titles.clutch_losses > 0
 ),
@@ -228,7 +287,8 @@ shotgun_season_records as (
         'highest_shotgun_season_record' as metric_key,
         titles.shotgun_count::double as metric_value,
         0::double as tiebreak,
-        titles.year::varchar as season_or_week
+        titles.year::varchar as season_or_week,
+        null::varchar as detail
     from {{ ref("int__season_titles") }} as titles
 ),
 
@@ -240,47 +300,28 @@ matchup_week_records as (
         directions.metric_key,
         lucky.score_for as metric_value,
         0::double as tiebreak,
-        lucky.year::varchar || ' W' || lucky.week::varchar as season_or_week
+        lucky.year::varchar || ' W' || lucky.week::varchar as season_or_week,
+        null::varchar as detail
     from {{ ref("int__lucky_records") }} as lucky
     inner join {{ ref("int__owner_team_year_map") }} as owner_map on lucky.team_year_id = owner_map.team_year_id
     cross join (values ('best_matchup_amount'), ('worst_matchup_amount')) as directions (metric_key)
 ),
 
-luck_records as (
-    select
-        owner_map.owner_id,
-        owner_map.owner_name,
-        'luckiest_win_amount' as metric_key,
-        lucky.luck_points::double as metric_value,
-        0::double as tiebreak,
-        lucky.year::varchar || ' W' || lucky.week::varchar as season_or_week
-    from {{ ref("int__lucky_records") }} as lucky
-    inner join {{ ref("int__owner_team_year_map") }} as owner_map on lucky.team_year_id = owner_map.team_year_id
-    where lucky.is_lucky_win
-    union all
-    select
-        owner_map.owner_id,
-        owner_map.owner_name,
-        'unluckiest_loss_amount' as metric_key,
-        lucky.luck_points::double as metric_value,
-        0::double as tiebreak,
-        lucky.year::varchar || ' W' || lucky.week::varchar as season_or_week
-    from {{ ref("int__lucky_records") }} as lucky
-    inner join {{ ref("int__owner_team_year_map") }} as owner_map on lucky.team_year_id = owner_map.team_year_id
-    where lucky.is_unlucky_loss
-),
-
 margin_records as (
     select
-        owner_map.owner_id,
-        owner_map.owner_name,
+        winner.owner_id,
+        winner.owner_name,
         directions.metric_key,
         margins.margin as metric_value,
         0::double as tiebreak,
-        margins.year::varchar || ' W' || margins.week::varchar as season_or_week
+        margins.year::varchar || ' W' || margins.week::varchar as season_or_week,
+        'def. ' || loser.owner_name || ', ' ||
+        round(margins.winner_score, 2)::varchar || '-' || round(margins.loser_score, 2)::varchar as detail
     from {{ ref("int__matchup_margins") }} as margins
-    inner join {{ ref("int__owner_team_year_map") }} as owner_map
-        on margins.winner_team_year_id = owner_map.team_year_id
+    inner join {{ ref("int__owner_team_year_map") }} as winner
+        on margins.winner_team_year_id = winner.team_year_id
+    inner join {{ ref("int__owner_team_year_map") }} as loser
+        on margins.loser_team_year_id = loser.team_year_id
     cross join (values ('tightest_matchups'), ('biggest_blowouts')) as directions (metric_key)
     where not margins.is_tie
 ),
@@ -296,13 +337,13 @@ candidates as (
     union all
     select * from playoff_scoring_records
     union all
+    select * from snub_records
+    union all
     select * from clutch_season_records
     union all
     select * from shotgun_season_records
     union all
     select * from matchup_week_records
-    union all
-    select * from luck_records
     union all
     select * from margin_records
 ),
@@ -314,18 +355,27 @@ ranked as (
         candidates.metric_key,
         meta.metric_label,
         meta.metric_type,
+        meta.description,
+        meta.subtitle_kind,
+        meta.display_order,
         meta.value_format,
         meta.result_n,
         candidates.owner_id,
         candidates.owner_name,
         candidates.metric_value,
         candidates.season_or_week,
+        candidates.detail,
+        title_years.years_won,
         rank() over (
             partition by candidates.metric_key
             order by candidates.metric_value * meta.sort_sign desc, candidates.tiebreak desc
         ) as metric_rank
     from candidates
     inner join metric_meta as meta on candidates.metric_key = meta.metric_key
+    left join title_years
+        on
+            candidates.owner_id = title_years.owner_id and
+            candidates.metric_key = title_years.metric_key
 )
 
 select
@@ -334,16 +384,27 @@ select
     metric_key,
     metric_label,
     metric_type,
+    description,
+    subtitle_kind::varchar as subtitle_kind,
+    years_won::varchar as years_won,
+    display_order::int as display_order,
     owner_id,
     owner_name,
     round(metric_value, 2) as value,
-    case value_format
-        when 'int' then round(metric_value, 0)::bigint::varchar
-        when 'pct' then round(metric_value, 1)::varchar || '%'
+    case
+        -- Clutch season records headline the W-L record itself, not the raw win/loss count.
+        when metric_key in ('clutchest_season', 'unclutchest_season') then detail
+        when value_format = 'int' then round(metric_value, 0)::bigint::varchar
+        when value_format = 'pct' then round(metric_value, 1)::varchar || '%'
         else round(metric_value, 2)::varchar
     end as display_value,
     season_or_week,
+    case when metric_key in ('clutchest_season', 'unclutchest_season') then null else detail end as detail,
     metric_rank::int as rank
 from ranked
-where metric_rank <= result_n
-order by section, category, metric_key, rank
+where
+    metric_rank <= result_n and
+    -- Suppress 0-count rows: a zero means the owner never progressed onto the board at all,
+    -- so a sparse count metric never floods its card with empty placeholders.
+    (metric_type != 'count' or metric_value > 0)
+order by display_order, rank

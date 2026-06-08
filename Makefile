@@ -6,8 +6,11 @@ FORMAT ?= table
 run-pre-commit:
 	poetry run pre-commit run --all-files
 
-run-local:
-	poetry run python3 src/fantasy_footballer/main.py $(ARGS)
+run-local-fresh:
+	poetry run python3 src/fantasy_footballer/main.py
+
+run-local-dev:
+	poetry run python3 src/fantasy_footballer/main.py --dev-mode
 
 build:
 	docker build -t fantasy_footballer:latest -f ./image/Dockerfile .
@@ -20,6 +23,11 @@ down:
 
 run-dbt:
 	./scripts/run_dbt_local.sh
+
+# Upload local sensitive seeds (resources/sensitive_seeds/*.csv) to B2 under today's date partition.
+# Run from repo root so the relative resources/ path resolves; needs B2 creds (.envrc) loaded.
+push-sensitive-seeds:
+	PYTHONPATH=src/fantasy_footballer poetry run python3 -c "from backend.utils import write_sensitive_seeds; write_sensitive_seeds()"
 
 query:
 	poetry run python3 scripts/query_db.py --format $(FORMAT) "$(SQL)"

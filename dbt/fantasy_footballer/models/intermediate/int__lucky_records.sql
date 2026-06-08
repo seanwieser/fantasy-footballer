@@ -29,10 +29,10 @@ ranked as (
     select
         reg_team_weeks.*,
         -- teams strictly above me this week = rank in descending order minus 1 (ties share a rank)
-        rank() over (partition by reg_team_weeks.year, reg_team_weeks.week order by reg_team_weeks.score_for desc)
-        - 1 as teams_above,
-        rank() over (partition by reg_team_weeks.year, reg_team_weeks.week order by reg_team_weeks.score_for asc)
-        - 1 as teams_below
+        rank() over (partition by reg_team_weeks.year, reg_team_weeks.week order by reg_team_weeks.score_for desc) -
+        1 as teams_above,
+        rank() over (partition by reg_team_weeks.year, reg_team_weeks.week order by reg_team_weeks.score_for asc) -
+        1 as teams_below
     from reg_team_weeks
 )
 

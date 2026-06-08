@@ -1,0 +1,15 @@
+metric_key,category,section,metric_label,metric_type,sort_sign,result_n,value_format,display_order,description,empty_label
+scoring_title,Season,Scoring,Scoring title,title,1,1,points,1,"Most regular-season points in the league this season.",
+non_scoring_title,Season,Scoring,Bottom-scorer title,title,-1,1,points,2,"Fewest regular-season points in the league this season.",
+matchup_title,Matchup,Scoring,Best-week title,title,1,1,points,3,"Single highest weekly score in the league this season.",
+bad_matchup_title,Matchup,Scoring,Worst-week title,title,-1,1,points,4,"Single lowest weekly score in the league this season.",
+non_playoff_scoring_title,Playoff,Scoring,Snub title,title,1,1,points,5,"The season's biggest snub — the top scorer to miss the playoffs while still outscoring a team that got in.","No snub — the playoff teams were the top scorers"
+playoff_non_scoring_title,Playoff,Scoring,Lucky-in title,title,-1,1,points,6,"The season's luckiest-in — the lowest scorer to make the playoffs while a higher scorer missed.","No lucky-in — the playoff teams were the top scorers"
+lucky_winner_title,Luck,Matchups,Lucky-winner title,title,1,1,int,7,"Most lucky wins this season — won a week while scoring below the league median.","Nobody got lucky this season"
+unlucky_loser_title,Luck,Matchups,Unlucky-loser title,title,1,1,int,8,"Most unlucky losses this season — lost a week while scoring above the league median.","Nobody got unlucky this season"
+shotgun_title,Shotgun,Shotgun,Shotgun title,title,1,1,int,9,"Most shotguns this season — weeks scoring under 100 points or the week's league low.","Nobody shotgunned this season"
+no_shotgun_season,Shotgun,Shotgun,Clean season,title,1,1,int,10,"Finished the season with zero shotguns — never scored under 100 or the week's league low.","Everyone shotgunned this season"
+clutch_winning_title,Clutch,Clutch,Clutch-winning title,title,1,1,int,11,"Most clutch wins this season — games decided by under 10 points.","No clutch wins this season"
+clutch_losing_title,Clutch,Clutch,Clutch-losing title,title,1,1,int,12,"Most clutch losses this season — games decided by under 10 points.","No clutch losses this season"
+tightest_matchups,Margins,Matchups,Tightest game,leaderboard,-1,3,points,13,"Closest games this season — smallest regular-season margins of victory.",
+biggest_blowouts,Margins,Matchups,Biggest blowout,leaderboard,1,3,points,14,"Largest regular-season margins of victory this season.",

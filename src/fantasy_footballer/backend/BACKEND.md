@@ -21,7 +21,7 @@ The frontend never does either — it only calls `DbManager.query(sql)` against 
 
 ## Boot lifecycle (`DbManager.setup`, wired in `main.py` via `app.on_startup`)
 
-`setup()` runs unless `--dev-mode` **and** seeds already populated (`has_dbt_seeds_rows`), else:
+`setup()` runs unless `--dev-mode` **and** seeds already populated (`has_sensitive_seeds_rows`), else:
 1. **`fetch_resources()`** — list B2, pick the freshest date-partition per `resources/` dir, download
    to local `resources/` with the date stripped from the path (populates seeds + media).
 2. **`ingest_raw_data_from_cloud(sources)`** — open `resources/fantasy_footballer.duckdb`, register the
@@ -32,7 +32,7 @@ The frontend never does either — it only calls `DbManager.query(sql)` against 
 
 ## `DbManager` (`db.py`) — the ONLY DB interface (all static methods)
 
-Constants: `DB_PATH = resources/fantasy_footballer.duckdb`, `DBT_SEEDS_PATH = resources/dbt_seeds`,
+Constants: `DB_PATH = resources/fantasy_footballer.duckdb`, `SENSITIVE_SEEDS_PATH = resources/sensitive_seeds`,
 `SOURCE_EXTRACTOR_MAP = {e.SOURCE_NAME: e}` (register new sources here).
 
 | Method | Role |
@@ -44,9 +44,9 @@ Constants: `DB_PATH = resources/fantasy_footballer.duckdb`, `DBT_SEEDS_PATH = re
 | `get_fresh_table_paths(source)` | Resolve freshest B2 `s3://…` path per table/year for a source. |
 | `fetch_data_from_sources(years, source, tables, log)` | Run the **extract** path (`Extractor.run`). Admin-triggered. |
 | `get_all_tables_by_source()` / `get_table_names` | Table inventory per source. |
-| `add_user(username, password)` | bcrypt-hash → upsert `dbt_seeds/users.csv` → `run_dbt("seed")` → `write_dbt_seeds()` (push to B2). |
+| `add_user(username, password)` | bcrypt-hash → upsert `sensitive_seeds/users.csv` → `run_dbt("seed")` → `write_sensitive_seeds()` (push to B2). |
 | `run_dbt(action="build"\|"seed", queue=None)` | Invoke dbt with `--full-refresh --target app`. |
-| `has_dbt_seeds_rows()` | True if any seed CSV has data rows (dev-mode skip check). |
+| `has_sensitive_seeds_rows()` | True if any sensitive seed CSV has data rows (dev-mode skip check). |
 
 `SECRET_SQL` builds a DuckDB S3 secret from env so `read_json('s3://…')` can reach B2.
 
@@ -84,7 +84,7 @@ To add a source/table see CLAUDE.md → "Adding a new source"; remember to regis
 - **`write_source_data(rows, source, table, year, queue)`** — write rows as JSON to B2 at the source
   path; stamps each row with `meta__source_path` + `meta__date_effective` (these power
   `stg__source_metadata` / `int__source_freshness`).
-- **`write_dbt_seeds()`** — upload `resources/dbt_seeds/*.csv` to B2 (date-partitioned).
+- **`write_sensitive_seeds()`** — upload `resources/sensitive_seeds/*.csv` to B2 (date-partitioned).
 - **`get_date_partition()`** — `YYYY-MM-DD`. Const `NUM_NFL_WEEKS = 18`.
 
 ## Cloud storage (Backblaze B2, S3-compatible)

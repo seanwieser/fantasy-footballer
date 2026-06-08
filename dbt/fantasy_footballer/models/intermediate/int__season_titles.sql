@@ -51,6 +51,24 @@ owner_seasons as (
     left join shotgun_counts on scoring.team_year_id = shotgun_counts.team_year_id
 ),
 
+-- Cross-team points comparison within a season: how many playoff teams each team outscored
+-- (and how many non-playoff teams outscored it). A "snub" requires outscoring >= 1 playoff team
+-- (more deserving by points than someone who got in); "lucked in" is the mirror.
+points_vs_field as (
+    select
+        team.team_year_id,
+        count(*) filter (
+            where other.made_playoffs and other.reg_points_total < team.reg_points_total
+        )::int as playoff_teams_outscored,
+        count(*) filter (
+            where not other.made_playoffs and other.reg_points_total > team.reg_points_total
+        )::int as nonplayoff_teams_outscoring
+    from owner_seasons as team
+    inner join owner_seasons as other
+        on team.year = other.year and team.team_year_id != other.team_year_id
+    group by team.team_year_id
+),
+
 ranked as (
     select
         *,
@@ -69,31 +87,39 @@ ranked as (
 )
 
 select
-    owner_id,
-    owner_name,
-    owner_year_id,
-    team_year_id,
-    year,
-    reg_points_total,
-    reg_points_per_game,
-    best_week_score,
-    worst_week_score,
-    made_playoffs,
-    clutch_wins,
-    clutch_losses,
-    lucky_wins,
-    unlucky_losses,
-    shotgun_count,
-    scoring_rank = 1 as is_scoring_title,
-    non_scoring_rank = 1 as is_non_scoring_title,
-    matchup_rank = 1 as is_matchup_title,
-    bad_matchup_rank = 1 as is_bad_matchup_title,
-    not made_playoffs and snub_rank = 1 as is_non_playoff_scoring_title,
-    made_playoffs and luck_in_rank = 1 as is_playoff_non_scoring_title,
-    clutch_win_rank = 1 and clutch_wins > 0 as is_clutch_winning_title,
-    clutch_loss_rank = 1 and clutch_losses > 0 as is_clutch_losing_title,
-    lucky_rank = 1 and lucky_wins > 0 as is_lucky_winner_title,
-    unlucky_rank = 1 and unlucky_losses > 0 as is_unlucky_loser_title,
-    shotgun_rank = 1 and shotgun_count > 0 as is_shotgun_title,
-    shotgun_count = 0 as is_no_shotgun_season
+    ranked.owner_id,
+    ranked.owner_name,
+    ranked.owner_year_id,
+    ranked.team_year_id,
+    ranked.year,
+    ranked.reg_points_total,
+    ranked.reg_points_per_game,
+    ranked.best_week_score,
+    ranked.worst_week_score,
+    ranked.made_playoffs,
+    ranked.clutch_wins,
+    ranked.clutch_losses,
+    ranked.lucky_wins,
+    ranked.unlucky_losses,
+    ranked.shotgun_count,
+    points_vs_field.playoff_teams_outscored,
+    points_vs_field.nonplayoff_teams_outscoring,
+    ranked.scoring_rank = 1 as is_scoring_title,
+    ranked.non_scoring_rank = 1 as is_non_scoring_title,
+    ranked.matchup_rank = 1 as is_matchup_title,
+    ranked.bad_matchup_rank = 1 as is_bad_matchup_title,
+    not ranked.made_playoffs and ranked.snub_rank = 1 and points_vs_field.playoff_teams_outscored >= 1
+        as is_non_playoff_scoring_title,
+    ranked.made_playoffs and ranked.luck_in_rank = 1 and points_vs_field.nonplayoff_teams_outscoring >= 1
+        as is_playoff_non_scoring_title,
+    ranked.clutch_win_rank = 1 and ranked.clutch_wins > 0 as is_clutch_winning_title,
+    ranked.clutch_loss_rank = 1 and ranked.clutch_losses > 0 as is_clutch_losing_title,
+    ranked.lucky_rank = 1 and ranked.lucky_wins > 0 as is_lucky_winner_title,
+    ranked.unlucky_rank = 1 and ranked.unlucky_losses > 0 as is_unlucky_loser_title,
+    ranked.shotgun_rank = 1 and ranked.shotgun_count > 0 as is_shotgun_title,
+    ranked.shotgun_count = 0 as is_no_shotgun_season,
+    -- Occurrence flags (broader than the titles above): every snubbed / lucked-in team-season.
+    not ranked.made_playoffs and points_vs_field.playoff_teams_outscored >= 1 as is_snubbed,
+    ranked.made_playoffs and points_vs_field.nonplayoff_teams_outscoring >= 1 as is_lucked_in
 from ranked
+inner join points_vs_field on ranked.team_year_id = points_vs_field.team_year_id

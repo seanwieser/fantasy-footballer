@@ -1,0 +1,64 @@
+version: 2
+
+models:
+  - name: int__team_season_summary
+    description: >
+      One row per team-season (the owner-spotlight summary card). Combines base team stats
+      (record, acquisitions, FAAB budget, standing, trades, streak) with the clutch record,
+      regular-season points for/against + per-week averages (clutch points / weeks played), and
+      the shotgun count. The owner is the actual owner that season (joined via
+      [[int__owner_team_year_map]]). Keeps the season-overview mart a thin select.
+      See [[int__clutch_records]], [[int__team_shotgun_counts]], [[int__weeks_played_by_year]].
+    columns:
+      - name: team_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: team_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: record
+        description: Overall season record in W-L format
+        data_type: varchar
+      - name: acquisitions
+        data_type: int
+      - name: budget
+        description: Remaining FAAB after spending (100 - acquisition_budget_spent)
+        data_type: int
+      - name: standing
+        data_type: int
+      - name: trades
+        data_type: int
+      - name: streak
+        description: Current streak (type + length, e.g. W3)
+        data_type: varchar
+      - name: clutch_record
+        description: W-L record in games decided by < 10 points
+        data_type: varchar
+      - name: shotguns
+        description: Number of regular-season shotgun weeks
+        data_type: int
+      - name: points_for
+        data_type: double
+      - name: points_for_per_week
+        description: Clutch-source season points for divided by weeks played
+        data_type: double
+      - name: points_against
+        data_type: double
+      - name: points_against_per_week
+        description: Clutch-source season points against divided by weeks played
+        data_type: double

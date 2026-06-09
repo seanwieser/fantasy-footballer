@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: int__team_week_highlights
+    description: >
+      One row per team-week (regular season) carrying a boolean flag for every week-grain league
+      highlight that occurred: shotgun, lucky win / unlucky loss, clutch win / loss, the league's
+      single best/worst week, and the season's tightest game / biggest blowout. Each flag is the
+      week-level occurrence of a season highlight; reused by the owner-spotlight schedule chips and
+      available to any future activity/notification feed (FF-010). Flags are false for unplayed weeks.
+    columns:
+      - name: team_week_id
+        description: Composite team-week id (team_id_year_week)
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int__team_week_results')
+                field: team_week_id
+      - name: team_year_id
+        description: Composite team-season id
+        data_type: varchar
+      - name: owner_id
+        description: Owner of the team that week
+        data_type: int
+      - name: year
+        description: Season year
+        data_type: int
+      - name: week
+        description: Week number
+        data_type: int
+      - name: is_shotgun
+        description: Scored under 100 points or the week's league low
+        data_type: boolean
+      - name: is_lucky_win
+        description: Won the week while scoring below the league median
+        data_type: boolean
+      - name: is_unlucky_loss
+        description: Lost the week while scoring above the league median
+        data_type: boolean
+      - name: is_clutch_win
+        description: Won a game decided by fewer than 10 points
+        data_type: boolean
+      - name: is_clutch_loss
+        description: Lost a game decided by fewer than 10 points
+        data_type: boolean
+      - name: is_best_week
+        description: Held the league Best-week title (single highest score in the league this season)
+        data_type: boolean
+      - name: is_worst_week
+        description: Held the league Worst-week title (single lowest score in the league this season)
+        data_type: boolean
+      - name: is_tightest_game
+        description: Won the season's single tightest game (smallest league margin of victory)
+        data_type: boolean
+      - name: is_biggest_blowout
+        description: Won the season's single biggest blowout (largest league margin of victory)
+        data_type: boolean

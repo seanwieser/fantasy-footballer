@@ -9,21 +9,24 @@ from nicegui import ui
 class AuctionDraftDropDownSelection:
     """Class for dropdown selection for Auction draft table."""
 
-    DEFAULT = {
-        "year": get_draft_type_years(is_auction=True)[-1],
-        "owner": "ALL",
-        "nominating_owner": "ALL",
-        "position": "ALL",
-        "keeper": "ALL",
-    }
+    @classmethod
+    def defaults(cls):
+        """Default selections, resolved at call time so there is no DB access at import."""
+        return {
+            "year": get_draft_type_years(is_auction=True)[-1],
+            "owner": "ALL",
+            "nominating_owner": "ALL",
+            "position": "ALL",
+            "keeper": "ALL",
+        }
 
     def __init__(self):
         """Initialize DropDownSelection."""
         self.reset()
 
     def reset(self):
-        """Reset all instance attributes to DEFAULT constant."""
-        for attribute, value in AuctionDraftDropDownSelection.DEFAULT.items():
+        """Reset all instance attributes to their defaults."""
+        for attribute, value in self.defaults().items():
             setattr(self, attribute, value)
         auction_draft_data_table.refresh()
 

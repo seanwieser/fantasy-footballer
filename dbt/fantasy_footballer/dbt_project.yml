@@ -6,7 +6,9 @@ profile: "default"
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
-seed-paths: ["../../resources/dbt_seeds"]
+# Two seed paths: gitignored sensitive seeds (owner data, auth) live under resources/;
+# non-sensitive constant seeds (checked into git) live in seeds/ inside the project.
+seed-paths: ["../../resources/sensitive_seeds", "seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 

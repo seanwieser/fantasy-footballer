@@ -67,10 +67,10 @@ def write_source_data(rows: list[dict], source: str, table: str, year: int, queu
     if queue:
         queue.put(f"File written to b2: {s3_key}")
 
-def write_dbt_seeds():
-    """Write dbt seed files to cloud storage."""
+def write_sensitive_seeds():
+    """Write the sensitive (gitignored) dbt seed files to cloud storage."""
     date_partition = get_date_partition()
-    dir_path = "resources/dbt_seeds"
+    dir_path = "resources/sensitive_seeds"
     s3_client = get_s3_client()
     for _, _, filenames in os.walk(dir_path):
         for dbt_seed_name in filenames:

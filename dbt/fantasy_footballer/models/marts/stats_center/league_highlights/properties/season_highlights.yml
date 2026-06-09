@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: season_highlights
+    description: >
+      One row per year x metric_key x rank for the per-season league-highlights view. Title
+      metrics (the season's holder for each award, co-titles included) come straight from the
+      int__season_titles flags at rank 1; margin leaderboards (tightest games, biggest blowouts)
+      keep the season's top 3. The frontend filters by year and renders holder + amount + the
+      precomposed detail subtitle. See MODELS.md.
+    columns:
+      - name: section
+        description: Top-level grouping (Scoring, Matchups, Shotgun, Clutch) the cards cluster under
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: metric_key
+        description: Stable identifier for the metric
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: metric_label
+        description: Human-readable metric name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: description
+        description: One-line explanation of the metric, surfaced as a card tooltip
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: display_order
+        description: Reading order; within a section titles render by this, then the margin leaderboards
+        data_type: int
+        data_tests:
+          - not_null
+      - name: metric_type
+        description: title (season award holder) or leaderboard (top-N within the season)
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [ 'title', 'leaderboard' ]
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: display_value
+        description: >
+          Pre-formatted value string (integer, points, or percentage). Clutch titles instead
+          headline the clutch W-L record (e.g. "3-0").
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: detail
+        description: >
+          Card subtitle, fully composed here so the frontend renders it as-is. Margin rows: a
+          "def. {opponent} · {winner-loser score} · Wk N" line. Title rows: how/when/where the
+          title was earned — end-of-regular-season seed ("7th seed"), the key week(s) ("Wks 3, 7,
+          11"), per metric. Null for clutch titles (the record is the value) and clean-season titles.
+        data_type: varchar
+      - name: rank
+        description: Rank within the year x metric (1 = holder); leaderboards keep 1..3
+        data_type: int
+        data_tests:
+          - not_null

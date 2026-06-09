@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: owners
+    description: >
+      One row per owner (the owner dimension). Career span (first_year, last_year) and an
+      is_active flag — true if the owner fielded a team in the current season, false = retired.
+      Wraps int__owner_team_year_map crossed with int__current_season_year.
+    columns:
+      - name: owner_id
+        description: Stable owner identifier
+        data_type: int
+        data_tests:
+          - not_null
+          - unique
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: first_year
+        description: Earliest season the owner fielded a team
+        data_type: int
+        data_tests:
+          - not_null
+      - name: last_year
+        description: Most recent season the owner fielded a team
+        data_type: int
+        data_tests:
+          - not_null
+      - name: seasons_played
+        description: Count of distinct seasons the owner fielded a team (tenure)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: is_active
+        description: True if last_year is the current season; false means retired
+        data_type: boolean
+        data_tests:
+          - not_null

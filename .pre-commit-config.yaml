@@ -2,8 +2,11 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 
+# Pin hooks to Python 3.12 (the project's version). Left at the floating `python3`, pre-commit.ci
+# builds on its newest interpreter (3.14), where dbt-common/mashumaro fail to import and crash the
+# sqlfluff dbt templater. Pinning 3.12 keeps the dbt stack importable.
 default_language_version:
-  python: python3
+  python: python3.12
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -38,12 +41,23 @@ repos:
     hooks:
       - id: isort
         additional_dependencies: [toml]
+  # Stub the gitignored sensitive seeds (only if absent) so the sqlfluff dbt templater below can
+  # build its manifest in a public checkout (pre-commit.ci). No-op locally where real seeds exist.
+  - repo: local
+    hooks:
+      - id: stub-sensitive-seeds
+        name: stub sensitive seeds for dbt compile
+        entry: bash scripts/stub_sensitive_seeds.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+
   - repo: https://github.com/sqlfluff/sqlfluff
     rev: 3.4.2
     hooks:
       - id: sqlfluff-lint
         additional_dependencies: ["dbt-duckdb==1.9.0", "sqlfluff-templater-dbt"]
-        entry: sqlfluff lint --processes 0 --disable-progress-bar
+        entry: sqlfluff lint --processes 1 --disable-progress-bar
       - id: sqlfluff-fix
         additional_dependencies: ["dbt-duckdb==1.9.0", "sqlfluff-templater-dbt"]
-        entry: sqlfluff fix --show-lint-violations --processes 0 --disable-progress-bar
+        entry: sqlfluff fix --show-lint-violations --processes 1 --disable-progress-bar

@@ -1,0 +1,134 @@
+version: 2
+
+models:
+  - name: stg__player_weeks
+    description: Staging model for weekly fantasy football player statistics with all stat categories flattened
+    columns:
+      - name: player_id
+        description: Unique identifier for the player
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: player_year_id
+        description: Unique identifier for the player
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: player_week_id
+        description: Unique identifier combining player ID, year, and week
+        data_type: varchar
+        data_tests:
+          - unique
+          - not_null
+      - name: year
+        description: Season year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: player_name
+        description: Player's full name
+        data_type: varchar
+      - name: week
+        description: Week number of the game
+        data_type: int
+        data_tests:
+          - not_null
+      - name: team_win
+        description: Binary indicator if player's NFL team won (1) or lost (0)
+        data_type: int
+      - name: points
+        description: Total fantasy points scored for the week
+        data_type: double
+      - name: receiving_receptions
+        description: Number of receptions (catches)
+        data_type: double
+      - name: receiving_yards
+        description: Total receiving yards
+        data_type: double
+      - name: receiving_targets
+        description: Number of times targeted by quarterback
+        data_type: int
+      - name: receiving_touchdowns
+        description: Number of receiving touchdowns
+        data_type: int
+      - name: receiving_2_pt_conversions
+        description: Number of successful 2-point conversions via reception
+        data_type: int
+      - name: rushing_attempts
+        description: Number of rushing attempts (carries)
+        data_type: int
+      - name: rushing_yards
+        description: Total rushing yards
+        data_type: double
+      - name: rushing_touchdowns
+        description: Number of rushing touchdowns
+        data_type: int
+      - name: rushing_2_pt_conversions
+        description: Number of successful 2-point conversions via rush
+        data_type: int
+      - name: passing_attempts
+        description: Number of pass attempts
+        data_type: int
+      - name: passing_completions
+        description: Number of completed passes
+        data_type: int
+      - name: passing_incompletions
+        description: Number of incomplete passes
+        data_type: int
+      - name: passing_yards
+        description: Total passing yards
+        data_type: double
+      - name: passing_touchdowns
+        description: Number of passing touchdowns
+        data_type: int
+      - name: passing_completion_percentage
+        description: Completion percentage (completions / attempts)
+        data_type: double
+      - name: passing_times_sacked
+        description: Number of times sacked
+        data_type: int
+      - name: fumbles
+        description: Total number of fumbles
+        data_type: int
+      - name: lost_fumbles
+        description: Number of fumbles lost to opposing team
+        data_type: int
+      - name: turnovers
+        description: Total turnovers (interceptions + lost fumbles)
+        data_type: int
+      - name: made_field_goals_from_40_to_49
+        description: Field goals made from 40-49 yards
+        data_type: int
+      - name: attempted_field_goals_from_40_to_49
+        description: Field goals attempted from 40-49 yards
+        data_type: int
+      - name: made_field_goals_from_under_40
+        description: Field goals made from under 40 yards
+        data_type: int
+      - name: attempted_field_goals_from_under_40
+        description: Field goals attempted from under 40 yards
+        data_type: int
+      - name: made_field_goals
+        description: Total field goals made
+        data_type: int
+      - name: attempted_field_goals
+        description: Total field goals attempted
+        data_type: int
+      - name: made_extra_points
+        description: Extra points made
+        data_type: int
+      - name: attempted_extra_points
+        description: Extra points attempted
+        data_type: int
+      - name: is_flex
+        description: "Boolean flag indicating if player is eligible for flex position"
+        data_type: bool
+      - name: nfl_team
+        description: "NFL team abbreviation"
+        data_type: varchar
+      - name: position_rank
+        description: "Rank of player within their position"
+        data_type: int
+      - name: position_slot
+        description: "Player's position slot designation"
+        data_type: varchar

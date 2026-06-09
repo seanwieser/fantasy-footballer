@@ -1,0 +1,77 @@
+version: 2
+
+models:
+  - name: stg__team_weeks
+    description: >
+      Weekly performance data for each team, unnested from the teams table's weekly array structure.
+      Creates one row per team per week with matchup details, lineup information, and opponent enrichment.
+      Opponent team data is joined to provide full context for both sides of each weekly matchup.
+
+    columns:
+      - name: team_id
+        description: Unique identifier for the team
+        data_type: int
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('base_s001__teams')
+                field: team_id
+      - name: team_year_id
+        description: Composite key combining team_id and year (format 'team_id_year')
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: team_week_id
+        description: Composite key combining team_year_id and week (format 'team_year_id_week')
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: team_name
+        description: Name of the team
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: opponent_team_id
+        description: Unique identifier for the opposing team in this week's matchup
+        data_type: int
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('base_s001__teams')
+                field: team_id
+      - name: opponent_team_year_id
+        description: Composite key for the opponent combining team_id and year
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: opponent_team_week_id
+        description: Composite key for the opponent's week (format 'opponent_team_year_id_week')
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        description: Season year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        description: Week number within the season
+        data_type: int
+        data_tests:
+          - not_null
+      - name: lineup
+        description: >
+          Array of lineup slots containing player IDs and their assigned roster positions
+          for this team during this week
+        data_type: struct(playerId varchar, lineupSlot varchar)[]
+      - name: score_for
+        description: Points scored by the team in this week
+        data_type: double
+        data_tests:
+          - not_null
+      - name: outcome
+        description: Result of the matchup for this team (e.g., 'W', 'L', 'T')
+        data_type: varchar

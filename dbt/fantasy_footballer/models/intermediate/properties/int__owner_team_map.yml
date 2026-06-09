@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: int__owner_team_map
+    description: >
+      Deduplicated mapping of owners to teams across all seasons. Provides a historical view
+      of which teams each owner has controlled, collapsing year-specific records into unique
+      owner-team relationships. Useful for identifying franchise ownership history.
+    columns:
+      - name: owner_id
+        description: Unique identifier for the owner
+        data_type: int
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: owner_id
+      - name: owner_name
+        description: Canonical name of the owner
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: team_id
+        description: Unique identifier for the team
+        data_type: int
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_id

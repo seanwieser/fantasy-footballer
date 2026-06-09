@@ -14,7 +14,7 @@ since the project is still in a period of rapid change.
 1. Run pre commit
    1. `make run-pre-commit`
 2. Manually test app locally (Note: Do not commit any changes in `resources` directory!)
-   1. `make run-local`
+   1. `make run-local-dev` (or `make run-local-fresh` for a full data re-ingest)
    2. Manual Testing
    3. Click `Shutdown` on Admin page
 3. Run app container

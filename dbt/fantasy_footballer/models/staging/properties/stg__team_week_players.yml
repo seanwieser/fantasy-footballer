@@ -1,0 +1,84 @@
+version: 2
+
+models:
+  - name: stg__team_week_players
+    description: >
+      Player-level lineup data for each team by week. Unnests the lineup struct from team_weeks
+      to create one row per player per team per week. Excludes undecided matchups (outcome = 'U').
+      Standardizes lineup slot naming by converting 'RB/WR/TE' to 'FLEX' for consistency.
+    columns:
+      - name: team_id
+        description: Unique identifier for the team
+        data_type: int
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg__team_weeks')
+                field: team_id
+      - name: team_year_id
+        description: Composite key combining team_id and year (format 'team_id_year')
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: team_name
+        description: Name of the team
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: team_week_id
+        description: Composite key combining team_year_id and week (format 'team_year_id_week')
+        data_type: varchar
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg__team_weeks')
+                field: team_week_id
+      - name: opponent_team_id
+        description: Unique identifier for the opposing team in this week's matchup
+        data_type: int
+        data_tests:
+          - not_null
+      - name: opponent_team_year_id
+        description: Composite key for the opponent combining team_id and year
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: opponent_team_week_id
+        description: Composite key for the opponent's week (format 'opponent_team_year_id_week')
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: player_id
+        description: Unique identifier for the player
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: player_year_id
+        description: Composite key combining player_id and year (format 'player_id_year')
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: player_week_id
+        description: Composite key combining player_id, year, and week (format 'player_id_year_week')
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: lineup_slot
+        description: >
+          Roster position the player occupied in the lineup (e.g., QB, RB, WR, TE, FLEX, K, D/ST, BN).
+          Standardized so 'RB/WR/TE' positions are converted to 'FLEX'.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        description: Season year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        description: Week number within the season
+        data_type: int
+        data_tests:
+          - not_null

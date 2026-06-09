@@ -1,0 +1,81 @@
+version: 2
+
+models:
+  - name: int__owner_season_scoring
+    description: >
+      One row per owner-season summarizing regular-season scoring (playoff weeks excluded),
+      aggregated from [[int__team_week_results]]. The canonical home for season points for AND
+      against: provides point totals, points-per-game (to normalize uneven season lengths),
+      single best/worst week scores, and a made_playoffs flag. Non-clutch marts read season
+      points from here (not the clutch model).
+    columns:
+      - name: owner_id
+        description: Unique identifier for the owner
+        data_type: int
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: owner_id
+      - name: owner_name
+        description: Canonical name of the owner
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: owner_year_id
+        description: Composite key combining owner_id and year (format 'owner_id_year'). Grain of this model.
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: team_year_id
+        description: Composite key combining team_id and year (format 'team_id_year')
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: year
+        description: Season year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: games_played
+        description: Count of regular-season games played (excludes unplayed and playoff weeks)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: reg_points_total
+        description: Total points scored across all regular-season games
+        data_type: double
+        data_tests:
+          - not_null
+      - name: reg_points_against
+        description: Total points scored against the team across all regular-season games
+        data_type: double
+        data_tests:
+          - not_null
+      - name: reg_points_per_game
+        description: reg_points_total divided by games_played (normalizes uneven season lengths)
+        data_type: double
+        data_tests:
+          - not_null
+      - name: best_week_score
+        description: Highest single-week regular-season score for the owner that season
+        data_type: double
+        data_tests:
+          - not_null
+      - name: worst_week_score
+        description: Lowest single-week regular-season score for the owner that season
+        data_type: double
+        data_tests:
+          - not_null
+      - name: made_playoffs
+        description: True if the team appears in any playoff matchup that season
+        data_type: bool
+        data_tests:
+          - not_null

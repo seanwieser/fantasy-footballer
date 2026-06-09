@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: int__clutch_records
+    description: >
+      One row per team-season with the clutch win-loss record (regular-season games decided by
+      < 10 points), as a "W-L" string. Derived from the is_clutch flag on
+      [[int__team_week_results]]. Season points for/against now live in
+      [[int__owner_season_scoring]].
+    columns:
+      - name: team_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: team_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: record
+        description: Clutch win-loss record in "W-L" format (games decided by < 10 points)
+        data_type: varchar
+        data_tests:
+          - not_null

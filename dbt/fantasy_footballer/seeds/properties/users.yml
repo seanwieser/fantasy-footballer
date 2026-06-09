@@ -1,0 +1,16 @@
+version: 2
+
+seeds:
+  - name: users
+    description: "Mapping between username and password hash."
+    data_tests:
+      - assert_model_has_rows
+    columns:
+      - name: username
+        description: "Username for a credential set."
+        data_tests:
+          - not_null
+      - name: hash
+        description: "Hashed password for a credential set."
+        data_tests:
+          - not_null

@@ -1,0 +1,77 @@
+version: 2
+
+models:
+  - name: int__team_week_results
+    description: >
+      One row per team-week (the team's perspective) with the opponent resolved: opponent team /
+      owner name, score for/against, outcome, victory margin, and is_clutch / is_shotgun / is_playoff
+      flags. Collapses the opponent self-join and per-game clutch logic out of the season-schedule
+      mart. See [[stg__team_weeks]], [[int__owner_team_year_map]].
+    columns:
+      - name: team_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: team_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: team_week_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_id
+        data_type: int
+      - name: owner_name
+        data_type: varchar
+      - name: opponent_team_name
+        description: The opposing team's name that week
+        data_type: varchar
+      - name: opponent_owner_name
+        description: The opposing owner's name that week
+        data_type: varchar
+      - name: score_for
+        data_type: double
+        data_tests:
+          - not_null
+      - name: score_against
+        description: The opponent's score that week
+        data_type: double
+        data_tests:
+          - not_null
+      - name: outcome
+        description: W / L / T / U (unplayed)
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: margin
+        description: abs(score_for - score_against)
+        data_type: double
+        data_tests:
+          - not_null
+      - name: is_clutch
+        description: Game decided by < 10 points (only W/L outcomes)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_shotgun
+        description: The team's score was a shotgun that week
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_playoff
+        description: Whether the calendar week is a playoff week (null if the week is not in the map)
+        data_type: bool

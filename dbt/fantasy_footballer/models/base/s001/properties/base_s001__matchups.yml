@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: base_s001__matchups
+    description: >
+      Splits home and away matchup data into individual team records, creating one row per team per matchup.
+      This model unpivots the matchups table to facilitate team-level analysis and aggregations.
+      Excludes bye weeks where no opponent exists.
+
+    columns:
+      - name: team_id
+        description: Unique identifier for the team
+        data_type: int
+        data_tests:
+          - not_null
+      - name: team_year_id
+        description: Composite key combining team_id and year
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        description: Season year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: matchup_week
+        description: Week number of the matchup within the season
+        data_type: int
+        data_tests:
+          - not_null
+      - name: score_for
+        description: Points scored by the team in this matchup
+        data_type: double
+        data_tests:
+          - not_null
+      - name: projected_score_for
+        description: Projected points for the team in this matchup (set to 0 when actual score is 0)
+        data_type: double
+      - name: matchup_lineup
+        description: Array of player IDs that were in the team's starting lineup for this matchup
+        data_type: varchar[]
+      - name: is_playoff
+        description: Flag indicating whether this matchup occurred during the playoff period
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: matchup_type
+        description: Type or category of the matchup (e.g., regular season, playoff round)
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: meta__source_path
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: meta__date_effective
+        data_type: date
+        data_tests:
+          - not_null
+      - name: meta__date_pulled
+        data_type: date
+        data_tests:
+          - not_null

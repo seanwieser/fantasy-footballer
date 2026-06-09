@@ -1,0 +1,64 @@
+version: 2
+
+seeds:
+  - name: season_highlight_metrics
+    description: >
+      League-highlights By-Season metric catalog (one row per metric). Git-tracked constant
+      seed defining each season metric's category/label, type, sort direction, result count,
+      value format, and tooltip description. Drives season_highlights.
+    data_tests:
+      - assert_model_has_rows
+    columns:
+      - name: metric_key
+        description: "Stable metric identifier joined to the computed values."
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: category
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: section
+        description: "Top-level grouping (Scoring, Matchups, Shotgun, Clutch) the By-Season cards cluster under."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: metric_label
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: metric_type
+        description: "title or leaderboard."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: sort_sign
+        description: "1 to rank ascending-best, -1 for descending-best."
+        data_type: int
+        data_tests:
+          - not_null
+      - name: result_n
+        description: "How many ranks to keep (1 = title holder, 3 = top-3 leaderboard)."
+        data_type: int
+        data_tests:
+          - not_null
+      - name: value_format
+        description: "int, points, or pct — drives display formatting."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: display_order
+        description: "Reading order; within a section, titles render by this, then the margin leaderboards."
+        data_type: int
+        data_tests:
+          - not_null
+          - unique
+      - name: description
+        description: "Tooltip text shown on the card."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: empty_label
+        description: "Message shown on the placeholder card when no owner earned this title in a season (e.g. 'Everyone shotgunned this season'). Null for titles that always have a holder and for margin leaderboards."
+        data_type: varchar

@@ -9,13 +9,22 @@ from pandas import DataFrame
 START_YEAR = 2018
 VALID_POSITIONS = ["QB", "RB", "WR", "TE", "D/ST", "K"]
 
+# Highlight section -> Quasar color + medal emoji by podium rank. Shared by the League
+# Highlights page and the owner-spotlight Highlights card so the visual language stays in sync.
+SECTION_COLORS = {"Scoring": "blue", "Clutch": "red", "Matchups": "orange", "Shotgun": "green"}
+MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
+
+def medal(rank):
+    """Medal emoji for a top-3 rank, else a plain numbered label (e.g. '4.')."""
+    return MEDALS.get(rank, f"{rank}.")
+
 def get_valid_years() -> list[int]:
     """Get all years that fantasy data is available for."""
     return list(range(START_YEAR, datetime.datetime.now().year + 1))
 
 def get_years_by_owner_id(owner_id: str = None) -> list[str]:
     """Get all years that have fantasy data (by owner_id if passed)."""
-    all_years_by_owner = DbManager.query("select * from main_utilities.owner_year_map", to_dict=True)
+    all_years_by_owner = DbManager.query("select * from main_marts.owner_year_map", to_dict=True)
     if owner_id:
         return list({row["year"] for row in all_years_by_owner if row["owner_id"] == int(owner_id)})
     return list({row["year"] for row in all_years_by_owner})
@@ -43,8 +52,8 @@ def get_draft_type_years(is_auction: bool):
 def get_owner_names_by_year(year: int = None) -> list[str]:
     """Get all owner names (by year if passed)."""
     all_owners_by_year = DbManager.query("""
-        select * 
-        from main_utilities.owner_year_map 
+        select *
+        from main_marts.owner_year_map
         order by owner_name""", to_dict=True)
     if year:
         return sorted(list({row["owner_name"] for row in all_owners_by_year if row["year"] == int(year)}))
@@ -52,12 +61,12 @@ def get_owner_names_by_year(year: int = None) -> list[str]:
 
 def get_nfl_teams():
     """Get all NFL Teams."""
-    all_nfl_teams = DbManager.query("select nfl_team from main_utilities.nfl_teams", to_dict=True)
+    all_nfl_teams = DbManager.query("select nfl_team from main_marts.nfl_teams", to_dict=True)
     return sorted(list({row["nfl_team"] for row in all_nfl_teams}))
 
 def get_current_year() -> int:
     """Get the latest year with fantasy data."""
-    return [row["this"] for row in DbManager.query("select * from main_utilities.current_year", to_dict=True)][0]
+    return [row["year"] for row in DbManager.query("select * from main_marts.current_year", to_dict=True)][0]
 
 def owner_id_to_owner_name(owner_id: str) -> str:
     """Return owner name given an owner id."""

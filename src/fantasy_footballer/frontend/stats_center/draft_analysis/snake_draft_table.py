@@ -10,21 +10,24 @@ from nicegui import ui
 class SnakeDraftDropDownSelection:
     """Class for dropdown selection for Snake draft table."""
 
-    DEFAULT = {
-        "year": get_draft_type_years(is_auction=False)[-1],
-        "owner": "ALL",
-        "position": "ALL",
-        "round": "ALL",
-        "round_pick": "ALL"
-    }
+    @classmethod
+    def defaults(cls):
+        """Default selections, resolved at call time so there is no DB access at import."""
+        return {
+            "year": get_draft_type_years(is_auction=False)[-1],
+            "owner": "ALL",
+            "position": "ALL",
+            "round": "ALL",
+            "round_pick": "ALL",
+        }
 
     def __init__(self):
         """Initialize DropDownSelection."""
         self.reset()
 
     def reset(self):
-        """Reset all instance attributes to DEFAULT constant."""
-        for attribute, value in SnakeDraftDropDownSelection.DEFAULT.items():
+        """Reset all instance attributes to their defaults."""
+        for attribute, value in self.defaults().items():
             setattr(self, attribute, value)
         snake_draft_data_table.refresh()
 

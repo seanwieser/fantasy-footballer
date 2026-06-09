@@ -11,12 +11,13 @@ from string import Template
 import bcrypt
 import duckdb
 from backend.sources.s001.extract import S001Extractor
-from backend.utils import get_date_partition, get_s3_client, write_dbt_seeds
+from backend.utils import (get_date_partition, get_s3_client,
+                           write_sensitive_seeds)
 from dbt.cli.main import dbtRunner, dbtRunnerResult
 
 DB_NAME = "fantasy_footballer"
 DB_PATH = f"resources/{DB_NAME}.duckdb"
-DBT_SEEDS_PATH = "resources/dbt_seeds"
+SENSITIVE_SEEDS_PATH = "resources/sensitive_seeds"
 
 SOURCE_EXTRACTOR_MAP = {e.SOURCE_NAME: e for e in [S001Extractor]}
 
@@ -47,7 +48,7 @@ class DbManager:
 
     def setup(self):
         """Boot function for backend to load+transform all sources to make db ready locally for frontend."""
-        if not (self.dev_mode and DbManager.has_dbt_seeds_rows()):
+        if not (self.dev_mode and DbManager.has_sensitive_seeds_rows()):
             DbManager.fetch_resources()
             DbManager.ingest_raw_data_from_cloud(SOURCE_EXTRACTOR_MAP.keys())
             DbManager.run_dbt()
@@ -55,13 +56,13 @@ class DbManager:
             print("Skipping data setup...")
 
     @staticmethod
-    def has_dbt_seeds_rows():
+    def has_sensitive_seeds_rows():
         """Check dbt seeds files if they are empty."""
-        csv_files = [f for f in os.listdir(DBT_SEEDS_PATH) if f.endswith(".csv")]
+        csv_files = [f for f in os.listdir(SENSITIVE_SEEDS_PATH) if f.endswith(".csv")]
 
         csv_files = csv_files or []
         for csv_file in csv_files:
-            with open(f"{DBT_SEEDS_PATH}/{csv_file}", "r", encoding="utf-8") as f:
+            with open(f"{SENSITIVE_SEEDS_PATH}/{csv_file}", "r", encoding="utf-8") as f:
                 reader = csv.reader(f)
                 next(reader, None) # Skip header
                 if next(reader, None) is not None:
@@ -179,18 +180,18 @@ class DbManager:
         """Add a new credentials to authenticate with. Overwrites existing credentials with same username."""
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), salt)
-        with open(f"{DBT_SEEDS_PATH}/users.csv", "r", newline="", encoding="utf-8") as rfp:
+        with open(f"{SENSITIVE_SEEDS_PATH}/users.csv", "r", newline="", encoding="utf-8") as rfp:
             reader = csv.DictReader(rfp, delimiter=",")
             user_data = [row for row in reader if row["username"] != username]
             user_data.append({"username": username, "hash": hashed_password.decode("utf-8")})
 
-        with open(f"{DBT_SEEDS_PATH}/users.csv", "w", newline="", encoding="utf-8") as wfp:
+        with open(f"{SENSITIVE_SEEDS_PATH}/users.csv", "w", newline="", encoding="utf-8") as wfp:
             writer = csv.DictWriter(wfp, user_data[0].keys())
             writer.writeheader()
             writer.writerows(user_data)
 
         DbManager.run_dbt(action="seed")
-        write_dbt_seeds()
+        write_sensitive_seeds()
 
     @staticmethod
     def run_dbt(action: str = "build", queue: multiprocessing.Queue = None):

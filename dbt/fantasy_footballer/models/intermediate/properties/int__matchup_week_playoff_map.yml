@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: int__matchup_week_playoff_map
+    columns:
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: matchup_week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: is_playoff
+        data_type: bool
+        data_tests:
+          - not_null

@@ -1,0 +1,77 @@
+version: 2
+
+models:
+  - name: int__team_postseason
+    description: >
+      Team-season postseason status: the bracket entered at the end of the regular season,
+      whether the team made the (winners) playoffs, and final placement reconstructed from
+      bracket progression. ESPN final_standing is carried through to validate places 1-3.
+    columns:
+      - name: team_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: team_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: seed
+        description: Regular-season standing used to assign the bracket
+        data_type: int
+        data_tests:
+          - not_null
+      - name: bracket
+        description: End-of-regular-season bracket
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [ 'winners', 'toilet_bowl', 'kiss_my_sister' ]
+      - name: made_playoffs
+        description: True if the team entered the winners (championship) bracket
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_champion
+        description: Won the winners-bracket final (1st)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_runner_up
+        description: Lost the winners-bracket final (2nd)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_third
+        description: Won the 3rd-place game (3rd)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_second_to_last
+        description: Lost toilet round 1, won the toilet final (2nd-to-last)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_last
+        description: Lost both toilet-bowl games (last place)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: reconstructed_place
+        description: Final placement from bracket progression (1,2,3,11,12); null if unplaced
+        data_type: int
+      - name: final_standing
+        description: ESPN's final standing, used to validate reconstructed places 1-3
+        data_type: int
+        data_tests:
+          - not_null

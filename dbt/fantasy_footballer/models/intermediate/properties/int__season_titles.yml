@@ -1,0 +1,155 @@
+version: 2
+
+models:
+  - name: int__season_titles
+    description: >
+      One row per owner-season with amount columns and a boolean flag for every season title
+      (co-title semantics: all owners tied at rank 1 get the flag). All-time marts sum the
+      flags (tennis-style counts); the season mart reads holder + amount. See the highlights doc.
+    columns:
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: owner_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: team_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: reg_points_total
+        data_type: double
+        data_tests:
+          - not_null
+      - name: reg_points_per_game
+        data_type: double
+        data_tests:
+          - not_null
+      - name: best_week_score
+        data_type: double
+        data_tests:
+          - not_null
+      - name: worst_week_score
+        data_type: double
+        data_tests:
+          - not_null
+      - name: made_playoffs
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: clutch_wins
+        data_type: int
+        data_tests:
+          - not_null
+      - name: clutch_losses
+        data_type: int
+        data_tests:
+          - not_null
+      - name: lucky_wins
+        data_type: int
+        data_tests:
+          - not_null
+      - name: unlucky_losses
+        data_type: int
+        data_tests:
+          - not_null
+      - name: shotgun_count
+        data_type: int
+        data_tests:
+          - not_null
+      - name: playoff_teams_outscored
+        description: Count of playoff teams this team outscored in points — gates + sizes the snub title
+        data_type: int
+        data_tests:
+          - not_null
+      - name: nonplayoff_teams_outscoring
+        description: Count of non-playoff teams that outscored this team — gates + sizes the lucky-in title
+        data_type: int
+        data_tests:
+          - not_null
+      - name: is_scoring_title
+        description: Most regular-season points that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_non_scoring_title
+        description: Fewest regular-season points that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_matchup_title
+        description: Highest single-week score that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_bad_matchup_title
+        description: Lowest single-week score that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_non_playoff_scoring_title
+        description: Highest-scoring team that missed the playoffs AND outscored >= 1 playoff team (snub)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_playoff_non_scoring_title
+        description: Lowest-scoring team that made the playoffs AND was outscored by >= 1 missing team (lucked in)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_clutch_winning_title
+        description: Best clutch record (win count, tiebroken by win %)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_clutch_losing_title
+        description: Worst clutch record (loss count, tiebroken by win %)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_lucky_winner_title
+        description: Most lucky wins that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_unlucky_loser_title
+        description: Most unlucky losses that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_shotgun_title
+        description: Most shotguns that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_no_shotgun_season
+        description: Zero shotguns that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_snubbed
+        description: Missed the playoffs but outscored >= 1 playoff team (snub occurrence; title is the worst such)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_lucked_in
+        description: Made the playoffs but was outscored by >= 1 missing team (lucky-in occurrence; title is the worst such)
+        data_type: bool
+        data_tests:
+          - not_null

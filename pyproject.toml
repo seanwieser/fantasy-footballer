@@ -29,7 +29,7 @@ requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pylint.MASTER]
-init-hook = "import sys; sys.path.append('.venv/lib/python3.10/site-packages/')"
+init-hook = "import sys; sys.path.append('.venv/lib/python3.12/site-packages/')"
 
 [tool.pylint."MESSAGE CONTROL"]
 disable = ["import-error", "no-member", "R0903", "consider-using-in", "no-name-in-module", "R0801"]
@@ -44,7 +44,7 @@ templater = "dbt"
 sql_file_exts = ".sql"
 exclude_rules = ["ST06", "RF06", "LT01", "RF04"]
 max_line_length = 120
-processes = -1
+processes = 1
 
 [tool.sqlfluff.layout.type.binary_operator]
 line_position = "trailing"

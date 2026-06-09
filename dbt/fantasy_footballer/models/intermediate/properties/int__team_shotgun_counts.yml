@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: int__team_shotgun_counts
+    description: >
+      One row per team-season with the regular-season shotgun count and the sorted list of
+      shotgun weeks. Every team-season is present (count 0 if none). Centralizes the shotgun
+      tally previously summed inline in the splash and owner-spotlight marts. See [[int__shotguns]].
+    columns:
+      - name: team_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: team_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: shotgun_count
+        description: Number of regular-season shotgun weeks that season
+        data_type: int
+        data_tests:
+          - not_null
+      - name: shotgun_weeks
+        description: Sorted list of the week numbers that were shotguns; null if none
+        data_type: int[]

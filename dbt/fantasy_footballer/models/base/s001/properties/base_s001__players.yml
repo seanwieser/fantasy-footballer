@@ -1,0 +1,105 @@
+version: 2
+
+models:
+  - name: base_s001__players
+    description: Staging model for fantasy football players with season-level statistics and metadata
+    columns:
+      - name: player_year_id
+        description: Unique identifier combining player ID and year
+        data_type: varchar
+        data_tests:
+          - unique
+          - not_null
+      - name: player_id
+        description: Unique identifier for the player
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: player_name
+        description: Player's full name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        description: Season year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: eligible_slots
+        description: Array of eligible roster slots for the player (e.g., RB, FLEX, BENCH)
+        data_type: varchar[]
+        data_tests:
+          - not_null
+      - name: nfl_team
+        description: NFL team abbreviation
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: position_slot
+        description: Primary fantasy position (QB, RB, WR, TE, K, D/ST)
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: is_flex
+        description: Flag indicating whether player can be put in FLEX
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_injured
+        description: Boolean flag indicating if player is currently injured
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: total_points
+        description: Total fantasy points scored for the season
+        data_type: double
+        data_tests:
+          - not_null
+      - name: avg_points
+        description: Average fantasy points per game
+        data_type: double
+        data_tests:
+          - not_null
+      - name: projected_total_points
+        description: Projected total fantasy points for the season
+        data_type: double
+        data_tests:
+          - not_null
+      - name: projected_avg_points
+        description: Projected average fantasy points per game
+        data_type: double
+        data_tests:
+          - not_null
+      - name: percent_owned
+        description: Percentage of leagues where player is rostered
+        data_type: double
+        data_tests:
+          - not_null
+      - name: percent_started
+        description: Percentage of leagues where player is in starting lineup
+        data_type: double
+        data_tests:
+          - not_null
+      - name: stats_raw
+        description: Raw nested statistics data containing week-by-week performance
+        data_type: map(varchar, json)[]
+        data_tests:
+          - not_null
+      - name: position_rank
+        description: Player's rank within their position
+        data_type: int
+      - name: injury_status
+        description: Current injury designation (e.g., OUT, QUESTIONABLE, DOUBTFUL, IR)
+        data_type: varchar
+      - name: meta__source_path
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: meta__date_effective
+        data_type: date
+        data_tests:
+          - not_null
+      - name: meta__date_pulled
+        data_type: date
+        data_tests:
+          - not_null

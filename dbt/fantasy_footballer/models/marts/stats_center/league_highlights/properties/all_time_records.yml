@@ -6,7 +6,7 @@ models:
       One row per metric x ranked owner (tidy/long) covering the all-time league-highlights
       catalog. Tennis-style title counts, career totals, and single-extreme records are unioned
       into a shared shape; leaderboards keep the top 3 (rank 1..N), single records keep rank 1.
-      The frontend filters by section/category and renders value/display_value. See the
+      The frontend filters by section/category and renders display_value. See the
       league-highlights doc and MODELS.md.
     columns:
       - name: section
@@ -71,11 +71,6 @@ models:
           - not_null
       - name: owner_name
         data_type: varchar
-        data_tests:
-          - not_null
-      - name: value
-        description: Numeric metric value, rounded for display
-        data_type: double
         data_tests:
           - not_null
       - name: display_value

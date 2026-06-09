@@ -114,7 +114,6 @@ title_context as (
 
 ranked as (
     select
-        meta.category,
         meta.section,
         candidates.metric_key,
         meta.metric_label,
@@ -153,7 +152,6 @@ ranked as (
 )
 
 select
-    category,
     section,
     metric_key,
     metric_label,
@@ -163,7 +161,6 @@ select
     year,
     owner_id,
     owner_name,
-    round(metric_value, 2) as value,
     case
         -- Clutch titles headline the W-L record itself, not the raw clutch-win/loss count.
         when metric_key in ('clutch_winning_title', 'clutch_losing_title') then clutch_record

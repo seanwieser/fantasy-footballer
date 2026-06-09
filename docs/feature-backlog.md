@@ -28,6 +28,7 @@ reference it in conversation, branches, and commits.
 | FF-008 | Refactor website navigation | frontend | Low | M | Idea |
 | FF-009 | Quantify luck via all-play / expected wins | dbt | Low | M | Idea |
 | FF-010 | Notification / events dashboard | dbt, backend, frontend | Low | L | Idea |
+| FF-011 | Unify "league single best/worst week" logic | dbt | Low | S | Idea |
 
 ---
 
@@ -281,3 +282,35 @@ have current state, not a stream.
 **Open questions:** event granularity + schema; where prior state lives (B2 snapshot vs dbt snapshots vs
 a small persisted table); de-duplication / "already notified" tracking; which consumer to build first;
 whether this wants the eventual FastAPI seam (see `architecture-roadmap.md`) as its read API.
+
+---
+
+## FF-011 — Unify "league single best/worst week" logic
+
+**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Idea
+
+**Done when:** the league's single highest/lowest regular-season week is defined in exactly one place,
+with both the season title and the week-grain chip flag sourced from it (no parallel computation).
+
+**What:** today "the league's single highest (and lowest) score this season" is computed twice, in two
+intermediates:
+- `int__season_titles` ranks each team's `best_week_score` / `worst_week_score` to set
+  `is_matchup_title` / `is_bad_matchup_title` (the season award).
+- `int__team_week_highlights` independently does `max/min(score_for)` over the year to set
+  `is_best_week` / `is_worst_week` (the spotlight schedule chip).
+
+The chip↔title alignment is a deliberate invariant (a chip should mark the exact week that won the
+title), but it currently rests on two separate code paths agreeing — they could silently drift (e.g. one
+filters playoffs/unplayed weeks differently, or handles a co-best-week tie differently).
+
+**Why now-ish:** not urgent — they agree today. Worth doing before `int__team_week_highlights` grows more
+consumers (FF-010 builds the events feed on it), so the shared definition is locked in before more code
+depends on it.
+
+**Pieces it will need:**
+- Pick the single source of truth (likely the week-grain extremes in `int__team_week_highlights`, since
+  it already knows *which* week), and have `int__season_titles` derive the matchup title from it — or
+  factor the league per-season extreme into one small intermediate both consume.
+- Verify tie behavior (co-best weeks) matches the title's `rank() = 1` semantics.
+- Confirm via the existing data cross-checks that every `is_best_week`/`is_worst_week` chip still lines up
+  1:1 with `matchup_title`/`bad_matchup_title`.

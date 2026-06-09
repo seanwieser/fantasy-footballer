@@ -390,7 +390,6 @@ select
     display_order::int as display_order,
     owner_id,
     owner_name,
-    round(metric_value, 2) as value,
     case
         -- Clutch season records headline the W-L record itself, not the raw win/loss count.
         when metric_key in ('clutchest_season', 'unclutchest_season') then detail

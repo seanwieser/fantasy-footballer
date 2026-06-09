@@ -19,11 +19,6 @@ CATEGORY_LABELS = {"Season": "Full Season", "Matchup": "Single Week", "Playoff":
 OwnerInfo = namedtuple("OwnerInfo", ["retired", "seasons"])
 
 
-def _query(sql):
-    """Run a read-only query and return a list of row dicts."""
-    return DbManager.query(sql, to_dict=True)
-
-
 def _runs(rows, field):
     """Group an ordered row list into consecutive runs sharing the same value of `field`."""
     runs = []
@@ -53,7 +48,7 @@ def _balanced_cols(n, max_cols=3):
 
 def _owner_info():
     """Retired flag + tenure (seasons played) per owner, from the owners dimension."""
-    rows = _query("select owner_id, seasons_played, is_active from main_marts.owners")
+    rows = DbManager.query("select owner_id, seasons_played, is_active from main_marts.owners", to_dict=True)
     retired = {row["owner_id"] for row in rows if not row["is_active"]}
     seasons = {row["owner_id"]: row["seasons_played"] for row in rows}
     return OwnerInfo(retired, seasons)
@@ -162,12 +157,12 @@ def all_time_tab(owners):
     for section in SECTIONS:
         color = SECTION_COLORS[section]
         section_header(section)
-        rows = _query(f"""
+        rows = DbManager.query(f"""
             select *
             from main_marts.all_time_records
             where section = '{section}'
             order by display_order, rank
-        """)
+        """, to_dict=True)
         by_category = {}
         for group in _runs(rows, "metric_key"):
             by_category.setdefault(group[0]["category"], []).append(group)
@@ -200,18 +195,18 @@ def empty_card(label, description, color, message):
 def render_season(year, owners):
     """Render every season-title card (held or empty) grouped by section, then margin leaderboards."""
     # Catalog drives the grid so a title with no holder this year still shows a placeholder card.
-    catalog = _query("""
+    catalog = DbManager.query("""
         select metric_key, section, metric_label, description, empty_label
         from main_seed_data.season_highlight_metrics
         where metric_type = 'title'
         order by display_order
-    """)
-    holders = _query(f"""
+    """, to_dict=True)
+    holders = DbManager.query(f"""
         select *
         from main_marts.season_highlights
         where year = {year} and metric_type = 'title'
         order by display_order, rank
-    """)
+    """, to_dict=True)
     held = {group[0]["metric_key"]: group for group in _runs(holders, "metric_key")}
 
     by_section = {}
@@ -231,12 +226,12 @@ def render_season(year, owners):
                 else:
                     empty_card(meta["metric_label"], meta["description"], color, meta["empty_label"])
 
-    boards = _query(f"""
+    boards = DbManager.query(f"""
         select *
         from main_marts.season_highlights
         where year = {year} and metric_type = 'leaderboard'
         order by display_order, rank
-    """)
+    """, to_dict=True)
     board_groups = _runs(boards, "metric_key")
     with ui.row().classes("w-full items-center gap-2 mt-8 mb-1"):
         ui.icon("compare_arrows", size="1.9rem").classes("text-orange-7")
@@ -249,8 +244,8 @@ def render_season(year, owners):
 
 def season_tab(owners):
     """Season view: a season picker driving a refreshable panel of that year's highlights."""
-    years = [str(row["year"]) for row in
-             _query("select distinct year from main_marts.season_highlights order by year desc")]
+    years = [str(row["year"]) for row in DbManager.query(
+        "select distinct year from main_marts.season_highlights order by year desc", to_dict=True)]
     default = str(get_current_year())
     if default not in years and years:
         default = years[0]

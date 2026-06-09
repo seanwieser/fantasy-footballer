@@ -1,0 +1,45 @@
+version: 2
+
+seeds:
+  - name: h2h_rivalry_metrics
+    description: >
+      H2H Dashboard pairwise-row catalog (one row per Rivalry / Head-to-Head stat). Git-tracked
+      constant seed defining each row's section, label, reading order, kind (symmetric vs per_owner),
+      and tooltip. `metric_key` is the `h2h_matchup_records` column holding the display value; for
+      symmetric rows the arrow reads the matching `{metric_key}_leader` column. The frontend renders
+      these sections straight from this catalog so adding a row is a one-line change here.
+    data_tests:
+      - assert_model_has_rows
+    columns:
+      - name: metric_key
+        description: "h2h_matchup_records column holding the row's display value (and `_leader` for symmetric rows)."
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: section
+        description: "Pairwise section the row clusters under: 'The Rivalry' or 'Head to Head'."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: label
+        description: "Row label shown in the left column."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: display_order
+        description: "Reading order of the rows."
+        data_type: int
+        data_tests:
+          - not_null
+          - unique
+      - name: kind
+        description: "symmetric (one centered value + leader arrow) or per_owner (each owner's own value per column)."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: description
+        description: "Tooltip text shown on the row."
+        data_type: varchar
+        data_tests:
+          - not_null

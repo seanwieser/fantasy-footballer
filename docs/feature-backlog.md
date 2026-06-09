@@ -29,6 +29,8 @@ reference it in conversation, branches, and commits.
 | FF-009 | Quantify luck via all-play / expected wins | dbt | Low | M | Idea |
 | FF-010 | Notification / events dashboard | dbt, backend, frontend | Low | L | Idea |
 | FF-011 | Unify "league single best/worst week" logic | dbt | Low | S | Idea |
+| FF-012 | H2H Dashboard | dbt, frontend | Med | M | Doing |
+| FF-013 | Shootout / Slugfest records in League Highlights | dbt | Low | S | Ready |
 
 ---
 
@@ -314,3 +316,58 @@ depends on it.
 - Verify tie behavior (co-best weeks) matches the title's `rank() = 1` semantics.
 - Confirm via the existing data cross-checks that every `is_best_week`/`is_worst_week` chip still lines up
   1:1 with `matchup_title`/`bad_matchup_title`.
+
+---
+
+## FF-012 — H2H Dashboard
+
+**Area:** dbt, frontend · **Priority:** Med · **Effort:** M · **Status:** Doing
+
+**Done when:** `/stats_center/h2h_dashboard` lets you pick 2+ owners and compare them across a
+catalog of career metrics (leader highlighted per metric) plus the true pairwise head-to-head
+record, with adding a new comparison stat being a one-row-seed + one-mart-branch change.
+
+**What (shipped v1):** a metric-rows × owner-columns comparison grid driven by the same
+seed-catalog pattern as League Highlights. New dbt: `int__owner_postseason_summary` (career
+playoff/championship/toilet-bowl rollup), `int__owner_head_to_head` (pairwise record, reg vs
+playoff), marts `h2h_owner_metrics` (tidy/long, every owner) + `h2h_matchup_records`, and the
+`h2h_metrics` seed. Frontend `h2h_dashboard.py` renders the grid (leader crowned per
+`sort_sign`, suppressed when all tie) with a lead Head-to-Head section. H2H record scope =
+regular season headline + playoff line when the pair met in the postseason.
+
+**Future stats to add (easy now — seed row + candidate branch):** longest H2H win streak,
+biggest H2H blowout, playoff-only records, all-play / expected wins (see FF-009), draft-capital
+metrics. Possible UI follow-ups: a prominent 2-owner banner, sortable/pinned metrics.
+
+---
+
+## FF-013 — Shootout / Slugfest records in League Highlights
+
+**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Ready
+
+**Done when:** the League Highlights page surfaces the highest- and lowest-*combined-score*
+regular-season games (both teams added together) — all-time top-3 and per-season — using the
+same seed-catalog machinery as the existing margin records.
+
+**Why / context:** the H2H dashboard already shows "highest shootout / lowest slugfest" per
+rivalry (computed in `int__owner_head_to_head`), and they're fun league-wide too. They're
+game-level matchup records, structurally identical to the existing **Tightest games / Biggest
+blowouts** (margin) records — so they reuse that exact pattern.
+
+**Best place:** the **Matchups** section of the All-Time tab (a new `Combined` category sub-cluster
+next to `Margins`/`Luck`), and the per-season "Closest & Most Lopsided" block on the By-Season tab.
+
+**Plan (mirrors the margin records end-to-end — no frontend changes):**
+1. `int__matchup_margins`: add `combined = winner_score + loser_score` (one column + properties
+   entry). It's already one row per played reg-season game with winner/loser scores.
+2. `all_time_records.sql`: add a `combined_records` CTE mirroring `margin_records` —
+   `cross join (values ('highest_shootouts'), ('lowest_slugfests')) as directions`, `metric_value
+   = combined`, rank per `sort_sign`, keep top 3, `detail` = `winner_score-loser_score`; union into
+   the records output.
+3. `season_highlights.sql`: add a `combined_candidates` CTE mirroring `margin_candidates` (per-season
+   top-3 highest/lowest combined).
+4. Seeds: 2 rows in `all_time_record_metrics.csv` (section `Matchups`, category `Combined`,
+   `metric_type record`, `sort_sign` 1 / -1, `value_format points`, `subtitle_kind context`) and 2 in
+   `season_highlight_metrics.csv` (`leaderboard`, sort_sign 1 / -1). Update MODELS.md.
+5. Names to ratify with the league (see OD-001) — e.g. *Highest-scoring games* / *Lowest-scoring
+   games*, or *Shootouts* / *Slugfests*.

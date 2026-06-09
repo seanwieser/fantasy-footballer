@@ -37,6 +37,9 @@ models:
         data_type: int
       - name: owner_name
         data_type: varchar
+      - name: opponent_owner_id
+        description: The opposing owner's id that week
+        data_type: int
       - name: opponent_team_name
         description: The opposing team's name that week
         data_type: varchar

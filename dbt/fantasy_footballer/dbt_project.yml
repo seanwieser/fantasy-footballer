@@ -21,6 +21,7 @@ models:
     +contract:
       enforced: true
     +materialized: table
+    +full_refresh: true
     marts:
       +schema: marts
     intermediate:
@@ -32,3 +33,5 @@ models:
 
 seeds:
   +schema: seed_data
+  # Seeds drop-and-recreate so a changed column set can't break the delete+insert load.
+  +full_refresh: true

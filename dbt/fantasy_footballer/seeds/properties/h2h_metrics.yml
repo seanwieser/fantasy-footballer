@@ -1,0 +1,65 @@
+version: 2
+
+seeds:
+  - name: h2h_metrics
+    description: >
+      H2H Dashboard comparison-metric catalog (one row per comparable owner stat). Git-tracked
+      constant seed defining each metric's section, label, value format, sort direction, reading
+      order, and tooltip description. Drives h2h_owner_metrics — adding a stat is a one-row change
+      here plus a candidate branch in the mart.
+    data_tests:
+      - assert_model_has_rows
+    columns:
+      - name: metric_key
+        description: "Stable metric identifier joined to the computed values."
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+          # No orphan catalog rows: every metric_key must produce at least one h2h_owner_metrics row
+          # (catches a seed entry whose candidate branch was never added, or a typo'd key).
+          - assert_all_values_present:
+              arguments:
+                to: ref('h2h_owner_metrics')
+                field: metric_key
+      - name: section
+        description: "Top-level grouping (Record, Scoring, Postseason, Matchups, Shotgun, Clutch, Transactions) the comparison rows cluster under — must match the frontend's SECTION_COLORS keys, else the section renders with no color/icon."
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [ 'Record', 'Scoring', 'Postseason', 'Matchups', 'Shotgun', 'Clutch', 'Transactions' ]
+      - name: metric_label
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: value_format
+        description: "int, points, pct, record, or ordinal — drives display formatting."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: sort_sign
+        description: "1 to highlight the highest value as leader, -1 to highlight the lowest."
+        data_type: int
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [ 1, -1 ]
+      - name: display_order
+        description: "Reading order of the comparison rows."
+        data_type: int
+        data_tests:
+          - not_null
+          - unique
+      - name: tier
+        description: "core (shown in the default Core view) or detail (shown only in the All-stats view)."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: description
+        description: "Tooltip text shown on the metric row."
+        data_type: varchar
+        data_tests:
+          - not_null

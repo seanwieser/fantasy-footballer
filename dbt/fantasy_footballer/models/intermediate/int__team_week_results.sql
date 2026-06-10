@@ -11,6 +11,7 @@ results as (
         team_weeks.week,
         owner_map.owner_id,
         owner_map.owner_name,
+        opponent_owner_map.owner_id as opponent_owner_id,
         opponent_owner_map.team_name as opponent_team_name,
         opponent_owner_map.owner_name as opponent_owner_name,
         team_weeks.score_for,

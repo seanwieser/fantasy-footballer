@@ -28,7 +28,11 @@ reference it in conversation, branches, and commits.
 | FF-008 | Refactor website navigation | frontend | Low | M | Idea |
 | FF-009 | Quantify luck via all-play / expected wins | dbt | Low | M | Idea |
 | FF-010 | Notification / events dashboard | dbt, backend, frontend | Low | L | Idea |
-| FF-011 | Unify "league single best/worst week" logic | dbt | Low | S | Idea |
+| FF-011 | Unify "league single best/worst week" logic | dbt | Low | S | Done |
+| FF-012 | H2H Dashboard | dbt, frontend | Med | M | Done |
+| FF-013 | Shootout / Slugfest records in League Highlights | dbt | Low | S | Done |
+| FF-014 | Postseason history page | frontend, dbt | Med | M | Idea |
+| FF-015 | iMessage group-chat data pipeline + analytics | backend, dbt | Low | L | Idea |
 
 ---
 
@@ -285,9 +289,85 @@ whether this wants the eventual FastAPI seam (see `architecture-roadmap.md`) as 
 
 ---
 
+## FF-014 — Postseason history page
+
+**Area:** frontend, dbt · **Priority:** Med · **Effort:** M · **Status:** Idea
+
+**Done when:** `/stats_center/postseason_history` is a real page (no longer the "Coming Soon…" stub at
+`frontend/stats_center/postseason_history.py`) presenting the league's postseason history — champions,
+runner-ups, and toilet-bowl finishes by season, plus the per-owner trophy case — with adding a season
+needing no page change.
+
+**What:** build out the postseason stub into a dedicated history page. The analytics already exist from
+the H2H / League-Highlights work — `int__team_postseason` (per team-season: bracket, final standing,
+`is_champion`/`is_last`, seed) and `int__owner_postseason_summary` (career rollup: championships,
+runner-ups, playoff appearances, toilet bowls, last-place finishes, best finish). This is mostly a
+**presentation** task over those models, mirroring the League-Highlights card/section style.
+
+**Pieces / ideas:**
+- A **season timeline** — one row/section per year: champion (with reg-season seed → upset factor),
+  runner-up, 3rd, and the toilet-bowl loser (dead last). Reuse the `seed`-format display already built
+  for the By-Season Champion / Toilet-Bowl titles.
+- A **trophy case per owner** — championships / runner-ups / toilet bowls stacked, from
+  `int__owner_postseason_summary` (the same numbers the H2H Postseason section compares).
+- Possibly a **bracket view** per season if `int__team_postseason` carries enough structure; otherwise a
+  flat finishing-order table.
+- Keep it a **thin page** over marts (add a `postseason_history` mart if the timeline needs display
+  shaping) — no new ESPN data; everything composes from existing intermediates.
+
+**Why now-ish:** the postseason intermediates were just built for FF-012; this is the natural page to
+surface them on their own rather than only inside League Highlights / H2H. Pairs with FF-008 (nav
+refactor) since it's a new top-level destination.
+
+---
+
+## FF-015 — iMessage group-chat data pipeline + analytics
+
+**Area:** backend, dbt · **Priority:** Low · **Effort:** L · **Status:** Idea
+
+**Done when:** the league's iMessage group-chat history is ingested as a new source (raw export → B2 on
+the same date-partitioned layout as `s001`, staging models exposing messages/reactions at a tidy grain)
+and at least one analytics use case is built on it.
+
+**What:** treat the group chat as a first-class **data source** — the league has years of trash talk,
+trade haggling, and gameday reactions that nothing currently mines. iMessage history is locally
+extractable (the macOS `chat.db` SQLite store, or a one-off export) → upload to B2 → ingest like any
+other source → build staging/intermediate models → surface insights. This is the **ingest + analytics**
+side; pushing alerts *into* the chat is the consumer side tracked in FF-010.
+
+**Pipeline pieces it will need:**
+- An **extractor** for the chat history (`chat.db` SQLite or an export tool), normalized to one row per
+  message (sender owner, timestamp, text, thread/reply, attachments) + one row per **reaction/tapback**
+  (message, reactor, type). Map chat participants → `owner_id`.
+- **Upload to B2** under a new source (e.g. `s003`), same partition pattern as ESPN, then the usual
+  `ingest_raw_data_from_cloud` → `base_s003__messages` / `base_s003__reactions` → staging.
+- **PII / consent care** — chat content is personal; it's owner data, so it lives in the
+  **sensitive/gitignored** path, never the git-tracked seeds (see CLAUDE.md gotchas + the public-repo
+  constraint). Get league buy-in before ingesting (overlaps OD-style discussion).
+
+**Brainstormed analytics use cases (to prioritize later):**
+- **Trash-talk leaderboard** — message volume + most-reacted messages per owner; who runs their mouth.
+- **Reaction tallies** — most-loved / most-laughed / most-disliked messages (tapback counts), "burn of
+  the year."
+- **Activity timeline** — chat volume by week/season, spikes around the draft, trade deadline, big
+  upsets; correlate chatter with on-field results (do winners talk more?).
+- **Trade-negotiation history** — surface trade-proposal threads alongside the actual roster moves
+  (ties into FF-006 ownership-change work).
+- **Catchphrases / nicknames** — per-owner word clouds, recurring slang (feeds OD-001 naming culture).
+- **LLM season recap** — feed chat + results to a model for a weekly/season writeup (a concrete
+  consumer for FF-010's event feed).
+- **Profanity / "curse index"** — playful per-owner counter.
+
+**Why later:** it's a brand-new source (extractor + schemas + B2 layout) and needs a league consent call
+on ingesting personal chat data, so it's a deliberate L. Relates to the dormant `groupme/` puller
+(another chat source we already keep around) and to FF-010 (the events/notification consumer that could
+push *back* into the chat).
+
+---
+
 ## FF-011 — Unify "league single best/worst week" logic
 
-**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Idea
+**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Done
 
 **Done when:** the league's single highest/lowest regular-season week is defined in exactly one place,
 with both the season title and the week-grain chip flag sourced from it (no parallel computation).
@@ -307,10 +387,77 @@ filters playoffs/unplayed weeks differently, or handles a co-best-week tie diffe
 consumers (FF-010 builds the events feed on it), so the shared definition is locked in before more code
 depends on it.
 
-**Pieces it will need:**
-- Pick the single source of truth (likely the week-grain extremes in `int__team_week_highlights`, since
-  it already knows *which* week), and have `int__season_titles` derive the matchup title from it — or
-  factor the league per-season extreme into one small intermediate both consume.
-- Verify tie behavior (co-best weeks) matches the title's `rank() = 1` semantics.
-- Confirm via the existing data cross-checks that every `is_best_week`/`is_worst_week` chip still lines up
-  1:1 with `matchup_title`/`bad_matchup_title`.
+**Plan:**
+1. New `int__league_season_week_extremes` (grain: **year**): `league_best_score` / `league_worst_score`
+   = `max/min(score_for) filter (where outcome != 'U')` over `int__team_week_results` (played reg-season
+   weeks). This becomes the *single* definition of the league's single highest/lowest week. (Optionally
+   also carry `tightest_margin` / `biggest_margin` so the same model backs the Tightest/Biggest flags.)
+2. `int__team_week_highlights`: replace its inline `league_extremes` CTE with a `ref()` to the new model;
+   the `is_best_week` / `is_worst_week` chip flags are unchanged.
+3. `int__season_titles`: replace `rank() over (partition by year order by best_week_score desc) = 1`
+   with `best_week_score = league_best_score` (join the new model) for `is_matchup_title`; mirror for
+   `is_bad_matchup_title`. Identical co-title semantics (every team whose best week equals the league
+   max). Drop the now-unused `matchup_rank` / `bad_matchup_rank`.
+4. Add a data test asserting `is_best_week` / `is_worst_week` line up 1:1 with `is_matchup_title` /
+   `is_bad_matchup_title` so future drift fails the build. Update MODELS.md (new model + the two refs).
+
+---
+
+## FF-012 — H2H Dashboard
+
+**Area:** dbt, frontend · **Priority:** Med · **Effort:** M · **Status:** Done
+
+**Done when:** `/stats_center/h2h_dashboard` lets you pick 2+ owners and compare them across a
+catalog of career metrics (leader highlighted per metric) plus the true pairwise head-to-head
+record, with adding a new comparison stat being a one-row-seed + one-mart-branch change.
+
+**What (shipped v1):** a metric-rows × owner-columns comparison grid driven by the same
+seed-catalog pattern as League Highlights. New dbt: `int__owner_postseason_summary` (career
+playoff/championship/toilet-bowl rollup), `int__owner_head_to_head` (pairwise record, reg vs
+playoff), marts `h2h_owner_metrics` (tidy/long, every owner) + `h2h_matchup_records`, and the
+`h2h_metrics` seed. Frontend `h2h_dashboard.py` renders the grid (leader crowned per
+`sort_sign`, suppressed when all tie) with a lead Head-to-Head section. H2H record scope =
+regular season headline + playoff line when the pair met in the postseason.
+
+**Future stats to add (easy now — seed row + candidate branch):** longest H2H win streak,
+biggest H2H blowout, playoff-only records, all-play / expected wins (see FF-009), draft-capital
+metrics. Possible UI follow-ups: a prominent 2-owner banner, sortable/pinned metrics.
+
+---
+
+## FF-013 — Shootout / Slugfest records in League Highlights
+
+**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Done
+
+**Done when:** the League Highlights page surfaces the highest- and lowest-*combined-score*
+regular-season games (both teams added together) — all-time top-3 and per-season — using the
+same seed-catalog machinery as the existing margin records.
+
+**Why / context:** the H2H dashboard already shows "highest shootout / lowest slugfest" per
+rivalry (computed in `int__owner_head_to_head`), and they're fun league-wide too. They're
+game-level matchup records, structurally identical to the existing **Tightest games / Biggest
+blowouts** (margin) records — so they reuse that exact pattern.
+
+**Best place:** the **Matchups** section of *both* tabs. All-Time → a new `Combined` category
+sub-cluster next to `Margins`/`Luck` (top-3 records). By-Season → single-winner titles alongside
+*Tightest game* / *Biggest blowout* (FF-012 converted the By-Season margin records to single-winner
+titles and deleted the separate "Closest & Most Lopsided" block plus the `metric_type`/`result_n`
+seed columns — so shootout/slugfest follow the same one-crown-per-season shape).
+
+**Plan (mirrors the margin records end-to-end — no frontend changes):**
+1. `int__matchup_margins`: add `combined = winner_score + loser_score` (one column + properties
+   entry). It's already one row per played reg-season game with winner/loser scores.
+2. `all_time_records.sql`: add a `combined_records` CTE mirroring `margin_records` —
+   `cross join (values ('highest_shootouts'), ('lowest_slugfests')) as directions`, `metric_value
+   = combined`, rank per `sort_sign`, keep top 3, `detail` = `winner_score-loser_score`; union into
+   `candidates`.
+3. `season_highlights.sql`: add a `combined_candidates` CTE mirroring `margin_candidates`, union into
+   `candidates` (the mart's `where metric_rank = 1` keeps the single highest/lowest combined game that
+   season — a single-winner title).
+4. Seeds: 2 rows in `all_time_record_metrics.csv` (section `Matchups`, category `Combined`,
+   `metric_type record`, `sort_sign` 1 / -1, `value_format points`, `subtitle_kind context`,
+   `result_n 3`); 2 in `season_highlight_metrics.csv` (current columns — `category Combined`,
+   `section Matchups`, `sort_sign` 1 / -1, `value_format points`, next `display_order`, blank
+   `empty_label`). Update MODELS.md.
+5. Names to ratify with the league (see OD-001) — e.g. *Highest-scoring games* / *Lowest-scoring
+   games*, or *Shootouts* / *Slugfests*.

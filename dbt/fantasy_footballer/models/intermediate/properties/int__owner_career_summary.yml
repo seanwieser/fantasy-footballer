@@ -124,3 +124,13 @@ models:
       - name: clutch_win_pct
         description: Career clutch win percentage (null if the owner never played a clutch game)
         data_type: double
+      - name: acquisitions_total
+        description: Career roster acquisitions (waiver / free-agent adds) across every season
+        data_type: int
+        data_tests:
+          - not_null
+      - name: trades_total
+        description: Career trades completed across every season
+        data_type: int
+        data_tests:
+          - not_null

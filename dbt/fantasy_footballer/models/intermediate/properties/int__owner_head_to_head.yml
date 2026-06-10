@@ -1,0 +1,182 @@
+version: 2
+
+models:
+  - name: int__owner_head_to_head
+    description: >
+      One row per ordered owner pair (owner vs opponent_owner) — the all-time rivalry between two
+      owners. **Regular season and playoffs are kept completely separate:** every comparison metric
+      (record, points, averages, margins, streaks, clutch, shootout/slugfest) is regular-season only;
+      playoffs surface solely as the `playoff_wins/losses/ties/games` W-L line. This avoids mixing in
+      the 2-week-aggregate playoff scores (a different scale) and matches the regular-season-only
+      league-wide records. Carries single-game extremes with year/week context (biggest win, closest
+      game, highest shootout, lowest slugfest), streaks (current + longest win), and the last meeting.
+      Summed across opponents the regular-season record also yields each owner's career W-L-T. Built
+      game-by-game from [[int__team_week_results]] (unplayed weeks excluded). Backs
+      [[h2h_matchup_records]] and the career-record metric in [[h2h_owner_metrics]].
+    columns:
+      - name: owner_opponent_id
+        description: Composite grain key owner_id_opponentOwnerId.
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: opponent_owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: opponent_owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: reg_wins
+        data_type: int
+        data_tests:
+          - not_null
+      - name: reg_losses
+        data_type: int
+        data_tests:
+          - not_null
+      - name: reg_ties
+        data_type: int
+        data_tests:
+          - not_null
+      - name: reg_games
+        data_type: int
+        data_tests:
+          - not_null
+      - name: reg_points_for
+        data_type: double
+        data_tests:
+          - not_null
+      - name: reg_points_against
+        data_type: double
+        data_tests:
+          - not_null
+      - name: playoff_wins
+        data_type: int
+        data_tests:
+          - not_null
+      - name: playoff_losses
+        data_type: int
+        data_tests:
+          - not_null
+      - name: playoff_ties
+        data_type: int
+        data_tests:
+          - not_null
+      - name: playoff_games
+        data_type: int
+        data_tests:
+          - not_null
+      - name: avg_points_for
+        description: Owner's average score across regular-season meetings with this opponent.
+        data_type: double
+        data_tests:
+          - not_null
+      - name: avg_margin
+        description: Owner's average signed margin (score_for - score_against) across regular-season meetings.
+        data_type: double
+        data_tests:
+          - not_null
+      - name: clutch_wins
+        description: Wins in meetings decided by under 10 points.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: clutch_losses
+        data_type: int
+        data_tests:
+          - not_null
+      - name: held_under_100
+        description: Meetings in which the owner held this opponent under 100 points.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: lucky_wins
+        description: Wins over this opponent while scoring below the week's league median (reg season only).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: unlucky_losses
+        description: Losses to this opponent while scoring above the week's league median (reg season only).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: biggest_win_margin
+        description: Largest signed margin in any meeting (negative if the owner never won).
+        data_type: double
+        data_tests:
+          - not_null
+      - name: biggest_win_context
+        description: "Score + margin + year/week of the biggest-margin meeting, e.g. 145.2-89.0 (+56.2) (2021 W3)."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: closest_margin
+        data_type: double
+        data_tests:
+          - not_null
+      - name: closest_context
+        description: >
+          Owner-perspective score (score_for-score_against) + signed margin + year/week of the
+          smallest-margin meeting — the page reads the left owner's row so it orders by column.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: closest_leader
+        description: owner_id of the winner of the closest meeting; null if it was a tie.
+        data_type: int
+      - name: shootout_combined
+        description: Highest combined score of any meeting.
+        data_type: double
+        data_tests:
+          - not_null
+      - name: shootout_context
+        description: "Combined total + owner-perspective matchup score + year/week of the highest-scoring meeting, e.g. 296 (158.4-137.6) (2024 W17)."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: shootout_leader
+        description: owner_id of the winner of the highest-scoring meeting; null if it was a tie.
+        data_type: int
+      - name: slugfest_combined
+        description: Lowest combined score of any meeting.
+        data_type: double
+        data_tests:
+          - not_null
+      - name: slugfest_context
+        description: Combined total + owner-perspective matchup score + year/week of the lowest-scoring meeting.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: slugfest_leader
+        description: owner_id of the winner of the lowest-scoring meeting; null if it was a tie.
+        data_type: int
+      - name: current_outcome
+        description: Outcome (W/L/T) of the most recent meeting — the current streak's direction.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: last_meeting_context
+        description: "Owner-perspective score (score_for-score_against) + signed margin + year/week of the most recent meeting."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: current_streak
+        description: Length of the current run of same-outcome meetings (from the latest meeting back).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: longest_win_streak
+        description: Longest run of consecutive wins the owner has had over this opponent.
+        data_type: int
+        data_tests:
+          - not_null

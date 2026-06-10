@@ -30,6 +30,7 @@ games as (
         team_weeks.score_for as winner_score,
         opponent_weeks.score_for as loser_score,
         abs(team_weeks.score_for - opponent_weeks.score_for) as margin,
+        team_weeks.score_for + opponent_weeks.score_for as combined,
         team_weeks.outcome = 'T' as is_tie
     from reg_season_team_weeks as team_weeks
     inner join reg_season_team_weeks as opponent_weeks
@@ -48,5 +49,6 @@ select
     winner_score,
     loser_score,
     margin,
+    combined,
     is_tie
 from games

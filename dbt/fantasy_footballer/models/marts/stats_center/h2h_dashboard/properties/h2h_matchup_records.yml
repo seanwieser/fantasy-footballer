@@ -1,0 +1,143 @@
+version: 2
+
+models:
+  - name: h2h_matchup_records
+    description: >
+      One row per ordered owner pair — the rivalry between two owners formatted for display on the
+      H2H Dashboard. Two flavors of field: per-owner values where each side has its own number
+      (`avg_points`, `longest_win_streak`, `biggest_win`, `held_under_100`, `lucky_wins`,
+      `unlucky_losses`); and the `rivalry_*` / game-extreme facts, each an **owner-perspective**
+      display string (this row's owner's value first) + a nullable `*_leader` owner_id (null when
+      even). The page reads the left owner's row, so the value already orders left-to-right by column
+      and the arrow points at the leader: `rivalry_record`, `rivalry_playoff_record`, `rivalry_points`,
+      `rivalry_avg_margin`, `rivalry_streak`, `rivalry_last_meeting`, `rivalry_clutch`,
+      `closest_game`, `highest_shootout`, `lowest_slugfest`. Thin display wrap of
+      [[int__owner_head_to_head]].
+    columns:
+      - name: owner_opponent_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: opponent_owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: opponent_owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: longest_win_streak
+        data_type: int
+        data_tests:
+          - not_null
+      - name: held_under_100
+        data_type: int
+        data_tests:
+          - not_null
+      - name: lucky_wins
+        description: Per-owner — wins over the other while scoring below the week's league median (you stole one).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: unlucky_losses
+        description: Per-owner — losses to the other while scoring above the week's league median (a bad beat).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: avg_points
+        description: Owner's average score per meeting (per-owner — each side has its own value).
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: biggest_win
+        description: 'Score + margin + when of the owner''s largest win (per-owner); e.g. "159.2-108.6 (+50.6) (2022 W3)"; null if they never won.'
+        data_type: varchar
+      - name: closest_game
+        description: 'Owner-perspective score + signed margin + when of the smallest-margin meeting (column-ordered, arrow to winner).'
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: closest_game_leader
+        description: owner_id of the winner of the closest meeting; null if it was a tie.
+        data_type: int
+      - name: highest_shootout
+        description: 'Combined total + owner-perspective matchup score + when of the highest-scoring meeting.'
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: highest_shootout_leader
+        description: owner_id of the winner of the highest-scoring meeting; null if it was a tie.
+        data_type: int
+      - name: lowest_slugfest
+        description: 'Combined total + owner-perspective matchup score + when of the lowest-scoring meeting.'
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: lowest_slugfest_leader
+        description: owner_id of the winner of the lowest-scoring meeting; null if it was a tie.
+        data_type: int
+      - name: rivalry_record
+        description: 'Owner-perspective regular-season record (this row''s owner first) + win % (e.g. "4-6 (40%)"); arrow to the leader.'
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: rivalry_record_leader
+        description: owner_id of the owner with the better regular-season record; null when even.
+        data_type: int
+      - name: rivalry_playoff_record
+        description: 'Owner-perspective postseason series record (this row''s owner first, e.g. "0-1"), or "None" when they never met in the playoffs.'
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: rivalry_playoff_record_leader
+        description: owner_id of the owner ahead in the postseason series; null when even or none played.
+        data_type: int
+      - name: rivalry_points
+        description: 'Owner-perspective total points (this row''s owner first) + signed margin (e.g. "1205-1239 (-35)").'
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: rivalry_points_leader
+        description: owner_id of the higher-scoring owner across all meetings; null when tied.
+        data_type: int
+      - name: rivalry_avg_margin
+        description: 'Owner-perspective average margin per meeting (signed, e.g. "-3.5"), or "Even".'
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: rivalry_avg_margin_leader
+        description: owner_id of the owner with the positive average margin; null when dead even.
+        data_type: int
+      - name: rivalry_streak
+        description: 'Owner-perspective current run (e.g. "W3" if this owner is winning, "L3" if losing), or "Tied".'
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: rivalry_streak_leader
+        description: owner_id of the owner currently on the winning run; null when the last meeting tied.
+        data_type: int
+      - name: rivalry_last_meeting
+        description: 'Owner-perspective score + signed margin + when of the most recent meeting (e.g. "117.7-158.8 (-41.1) (2025 W8)").'
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: rivalry_last_meeting_leader
+        description: owner_id of the most recent meeting's winner; null when it was a tie.
+        data_type: int
+      - name: rivalry_clutch
+        description: 'Owner-perspective clutch record (this row''s owner first, meetings decided by < 10 pts, e.g. "1-2"), or "None".'
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: rivalry_clutch_leader
+        description: owner_id of the owner ahead in clutch meetings; null when even or none played.
+        data_type: int

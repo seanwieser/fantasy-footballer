@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: int__owner_postseason_summary
+    description: >
+      One row per owner — career postseason roll-up across every season: playoff appearances,
+      championships / runner-ups / third places, toilet-bowl appearances, last-place ("toilet bowl
+      winner") and second-to-last finishes, and best (lowest) final standing. Aggregates the
+      team-season placements in [[int__team_postseason]] up to the owner via [[int__owner_team_year_map]].
+    columns:
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+          - unique
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: playoff_appearances
+        description: Seasons the owner reached the winners (championship) bracket.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: championships
+        data_type: int
+        data_tests:
+          - not_null
+      - name: runner_ups
+        data_type: int
+        data_tests:
+          - not_null
+      - name: third_places
+        data_type: int
+        data_tests:
+          - not_null
+      - name: toilet_bowl_appearances
+        description: Seasons the owner finished in the bottom-4 toilet bowl bracket.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: last_place_finishes
+        description: Seasons finishing dead last (12th) — the toilet bowl "winner".
+        data_type: int
+        data_tests:
+          - not_null
+      - name: second_to_last_finishes
+        data_type: int
+        data_tests:
+          - not_null
+      - name: best_finish
+        description: Lowest (best) ESPN final standing the owner ever achieved.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: playoff_wins
+        description: Wins across every meaningful postseason game (filler/middle games excluded).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: playoff_losses
+        description: Losses across every meaningful postseason game.
+        data_type: int
+        data_tests:
+          - not_null

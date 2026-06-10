@@ -15,10 +15,20 @@ seeds:
         data_tests:
           - not_null
           - unique
+          # No orphan catalog rows: every metric_key must produce at least one all_time_records row
+          # (catches a seed entry whose candidate branch was never added, or a typo'd key).
+          - assert_all_values_present:
+              arguments:
+                to: ref('all_time_records')
+                field: metric_key
       - name: section
+        description: "Top-level grouping the cards cluster under — must match the frontend's SECTIONS / SECTION_COLORS keys, else the section renders with no color/icon."
         data_type: varchar
         data_tests:
           - not_null
+          - accepted_values:
+              arguments:
+                values: [ 'Scoring', 'Postseason', 'Matchups', 'Shotgun', 'Clutch', 'Transactions' ]
       - name: category
         data_type: varchar
         data_tests:
@@ -37,6 +47,9 @@ seeds:
         data_type: int
         data_tests:
           - not_null
+          - accepted_values:
+              arguments:
+                values: [ 1, -1 ]
       - name: result_n
         description: "How many ranks to keep (1 = single extreme, 3 = top-3 leaderboard)."
         data_type: int

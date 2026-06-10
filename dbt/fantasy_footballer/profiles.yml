@@ -5,6 +5,8 @@ default:
       type: duckdb
       path: ./resources/fantasy_footballer.duckdb
       keep_open: false
+      threads: 8
     default:
       type: duckdb
       path: ../../resources/fantasy_footballer.duckdb
+      threads: 8

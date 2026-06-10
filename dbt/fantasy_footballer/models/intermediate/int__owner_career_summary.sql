@@ -42,6 +42,18 @@ snub_aggregates as (
     group by owner_id
 ),
 
+-- Career roster-move totals: waiver/free-agent acquisitions and completed trades across all seasons.
+transaction_aggregates as (
+    select
+        owner_map.owner_id,
+        sum(teams.acquisitions)::int as acquisitions_total,
+        sum(teams.trades)::int as trades_total
+    from {{ ref("base_s001__teams") }} as teams
+    inner join {{ ref("int__owner_team_year_map") }} as owner_map
+        on teams.team_year_id = owner_map.team_year_id
+    group by owner_map.owner_id
+),
+
 combined as (
     select
         title_aggregates.*,
@@ -50,6 +62,8 @@ combined as (
         scoring_aggregates.games_total,
         snub_aggregates.snub_total,
         snub_aggregates.luck_in_total,
+        transaction_aggregates.acquisitions_total,
+        transaction_aggregates.trades_total,
         scoring_aggregates.points_total / nullif(scoring_aggregates.games_total, 0) as points_per_game,
         title_aggregates.clutch_wins_total /
         nullif(title_aggregates.clutch_wins_total + title_aggregates.clutch_losses_total, 0) *
@@ -57,6 +71,7 @@ combined as (
     from title_aggregates
     inner join scoring_aggregates on title_aggregates.owner_id = scoring_aggregates.owner_id
     inner join snub_aggregates on title_aggregates.owner_id = snub_aggregates.owner_id
+    inner join transaction_aggregates on title_aggregates.owner_id = transaction_aggregates.owner_id
 )
 
 select * from combined

@@ -58,7 +58,7 @@ dbt/fantasy_footballer/
   profiles.yml                  default duckdb profile (default vs app target — path differs)
   models/{base,staging,intermediate,marts}/...
   tests/generic/                custom generic tests
-  macros/                       (currently empty)
+  macros/                       format_metric_value (shared display formatting for the metric-catalog marts)
   seeds/*.csv                   git-TRACKED constant seeds (non-sensitive metadata, e.g. league_highlights metric catalogs)
 
 resources/
@@ -146,8 +146,18 @@ properties.yml first.
 - `test_average_equals(value, tolerance=0.01, allow_null=false)` — sanity-checks
   computed averages (e.g. league-wide OW should average 0.5).
 - `test_range(min_value, max_value, inclusive=true, allow_null=false)` — bounds check.
+- `assert_all_values_present(to, field)` — inverse of `relationships`: every value of the
+  tested column must appear in `to.field`. Used on the metric-catalog seeds to assert no
+  orphan rows (every `metric_key` produces at least one mart row).
 
 Prefer these over inline SQL tests.
+
+**Cross-mart consistency (singular) tests** in `tests/*.sql` guard invariants that span models —
+the genre to extend when two marts should agree. Current set: `assert_matchup_titles_match_week_chips`
+(chip↔title), `assert_h2h_extremes_within_league_records` (rivalry extremes bounded by league records),
+`assert_postseason_placements_match_espn`, `assert_career_record_matches_source` (H2H-summed record ↔
+raw ESPN `base_s001__teams`), `assert_league_reg_season_zero_sum` (per-season wins=losses & PF=PA), and
+`assert_matchup_margins_arithmetic` (`margin`/`combined` definitions).
 
 ### SQL style
 
@@ -281,6 +291,10 @@ A "source" = one upstream data provider (currently just `s001` = ESPN). To add o
 - isort runs in pre-commit.
 - All inline pylint disables should be narrow and commented. There are existing
   examples (`# pylint: disable=broad-exception-caught`) — follow that style.
+- **Inline comments (code, SQL, and config) describe the current state/intent, not the
+  change that produced it.** Diff-narrating phrasing — "now lives in…", "moved from…",
+  "removed the X flag" — goes stale the moment the next change lands and the reader has no
+  diff in hand. Write what the code *is/does*, or drop the comment if the code already says it.
 
 ## Local dev
 
@@ -361,3 +375,22 @@ conventions:
   Don't try to integrate it into `main.py`.
 - `2018` data is special-cased in `MatchupTransformer` (uses `scoreboard` instead
   of `box_scores`). When working with matchup data, account for it.
+- **League Highlights and the H2H Dashboard should stay organized the same way.** The two
+  stats pages (`/stats_center/league_highlights` and `/stats_center/h2h_dashboard`) present the
+  *same* league analytics from different angles — all-owner records/leaderboards + per-season
+  titles vs. pairwise comparison — so they should share the same **sections** (Scoring,
+  Postseason, Matchups, Shotgun, Clutch, Transactions, …) and, for the most part, the same
+  **metrics**. When you add or move a metric/section in one, mirror it in the other unless there's
+  a clear reason not to. The alignment lives in the three seed catalogs (`all_time_record_metrics`,
+  `season_highlight_metrics`, `h2h_metrics`) — keep their `section`/metric sets in sync.
+- **Regular-season and playoff metrics are kept completely separate.** This league's
+  playoff matchups are ~2-week aggregates, so a playoff "week" carries a score on a
+  different scale (often ~2× a regular-season week). **Never mix playoff games into any
+  score / margin / combined / average / streak metric** — they'd distort it and break
+  comparability with the regular-season-only records. Every comparison metric
+  (`int__owner_head_to_head` rivalry stats, the League-Highlights records via
+  `int__matchup_margins`, season titles, etc.) is regular-season only; playoffs surface
+  *solely* as their own separate W-L records (e.g. `playoff_wins`/`playoff_losses`).
+  When adding a new score/margin metric, filter to `not is_playoff` and, if it has a
+  league-wide counterpart, add a cross-model bound test (see
+  `tests/assert_h2h_extremes_within_league_records.sql`).

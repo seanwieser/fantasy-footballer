@@ -200,7 +200,6 @@ class DbManager:
         cli_args = [action]
         if action in ["build", "seed"]:
             cli_args.extend([
-                "--full-refresh",
                 "--profiles-dir",
                 "dbt/fantasy_footballer",
                 "--project-dir",

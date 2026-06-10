@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: h2h_owner_metrics
+    description: >
+      One row per owner per comparable stat (tidy/long) for the H2H Dashboard — every owner kept
+      (no ranking). metric_value drives the leader highlight per row (max of metric_value * sort_sign);
+      display_value is the formatted string to show. Catalog metadata (section/label/format/sort/order/
+      description) comes from the h2h_metrics seed; values compose [[int__owner_career_summary]],
+      [[int__owner_postseason_summary]], and the career record summed from [[int__owner_head_to_head]].
+    columns:
+      - name: section
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: metric_key
+        data_type: varchar
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('h2h_metrics')
+                field: metric_key
+      - name: metric_label
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: value_format
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: sort_sign
+        description: "1 to highlight the highest value as leader, -1 to highlight the lowest."
+        data_type: int
+        data_tests:
+          - not_null
+      - name: description
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: display_order
+        data_type: int
+        data_tests:
+          - not_null
+      - name: tier
+        description: "core or detail — drives the Core/All-stats toggle on the page."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: metric_value
+        description: "Numeric value driving the leader highlight + sort. Null when the stat is undefined for the owner."
+        data_type: double
+      - name: display_value
+        description: "Formatted string shown in the comparison cell."
+        data_type: varchar

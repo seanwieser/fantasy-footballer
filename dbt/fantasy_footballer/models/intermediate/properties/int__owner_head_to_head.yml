@@ -4,12 +4,15 @@ models:
   - name: int__owner_head_to_head
     description: >
       One row per ordered owner pair (owner vs opponent_owner) — the all-time rivalry between two
-      owners. Carries the split record (regular season vs playoffs), all-meeting totals/averages,
-      single-game extremes with year/week context (biggest win, closest game, highest shootout,
-      lowest slugfest), streaks (current + longest win), and the last meeting. Summed across
-      opponents the regular-season record also yields each owner's career W-L-T. Built game-by-game
-      from [[int__team_week_results]] (unplayed weeks excluded). Backs [[h2h_matchup_records]] and the
-      career-record metric in [[h2h_owner_metrics]].
+      owners. **Regular season and playoffs are kept completely separate:** every comparison metric
+      (record, points, averages, margins, streaks, clutch, shootout/slugfest) is regular-season only;
+      playoffs surface solely as the `playoff_wins/losses/ties/games` W-L line. This avoids mixing in
+      the 2-week-aggregate playoff scores (a different scale) and matches the regular-season-only
+      league-wide records. Carries single-game extremes with year/week context (biggest win, closest
+      game, highest shootout, lowest slugfest), streaks (current + longest win), and the last meeting.
+      Summed across opponents the regular-season record also yields each owner's career W-L-T. Built
+      game-by-game from [[int__team_week_results]] (unplayed weeks excluded). Backs
+      [[h2h_matchup_records]] and the career-record metric in [[h2h_owner_metrics]].
     columns:
       - name: owner_opponent_id
         description: Composite grain key owner_id_opponentOwnerId.
@@ -73,38 +76,13 @@ models:
         data_type: int
         data_tests:
           - not_null
-      - name: total_meetings
-        description: All meetings between the pair (regular season + playoffs).
-        data_type: int
-        data_tests:
-          - not_null
-      - name: total_wins
-        data_type: int
-        data_tests:
-          - not_null
-      - name: total_losses
-        data_type: int
-        data_tests:
-          - not_null
-      - name: total_ties
-        data_type: int
-        data_tests:
-          - not_null
-      - name: total_points_for
-        data_type: double
-        data_tests:
-          - not_null
-      - name: total_points_against
-        data_type: double
-        data_tests:
-          - not_null
       - name: avg_points_for
-        description: Owner's average score across every meeting with this opponent.
+        description: Owner's average score across regular-season meetings with this opponent.
         data_type: double
         data_tests:
           - not_null
       - name: avg_margin
-        description: Owner's average signed margin (score_for - score_against) across every meeting.
+        description: Owner's average signed margin (score_for - score_against) across regular-season meetings.
         data_type: double
         data_tests:
           - not_null

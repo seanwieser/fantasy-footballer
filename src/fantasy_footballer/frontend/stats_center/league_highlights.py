@@ -8,12 +8,14 @@ from frontend.utils import (SECTION_COLORS, common_header, get_current_year,
                             medal)
 from nicegui import ui
 
-SECTIONS = ["Scoring", "Matchups", "Shotgun", "Clutch"]
-SECTION_ICONS = {"Scoring": "sports_football", "Clutch": "bolt", "Matchups": "sports_kabaddi", "Shotgun": "sports_bar"}
+SECTIONS = ["Scoring", "Postseason", "Matchups", "Shotgun", "Clutch", "Transactions"]
+SECTION_ICONS = {"Scoring": "sports_football", "Clutch": "bolt", "Matchups": "sports_kabaddi", "Shotgun": "sports_bar",
+                 "Transactions": "swap_horiz", "Postseason": "emoji_events"}
 
 # Within a section, cards cluster by `category` for scannability (order comes from the seed's
 # display_order); these are the friendly sub-cluster headers.
-CATEGORY_LABELS = {"Season": "Full Season", "Matchup": "Single Week", "Playoff": "Playoff Races"}
+CATEGORY_LABELS = {"Season": "Full Season", "Matchup": "Single Week", "Playoff": "Playoff Races",
+                   "Results": "Titles & Finishes"}
 
 # Owner-level context shared across cards: retired flag (set of owner_ids) + seasons-played (dict).
 OwnerInfo = namedtuple("OwnerInfo", ["retired", "seasons"])
@@ -193,18 +195,17 @@ def empty_card(label, description, color, message):
 
 
 def render_season(year, owners):
-    """Render every season-title card (held or empty) grouped by section, then margin leaderboards."""
+    """Render every season-title card (held or empty) grouped by section."""
     # Catalog drives the grid so a title with no holder this year still shows a placeholder card.
     catalog = DbManager.query("""
         select metric_key, section, metric_label, description, empty_label
         from main_seed_data.season_highlight_metrics
-        where metric_type = 'title'
         order by display_order
     """, to_dict=True)
     holders = DbManager.query(f"""
         select *
         from main_marts.season_highlights
-        where year = {year} and metric_type = 'title'
+        where year = {year}
         order by display_order, rank
     """, to_dict=True)
     held = {group[0]["metric_key"]: group for group in _runs(holders, "metric_key")}
@@ -225,21 +226,6 @@ def render_season(year, owners):
                     podium_card(group, color, owners)
                 else:
                     empty_card(meta["metric_label"], meta["description"], color, meta["empty_label"])
-
-    boards = DbManager.query(f"""
-        select *
-        from main_marts.season_highlights
-        where year = {year} and metric_type = 'leaderboard'
-        order by display_order, rank
-    """, to_dict=True)
-    board_groups = _runs(boards, "metric_key")
-    with ui.row().classes("w-full items-center gap-2 mt-8 mb-1"):
-        ui.icon("compare_arrows", size="1.9rem").classes("text-orange-7")
-        ui.label("Closest & Most Lopsided").classes("text-2xl font-bold text-orange-8")
-    ui.separator().classes("bg-orange-4")
-    with ui.grid(columns=_balanced_cols(len(board_groups), 2)).classes("w-full gap-4"):
-        for group in board_groups:
-            podium_card(group, SECTION_COLORS[group[0]["section"]], owners)
 
 
 def season_tab(owners):

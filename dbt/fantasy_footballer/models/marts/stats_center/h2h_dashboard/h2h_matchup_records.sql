@@ -9,7 +9,6 @@ shaped as (
         owner_name,
         opponent_owner_id,
         opponent_owner_name,
-        total_meetings,
         longest_win_streak,
         held_under_100,
         lucky_wins,
@@ -40,12 +39,12 @@ shaped as (
             when playoff_wins > playoff_losses then owner_id
             when playoff_losses > playoff_wins then opponent_owner_id
         end as rivalry_playoff_record_leader,
-        round(total_points_for, 0)::bigint::varchar || '-' || round(total_points_against, 0)::bigint::varchar ||
-        case when total_points_for - total_points_against >= 0 then ' (+' else ' (' end ||
-        round(total_points_for - total_points_against, 0)::bigint::varchar || ')' as rivalry_points,
+        round(reg_points_for, 0)::bigint::varchar || '-' || round(reg_points_against, 0)::bigint::varchar ||
+        case when reg_points_for - reg_points_against >= 0 then ' (+' else ' (' end ||
+        round(reg_points_for - reg_points_against, 0)::bigint::varchar || ')' as rivalry_points,
         case
-            when total_points_for > total_points_against then owner_id
-            when total_points_against > total_points_for then opponent_owner_id
+            when reg_points_for > reg_points_against then owner_id
+            when reg_points_against > reg_points_for then opponent_owner_id
         end as rivalry_points_leader,
         case
             when avg_margin = 0 then 'Even'

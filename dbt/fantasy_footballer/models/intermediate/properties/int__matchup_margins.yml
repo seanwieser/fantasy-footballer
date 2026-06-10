@@ -50,6 +50,11 @@ models:
         data_type: double
         data_tests:
           - not_null
+      - name: combined
+        description: winner_score + loser_score — the game's total points (shootout / slugfest metric)
+        data_type: double
+        data_tests:
+          - not_null
       - name: is_tie
         data_type: bool
         data_tests:

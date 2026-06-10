@@ -17,7 +17,7 @@ seeds:
           - not_null
           - unique
       - name: section
-        description: "Top-level grouping (Record, Scoring, Postseason, Matchups, Shotgun, Clutch) the comparison rows cluster under."
+        description: "Top-level grouping (Record, Scoring, Postseason, Matchups, Shotgun, Clutch, Transactions) the comparison rows cluster under."
         data_type: varchar
         data_tests:
           - not_null

@@ -407,6 +407,22 @@ candidates as (
             else 'th'
         end as override_display
     from postseason
+    union all
+    select
+        owner_id,
+        owner_name,
+        'career_acquisitions' as metric_key,
+        acquisitions_total::double as metric_value,
+        null::varchar as override_display
+    from career
+    union all
+    select
+        owner_id,
+        owner_name,
+        'career_trades' as metric_key,
+        trades_total::double as metric_value,
+        null::varchar as override_display
+    from career
 ),
 
 joined as (
@@ -441,11 +457,7 @@ select
     metric_value::double as metric_value,
     coalesce(
         override_display,
-        case
-            when value_format = 'int' then round(metric_value, 0)::bigint::varchar
-            when value_format = 'pct' then round(metric_value, 1)::varchar || '%'
-            else round(metric_value, 2)::varchar
-        end
+        {{ format_metric_value("metric_value", "value_format") }}
     ) as display_value
 from joined
 order by display_order, metric_value * sort_sign desc

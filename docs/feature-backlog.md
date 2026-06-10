@@ -28,9 +28,9 @@ reference it in conversation, branches, and commits.
 | FF-008 | Refactor website navigation | frontend | Low | M | Idea |
 | FF-009 | Quantify luck via all-play / expected wins | dbt | Low | M | Idea |
 | FF-010 | Notification / events dashboard | dbt, backend, frontend | Low | L | Idea |
-| FF-011 | Unify "league single best/worst week" logic | dbt | Low | S | Idea |
+| FF-011 | Unify "league single best/worst week" logic | dbt | Low | S | Doing |
 | FF-012 | H2H Dashboard | dbt, frontend | Med | M | Doing |
-| FF-013 | Shootout / Slugfest records in League Highlights | dbt | Low | S | Ready |
+| FF-013 | Shootout / Slugfest records in League Highlights | dbt | Low | S | Doing |
 
 ---
 
@@ -289,7 +289,7 @@ whether this wants the eventual FastAPI seam (see `architecture-roadmap.md`) as 
 
 ## FF-011 — Unify "league single best/worst week" logic
 
-**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Idea
+**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Doing
 
 **Done when:** the league's single highest/lowest regular-season week is defined in exactly one place,
 with both the season title and the week-grain chip flag sourced from it (no parallel computation).
@@ -309,13 +309,19 @@ filters playoffs/unplayed weeks differently, or handles a co-best-week tie diffe
 consumers (FF-010 builds the events feed on it), so the shared definition is locked in before more code
 depends on it.
 
-**Pieces it will need:**
-- Pick the single source of truth (likely the week-grain extremes in `int__team_week_highlights`, since
-  it already knows *which* week), and have `int__season_titles` derive the matchup title from it — or
-  factor the league per-season extreme into one small intermediate both consume.
-- Verify tie behavior (co-best weeks) matches the title's `rank() = 1` semantics.
-- Confirm via the existing data cross-checks that every `is_best_week`/`is_worst_week` chip still lines up
-  1:1 with `matchup_title`/`bad_matchup_title`.
+**Plan:**
+1. New `int__league_season_week_extremes` (grain: **year**): `league_best_score` / `league_worst_score`
+   = `max/min(score_for) filter (where outcome != 'U')` over `int__team_week_results` (played reg-season
+   weeks). This becomes the *single* definition of the league's single highest/lowest week. (Optionally
+   also carry `tightest_margin` / `biggest_margin` so the same model backs the Tightest/Biggest flags.)
+2. `int__team_week_highlights`: replace its inline `league_extremes` CTE with a `ref()` to the new model;
+   the `is_best_week` / `is_worst_week` chip flags are unchanged.
+3. `int__season_titles`: replace `rank() over (partition by year order by best_week_score desc) = 1`
+   with `best_week_score = league_best_score` (join the new model) for `is_matchup_title`; mirror for
+   `is_bad_matchup_title`. Identical co-title semantics (every team whose best week equals the league
+   max). Drop the now-unused `matchup_rank` / `bad_matchup_rank`.
+4. Add a data test asserting `is_best_week` / `is_worst_week` line up 1:1 with `is_matchup_title` /
+   `is_bad_matchup_title` so future drift fails the build. Update MODELS.md (new model + the two refs).
 
 ---
 
@@ -343,7 +349,7 @@ metrics. Possible UI follow-ups: a prominent 2-owner banner, sortable/pinned met
 
 ## FF-013 — Shootout / Slugfest records in League Highlights
 
-**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Ready
+**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Doing
 
 **Done when:** the League Highlights page surfaces the highest- and lowest-*combined-score*
 regular-season games (both teams added together) — all-time top-3 and per-season — using the
@@ -354,8 +360,11 @@ rivalry (computed in `int__owner_head_to_head`), and they're fun league-wide too
 game-level matchup records, structurally identical to the existing **Tightest games / Biggest
 blowouts** (margin) records — so they reuse that exact pattern.
 
-**Best place:** the **Matchups** section of the All-Time tab (a new `Combined` category sub-cluster
-next to `Margins`/`Luck`), and the per-season "Closest & Most Lopsided" block on the By-Season tab.
+**Best place:** the **Matchups** section of *both* tabs. All-Time → a new `Combined` category
+sub-cluster next to `Margins`/`Luck` (top-3 records). By-Season → single-winner titles alongside
+*Tightest game* / *Biggest blowout* (FF-012 converted the By-Season margin records to single-winner
+titles and deleted the separate "Closest & Most Lopsided" block plus the `metric_type`/`result_n`
+seed columns — so shootout/slugfest follow the same one-crown-per-season shape).
 
 **Plan (mirrors the margin records end-to-end — no frontend changes):**
 1. `int__matchup_margins`: add `combined = winner_score + loser_score` (one column + properties
@@ -363,11 +372,14 @@ next to `Margins`/`Luck`), and the per-season "Closest & Most Lopsided" block on
 2. `all_time_records.sql`: add a `combined_records` CTE mirroring `margin_records` —
    `cross join (values ('highest_shootouts'), ('lowest_slugfests')) as directions`, `metric_value
    = combined`, rank per `sort_sign`, keep top 3, `detail` = `winner_score-loser_score`; union into
-   the records output.
-3. `season_highlights.sql`: add a `combined_candidates` CTE mirroring `margin_candidates` (per-season
-   top-3 highest/lowest combined).
+   `candidates`.
+3. `season_highlights.sql`: add a `combined_candidates` CTE mirroring `margin_candidates`, union into
+   `candidates` (the mart's `where metric_rank = 1` keeps the single highest/lowest combined game that
+   season — a single-winner title).
 4. Seeds: 2 rows in `all_time_record_metrics.csv` (section `Matchups`, category `Combined`,
-   `metric_type record`, `sort_sign` 1 / -1, `value_format points`, `subtitle_kind context`) and 2 in
-   `season_highlight_metrics.csv` (`leaderboard`, sort_sign 1 / -1). Update MODELS.md.
+   `metric_type record`, `sort_sign` 1 / -1, `value_format points`, `subtitle_kind context`,
+   `result_n 3`); 2 in `season_highlight_metrics.csv` (current columns — `category Combined`,
+   `section Matchups`, `sort_sign` 1 / -1, `value_format points`, next `display_order`, blank
+   `empty_label`). Update MODELS.md.
 5. Names to ratify with the league (see OD-001) — e.g. *Highest-scoring games* / *Lowest-scoring
    games*, or *Shootouts* / *Slugfests*.

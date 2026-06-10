@@ -3,11 +3,11 @@ version: 2
 models:
   - name: season_highlights
     description: >
-      One row per year x metric_key x rank for the per-season league-highlights view. Title
-      metrics (the season's holder for each award, co-titles included) come straight from the
-      int__season_titles flags at rank 1; margin leaderboards (tightest games, biggest blowouts)
-      keep the season's top 3. The frontend filters by year and renders holder + amount + the
-      precomposed detail subtitle. See MODELS.md.
+      One row per year x metric_key for the per-season league-highlights view. Every metric is a
+      single-winner season title (co-titles share rank 1): award holders come from the
+      int__season_titles flags, and the tightest game / biggest blowout from int__matchup_margins.
+      The frontend filters by year and renders holder + amount + the precomposed detail subtitle.
+      See MODELS.md.
     columns:
       - name: section
         description: Top-level grouping (Scoring, Matchups, Shotgun, Clutch) the cards cluster under
@@ -30,18 +30,10 @@ models:
         data_tests:
           - not_null
       - name: display_order
-        description: Reading order; within a section titles render by this, then the margin leaderboards
+        description: Reading order of the title cards within a section
         data_type: int
         data_tests:
           - not_null
-      - name: metric_type
-        description: title (season award holder) or leaderboard (top-N within the season)
-        data_type: varchar
-        data_tests:
-          - not_null
-          - accepted_values:
-              arguments:
-                values: [ 'title', 'leaderboard' ]
       - name: year
         data_type: int
         data_tests:
@@ -69,7 +61,7 @@ models:
           11"), per metric. Null for clutch titles (the record is the value) and clean-season titles.
         data_type: varchar
       - name: rank
-        description: Rank within the year x metric (1 = holder); leaderboards keep 1..3
+        description: Always 1 — single-winner title (co-titles share rank 1)
         data_type: int
         data_tests:
           - not_null

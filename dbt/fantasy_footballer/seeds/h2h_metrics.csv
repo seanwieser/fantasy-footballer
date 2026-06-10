@@ -39,3 +39,5 @@ clutch_record,Clutch,Clutch record,record,1,38,detail,"Career record in games de
 clutch_win_pct,Clutch,Clutch win %,pct,1,39,core,"Career win rate in games decided by under 10 points."
 clutch_winning_titles,Clutch,Clutch-winning titles,int,1,40,detail,"Seasons with the most clutch wins — games decided by under 10 points."
 clutch_losing_titles,Clutch,Clutch-losing titles,int,1,41,detail,"Seasons with the most clutch losses — games decided by under 10 points."
+career_acquisitions,Transactions,Career acquisitions,int,1,42,detail,"Total roster acquisitions (waiver / free-agent adds) across every season."
+career_trades,Transactions,Career trades,int,1,43,detail,"Total trades completed across every season."

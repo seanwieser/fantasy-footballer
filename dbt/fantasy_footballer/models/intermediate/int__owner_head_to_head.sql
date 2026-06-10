@@ -27,13 +27,38 @@ with results as (
         twr.opponent_owner_id is not null
 ),
 
--- Gaps-and-islands key: consecutive same-outcome meetings share a streak_grp.
+-- Regular-season meetings only. Every rivalry comparison metric (record, points, margins, streaks,
+-- clutch, shootout/slugfest) is computed from these, so regular-season and playoff stay COMPLETELY
+-- separate — playoff meetings surface ONLY through the playoff_record W-L line below. This keeps the
+-- 2-week-aggregate playoff scores (a different scale) from distorting the rivalry numbers and matches
+-- the regular-season-only league-wide records.
+reg_results as (
+    select * from results
+    where not is_playoff
+),
+
+-- Playoff meetings → just the head-to-head W-L record (the only playoff-aware output).
+playoff_record as (
+    select
+        owner_id,
+        opponent_owner_id,
+        count_if(outcome = 'W')::int as playoff_wins,
+        count_if(outcome = 'L')::int as playoff_losses,
+        count_if(outcome = 'T')::int as playoff_ties,
+        count(*)::int as playoff_games
+    from results
+    where is_playoff
+    group by owner_id, opponent_owner_id
+),
+
+-- Gaps-and-islands key over regular-season meetings: consecutive same-outcome meetings share a
+-- streak_grp, so the streaks below are regular-season only.
 islands as (
     select
         *,
         row_number() over (partition by owner_id, opponent_owner_id order by sort_key) -
         row_number() over (partition by owner_id, opponent_owner_id, outcome order by sort_key) as streak_grp
-    from results
+    from reg_results
 ),
 
 pair_aggregates as (
@@ -43,22 +68,12 @@ pair_aggregates as (
         max(owner_name) as owner_name,
         opponent_owner_id,
         max(opponent_owner_name) as opponent_owner_name,
-        count_if(not is_playoff and outcome = 'W')::int as reg_wins,
-        count_if(not is_playoff and outcome = 'L')::int as reg_losses,
-        count_if(not is_playoff and outcome = 'T')::int as reg_ties,
-        count_if(not is_playoff)::int as reg_games,
-        coalesce(sum(score_for) filter (where not is_playoff), 0)::double as reg_points_for,
-        coalesce(sum(score_against) filter (where not is_playoff), 0)::double as reg_points_against,
-        count_if(is_playoff and outcome = 'W')::int as playoff_wins,
-        count_if(is_playoff and outcome = 'L')::int as playoff_losses,
-        count_if(is_playoff and outcome = 'T')::int as playoff_ties,
-        count_if(is_playoff)::int as playoff_games,
-        count(*)::int as total_meetings,
-        count_if(outcome = 'W')::int as total_wins,
-        count_if(outcome = 'L')::int as total_losses,
-        count_if(outcome = 'T')::int as total_ties,
-        sum(score_for)::double as total_points_for,
-        sum(score_against)::double as total_points_against,
+        count_if(outcome = 'W')::int as reg_wins,
+        count_if(outcome = 'L')::int as reg_losses,
+        count_if(outcome = 'T')::int as reg_ties,
+        count(*)::int as reg_games,
+        sum(score_for)::double as reg_points_for,
+        sum(score_against)::double as reg_points_against,
         avg(score_for)::double as avg_points_for,
         avg(margin_signed)::double as avg_margin,
         count_if(abs(margin_signed) < 10 and outcome = 'W')::int as clutch_wins,
@@ -162,16 +177,10 @@ select
     pair_aggregates.reg_games,
     pair_aggregates.reg_points_for,
     pair_aggregates.reg_points_against,
-    pair_aggregates.playoff_wins,
-    pair_aggregates.playoff_losses,
-    pair_aggregates.playoff_ties,
-    pair_aggregates.playoff_games,
-    pair_aggregates.total_meetings,
-    pair_aggregates.total_wins,
-    pair_aggregates.total_losses,
-    pair_aggregates.total_ties,
-    pair_aggregates.total_points_for,
-    pair_aggregates.total_points_against,
+    coalesce(playoff_record.playoff_wins, 0)::int as playoff_wins,
+    coalesce(playoff_record.playoff_losses, 0)::int as playoff_losses,
+    coalesce(playoff_record.playoff_ties, 0)::int as playoff_ties,
+    coalesce(playoff_record.playoff_games, 0)::int as playoff_games,
     pair_aggregates.avg_points_for,
     pair_aggregates.avg_margin,
     pair_aggregates.clutch_wins,
@@ -203,3 +212,7 @@ left join longest_win
     on
         pair_aggregates.owner_id = longest_win.owner_id and
         pair_aggregates.opponent_owner_id = longest_win.opponent_owner_id
+left join playoff_record
+    on
+        pair_aggregates.owner_id = playoff_record.owner_id and
+        pair_aggregates.opponent_owner_id = playoff_record.opponent_owner_id

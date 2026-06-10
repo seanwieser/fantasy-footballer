@@ -35,10 +35,6 @@ models:
         data_type: varchar
         data_tests:
           - not_null
-      - name: total_meetings
-        data_type: int
-        data_tests:
-          - not_null
       - name: longest_win_streak
         data_type: int
         data_tests:

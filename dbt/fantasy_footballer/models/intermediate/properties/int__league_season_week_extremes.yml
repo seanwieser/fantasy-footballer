@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: int__league_season_week_extremes
+    description: >
+      One row per season — the league-wide single-week extremes over played regular-season weeks:
+      highest/lowest weekly score and smallest/largest margin of victory. The single source of truth
+      for the Best-/Worst-week season titles ([[int__season_titles]]) and the spotlight schedule
+      chips ([[int__team_week_highlights]]), so a season title and its week chip can never drift.
+    columns:
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+          - unique
+      - name: league_best_score
+        description: Highest single-week regular-season score in the league that year
+        data_type: double
+        data_tests:
+          - not_null
+      - name: league_worst_score
+        description: Lowest single-week regular-season score in the league that year
+        data_type: double
+        data_tests:
+          - not_null
+      - name: tightest_margin
+        description: Smallest regular-season margin of victory that year
+        data_type: double
+        data_tests:
+          - not_null
+      - name: biggest_margin
+        description: Largest regular-season margin of victory that year
+        data_type: double
+        data_tests:
+          - not_null

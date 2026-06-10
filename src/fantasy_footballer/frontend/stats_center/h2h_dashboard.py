@@ -7,7 +7,10 @@ from nicegui import ui
 # Section order + icons for the comparison grid. The two pairwise rivalry sections lead (the page's
 # namesake, only shown for exactly two owners), then the career metric sections in seed display_order.
 # Colors come from the shared SECTION_COLORS catalog.
-SECTION_ORDER = ["The Rivalry", "Head to Head", "Record", "Scoring", "Postseason", "Matchups", "Shotgun", "Clutch"]
+SECTION_ORDER = [
+    "The Rivalry", "Head to Head", "Record", "Scoring", "Postseason", "Matchups", "Shotgun", "Clutch",
+    "Transactions",
+]
 SECTION_ICONS = {
     "The Rivalry": "local_fire_department",
     "Head to Head": "compare_arrows",
@@ -17,6 +20,7 @@ SECTION_ICONS = {
     "Matchups": "sports_kabaddi",
     "Shotgun": "sports_bar",
     "Clutch": "bolt",
+    "Transactions": "swap_horiz",
 }
 LABEL_COL = "minmax(150px, 1.2fr)"
 

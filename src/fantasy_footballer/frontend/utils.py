@@ -12,7 +12,8 @@ VALID_POSITIONS = ["QB", "RB", "WR", "TE", "D/ST", "K"]
 # Highlight section -> Quasar color + medal emoji by podium rank. Shared by the League
 # Highlights page and the owner-spotlight Highlights card so the visual language stays in sync.
 SECTION_COLORS = {"Scoring": "blue", "Clutch": "red", "Matchups": "orange", "Shotgun": "green",
-                  "Record": "purple", "Postseason": "teal", "Head to Head": "cyan", "The Rivalry": "pink"}
+                  "Record": "purple", "Postseason": "teal", "Head to Head": "cyan", "The Rivalry": "pink",
+                  "Transactions": "indigo"}
 MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
 
 def medal(rank):

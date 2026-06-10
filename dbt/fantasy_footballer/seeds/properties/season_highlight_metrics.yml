@@ -4,8 +4,8 @@ seeds:
   - name: season_highlight_metrics
     description: >
       League-highlights By-Season metric catalog (one row per metric). Git-tracked constant
-      seed defining each season metric's category/label, type, sort direction, result count,
-      value format, and tooltip description. Drives season_highlights.
+      seed defining each season metric's category/label, sort direction, value format, and
+      tooltip description. Every By-Season metric is a single-winner title. Drives season_highlights.
     data_tests:
       - assert_model_has_rows
     columns:
@@ -28,18 +28,8 @@ seeds:
         data_type: varchar
         data_tests:
           - not_null
-      - name: metric_type
-        description: "title or leaderboard."
-        data_type: varchar
-        data_tests:
-          - not_null
       - name: sort_sign
         description: "1 to rank ascending-best, -1 for descending-best."
-        data_type: int
-        data_tests:
-          - not_null
-      - name: result_n
-        description: "How many ranks to keep (1 = title holder, 3 = top-3 leaderboard)."
         data_type: int
         data_tests:
           - not_null
@@ -49,7 +39,7 @@ seeds:
         data_tests:
           - not_null
       - name: display_order
-        description: "Reading order; within a section, titles render by this, then the margin leaderboards."
+        description: "Reading order of the title cards within a section."
         data_type: int
         data_tests:
           - not_null
@@ -60,5 +50,5 @@ seeds:
         data_tests:
           - not_null
       - name: empty_label
-        description: "Message shown on the placeholder card when no owner earned this title in a season (e.g. 'Everyone shotgunned this season'). Null for titles that always have a holder and for margin leaderboards."
+        description: "Message shown on the placeholder card when no owner earned this title in a season (e.g. 'Everyone shotgunned this season'). Null for titles that always have a holder (scoring and margin titles)."
         data_type: varchar

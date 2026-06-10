@@ -39,10 +39,82 @@ margin_candidates as (
     where not margins.is_tie
 ),
 
+-- Per-season combined-score titles: the highest-scoring (shootout) / lowest-scoring (slugfest) game
+-- that year, both teams added together. Mirrors margin_candidates, ranked on `combined`.
+combined_candidates as (
+    select
+        margins.year,
+        winner.team_year_id,
+        winner.owner_id,
+        winner.owner_name,
+        directions.metric_key,
+        margins.combined as metric_value,
+        'def. ' || loser.owner_name || ' · ' ||
+        round(margins.winner_score, 2)::varchar || '-' || round(margins.loser_score, 2)::varchar ||
+        ' · Wk ' || margins.week::varchar as detail
+    from {{ ref("int__matchup_margins") }} as margins
+    inner join {{ ref("int__owner_team_year_map") }} as winner
+        on margins.winner_team_year_id = winner.team_year_id
+    inner join {{ ref("int__owner_team_year_map") }} as loser
+        on margins.loser_team_year_id = loser.team_year_id
+    cross join (values ('highest_shootouts'), ('lowest_slugfests')) as directions (metric_key)
+    where not margins.is_tie
+),
+
+-- Per-season roster-move leaders: who made the most acquisitions / trades that year. Zeros are
+-- dropped so a quiet season renders the catalog's empty-state card instead of a "0" winner.
+transaction_candidates as (
+    select
+        teams.year,
+        teams.team_year_id,
+        owner_map.owner_id,
+        owner_map.owner_name,
+        directions.metric_key,
+        case directions.metric_key
+            when 'most_acquisitions_season' then teams.acquisitions
+            else teams.trades
+        end::double as metric_value,
+        null::varchar as detail
+    from {{ ref("base_s001__teams") }} as teams
+    inner join {{ ref("int__owner_team_year_map") }} as owner_map
+        on teams.team_year_id = owner_map.team_year_id
+    cross join (values ('most_acquisitions_season'), ('most_trades_season')) as directions (metric_key)
+    where case directions.metric_key
+        when 'most_acquisitions_season' then teams.acquisitions
+        else teams.trades
+    end > 0
+),
+
+-- Per-season postseason result titles: the league champion and the toilet-bowl loser (dead last),
+-- each shown with their regular-season seed (champion = upset factor, toilet-bowl = collapse factor).
+postseason_title_candidates as (
+    select
+        postseason.year,
+        postseason.team_year_id,
+        owner_map.owner_id,
+        owner_map.owner_name,
+        directions.metric_key,
+        postseason.seed::double as metric_value,
+        null::varchar as detail
+    from {{ ref("int__team_postseason") }} as postseason
+    inner join {{ ref("int__owner_team_year_map") }} as owner_map
+        on postseason.team_year_id = owner_map.team_year_id
+    cross join (values ('champion'), ('toilet_bowl_loser')) as directions (metric_key)
+    where
+        (directions.metric_key = 'champion' and postseason.is_champion) or
+        (directions.metric_key = 'toilet_bowl_loser' and postseason.is_last)
+),
+
 candidates as (
     select * from title_candidates
     union all
     select * from margin_candidates
+    union all
+    select * from combined_candidates
+    union all
+    select * from transaction_candidates
+    union all
+    select * from postseason_title_candidates
 ),
 
 -- Regular-season weekly scores, used to find each team's best/worst single week.
@@ -117,11 +189,9 @@ ranked as (
         meta.section,
         candidates.metric_key,
         meta.metric_label,
-        meta.metric_type,
         meta.description,
         meta.display_order,
         meta.value_format,
-        meta.result_n,
         candidates.year,
         candidates.owner_id,
         candidates.owner_name,
@@ -155,21 +225,19 @@ select
     section,
     metric_key,
     metric_label,
-    metric_type,
     description,
     display_order::int as display_order,
     year,
     owner_id,
     owner_name,
-    case
+    coalesce(
         -- Clutch titles headline the W-L record itself, not the raw clutch-win/loss count.
-        when metric_key in ('clutch_winning_title', 'clutch_losing_title') then clutch_record
-        when value_format = 'int' then round(metric_value, 0)::bigint::varchar
-        when value_format = 'pct' then round(metric_value, 1)::varchar || '%'
-        else round(metric_value, 2)::varchar
-    end as display_value,
+        case when metric_key in ('clutch_winning_title', 'clutch_losing_title') then clutch_record end,
+        {{ format_metric_value("metric_value", "value_format") }}
+    ) as display_value,
     detail,
     metric_rank::int as rank
 from ranked
-where metric_rank <= result_n
+-- Every By-Season metric is a single-winner title; keep rank 1 (co-titles share it).
+where metric_rank = 1
 order by year, display_order, rank

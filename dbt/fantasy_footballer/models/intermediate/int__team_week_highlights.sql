@@ -18,19 +18,12 @@ with results as (
     where not twr.is_playoff
 ),
 
--- League-wide season extremes, all keyed off the winner so every flag lines up 1:1 with a season
--- highlight: single highest/lowest score (Best-/Worst-week title) and smallest/largest margin of
--- victory (Tightest game / Biggest blowout). Computed over played weeks only so an unplayed future
--- week (score 0) never registers. Co-title ties flag every holder.
+-- League-wide season extremes (single source of truth: int__league_season_week_extremes): single
+-- highest/lowest score (Best-/Worst-week title) and smallest/largest margin of victory (Tightest
+-- game / Biggest blowout). Sharing the model with int__season_titles keeps each chip flag below
+-- aligned 1:1 with its matching season title.
 league_extremes as (
-    select
-        year,
-        max(score_for) filter (where outcome != 'U') as league_best_score,
-        min(score_for) filter (where outcome != 'U') as league_worst_score,
-        min(margin) filter (where outcome = 'W') as tightest_margin,
-        max(margin) filter (where outcome = 'W') as biggest_margin
-    from results
-    group by year
+    select * from {{ ref("int__league_season_week_extremes") }}
 )
 
 select

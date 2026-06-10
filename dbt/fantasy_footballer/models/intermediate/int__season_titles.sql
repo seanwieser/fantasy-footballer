@@ -74,8 +74,6 @@ ranked as (
         *,
         rank() over (partition by year order by reg_points_total desc) as scoring_rank,
         rank() over (partition by year order by reg_points_total asc) as non_scoring_rank,
-        rank() over (partition by year order by best_week_score desc) as matchup_rank,
-        rank() over (partition by year order by worst_week_score asc) as bad_matchup_rank,
         rank() over (partition by year, made_playoffs order by reg_points_total desc) as snub_rank,
         rank() over (partition by year, made_playoffs order by reg_points_total asc) as luck_in_rank,
         rank() over (partition by year order by clutch_wins desc, clutch_win_pct desc) as clutch_win_rank,
@@ -106,8 +104,10 @@ select
     points_vs_field.nonplayoff_teams_outscoring,
     ranked.scoring_rank = 1 as is_scoring_title,
     ranked.non_scoring_rank = 1 as is_non_scoring_title,
-    ranked.matchup_rank = 1 as is_matchup_title,
-    ranked.bad_matchup_rank = 1 as is_bad_matchup_title,
+    -- Matchup titles derive from the shared league single-week extreme so they can never drift from
+    -- the is_best_week / is_worst_week chips in int__team_week_highlights (same source model).
+    ranked.best_week_score = extremes.league_best_score as is_matchup_title,
+    ranked.worst_week_score = extremes.league_worst_score as is_bad_matchup_title,
     not ranked.made_playoffs and ranked.snub_rank = 1 and points_vs_field.playoff_teams_outscored >= 1
         as is_non_playoff_scoring_title,
     ranked.made_playoffs and ranked.luck_in_rank = 1 and points_vs_field.nonplayoff_teams_outscoring >= 1
@@ -123,3 +123,4 @@ select
     ranked.made_playoffs and points_vs_field.nonplayoff_teams_outscoring >= 1 as is_lucked_in
 from ranked
 inner join points_vs_field on ranked.team_year_id = points_vs_field.team_year_id
+inner join {{ ref("int__league_season_week_extremes") }} as extremes on ranked.year = extremes.year

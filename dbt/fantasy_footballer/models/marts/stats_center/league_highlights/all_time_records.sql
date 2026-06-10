@@ -30,11 +30,27 @@ title_years as (
     from {{ ref("int__season_titles") }}
     where is_lucked_in
     group by owner_id
+    union all
+    -- Championship years for the "Most championships" card's years-won subtitle.
+    select
+        owner_map.owner_id,
+        'most_championships' as metric_key,
+        string_agg(postseason.year::varchar, ', ' order by postseason.year) as years_won
+    from {{ ref("int__team_postseason") }} as postseason
+    inner join {{ ref("int__owner_team_year_map") }} as owner_map
+        on postseason.team_year_id = owner_map.team_year_id
+    where postseason.is_champion
+    group by owner_map.owner_id
 ),
 
 -- Career roll-ups (one row per owner) — all aggregation lives in the intermediate
 career as (
     select * from {{ ref("int__owner_career_summary") }}
+),
+
+-- Career postseason roll-up (championships, playoff appearances, toilet bowls, finishes).
+postseason as (
+    select * from {{ ref("int__owner_postseason_summary") }}
 ),
 
 -- Tennis-style title counts (one column per title, unpivoted to tidy rows)
@@ -326,6 +342,71 @@ margin_records as (
     where not margins.is_tie
 ),
 
+-- Combined-score records: the highest-scoring (shootout) / lowest-scoring (slugfest) games ever,
+-- both teams added together. Mirrors margin_records exactly, ranked on `combined` instead of margin.
+combined_records as (
+    select
+        winner.owner_id,
+        winner.owner_name,
+        directions.metric_key,
+        margins.combined as metric_value,
+        0::double as tiebreak,
+        margins.year::varchar || ' W' || margins.week::varchar as season_or_week,
+        'def. ' || loser.owner_name || ', ' ||
+        round(margins.winner_score, 2)::varchar || '-' || round(margins.loser_score, 2)::varchar as detail
+    from {{ ref("int__matchup_margins") }} as margins
+    inner join {{ ref("int__owner_team_year_map") }} as winner
+        on margins.winner_team_year_id = winner.team_year_id
+    inner join {{ ref("int__owner_team_year_map") }} as loser
+        on margins.loser_team_year_id = loser.team_year_id
+    cross join (values ('highest_shootouts'), ('lowest_slugfests')) as directions (metric_key)
+    where not margins.is_tie
+),
+
+-- Career roster-move leaders (acquisitions / trades) — owner-grain totals from the career roll-up.
+transaction_records as (
+    select
+        career.owner_id,
+        career.owner_name,
+        directions.metric_key,
+        case directions.metric_key
+            when 'most_acquisitions_career' then career.acquisitions_total
+            else career.trades_total
+        end::double as metric_value,
+        0::double as tiebreak,
+        null::varchar as season_or_week,
+        null::varchar as detail
+    from career
+    cross join (values ('most_acquisitions_career'), ('most_trades_career')) as directions (metric_key)
+),
+
+-- Career postseason-result leaders (championships / runner-ups / playoff appearances / toilet bowls).
+postseason_records as (
+    select
+        postseason.owner_id,
+        postseason.owner_name,
+        directions.metric_key,
+        case directions.metric_key
+            when 'most_championships' then postseason.championships
+            when 'most_last_place_finishes' then postseason.last_place_finishes
+            when 'most_runner_ups' then postseason.runner_ups
+            when 'most_playoff_appearances' then postseason.playoff_appearances
+            else postseason.toilet_bowl_appearances
+        end::double as metric_value,
+        0::double as tiebreak,
+        null::varchar as season_or_week,
+        null::varchar as detail
+    from postseason
+    cross join (
+        values
+        ('most_championships'),
+        ('most_last_place_finishes'),
+        ('most_runner_ups'),
+        ('most_playoff_appearances'),
+        ('most_toilet_bowls')
+    ) as directions (metric_key)
+),
+
 candidates as (
     select * from title_count_shaped
     union all
@@ -346,6 +427,12 @@ candidates as (
     select * from matchup_week_records
     union all
     select * from margin_records
+    union all
+    select * from combined_records
+    union all
+    select * from transaction_records
+    union all
+    select * from postseason_records
 ),
 
 ranked as (
@@ -390,13 +477,11 @@ select
     display_order::int as display_order,
     owner_id,
     owner_name,
-    case
+    coalesce(
         -- Clutch season records headline the W-L record itself, not the raw win/loss count.
-        when metric_key in ('clutchest_season', 'unclutchest_season') then detail
-        when value_format = 'int' then round(metric_value, 0)::bigint::varchar
-        when value_format = 'pct' then round(metric_value, 1)::varchar || '%'
-        else round(metric_value, 2)::varchar
-    end as display_value,
+        case when metric_key in ('clutchest_season', 'unclutchest_season') then detail end,
+        {{ format_metric_value("metric_value", "value_format") }}
+    ) as display_value,
     season_or_week,
     case when metric_key in ('clutchest_season', 'unclutchest_season') then null else detail end as detail,
     metric_rank::int as rank

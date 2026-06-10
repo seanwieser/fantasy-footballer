@@ -28,9 +28,11 @@ reference it in conversation, branches, and commits.
 | FF-008 | Refactor website navigation | frontend | Low | M | Idea |
 | FF-009 | Quantify luck via all-play / expected wins | dbt | Low | M | Idea |
 | FF-010 | Notification / events dashboard | dbt, backend, frontend | Low | L | Idea |
-| FF-011 | Unify "league single best/worst week" logic | dbt | Low | S | Doing |
-| FF-012 | H2H Dashboard | dbt, frontend | Med | M | Doing |
-| FF-013 | Shootout / Slugfest records in League Highlights | dbt | Low | S | Doing |
+| FF-011 | Unify "league single best/worst week" logic | dbt | Low | S | Done |
+| FF-012 | H2H Dashboard | dbt, frontend | Med | M | Done |
+| FF-013 | Shootout / Slugfest records in League Highlights | dbt | Low | S | Done |
+| FF-014 | Postseason history page | frontend, dbt | Med | M | Idea |
+| FF-015 | iMessage group-chat data pipeline + analytics | backend, dbt | Low | L | Idea |
 
 ---
 
@@ -287,9 +289,85 @@ whether this wants the eventual FastAPI seam (see `architecture-roadmap.md`) as 
 
 ---
 
+## FF-014 — Postseason history page
+
+**Area:** frontend, dbt · **Priority:** Med · **Effort:** M · **Status:** Idea
+
+**Done when:** `/stats_center/postseason_history` is a real page (no longer the "Coming Soon…" stub at
+`frontend/stats_center/postseason_history.py`) presenting the league's postseason history — champions,
+runner-ups, and toilet-bowl finishes by season, plus the per-owner trophy case — with adding a season
+needing no page change.
+
+**What:** build out the postseason stub into a dedicated history page. The analytics already exist from
+the H2H / League-Highlights work — `int__team_postseason` (per team-season: bracket, final standing,
+`is_champion`/`is_last`, seed) and `int__owner_postseason_summary` (career rollup: championships,
+runner-ups, playoff appearances, toilet bowls, last-place finishes, best finish). This is mostly a
+**presentation** task over those models, mirroring the League-Highlights card/section style.
+
+**Pieces / ideas:**
+- A **season timeline** — one row/section per year: champion (with reg-season seed → upset factor),
+  runner-up, 3rd, and the toilet-bowl loser (dead last). Reuse the `seed`-format display already built
+  for the By-Season Champion / Toilet-Bowl titles.
+- A **trophy case per owner** — championships / runner-ups / toilet bowls stacked, from
+  `int__owner_postseason_summary` (the same numbers the H2H Postseason section compares).
+- Possibly a **bracket view** per season if `int__team_postseason` carries enough structure; otherwise a
+  flat finishing-order table.
+- Keep it a **thin page** over marts (add a `postseason_history` mart if the timeline needs display
+  shaping) — no new ESPN data; everything composes from existing intermediates.
+
+**Why now-ish:** the postseason intermediates were just built for FF-012; this is the natural page to
+surface them on their own rather than only inside League Highlights / H2H. Pairs with FF-008 (nav
+refactor) since it's a new top-level destination.
+
+---
+
+## FF-015 — iMessage group-chat data pipeline + analytics
+
+**Area:** backend, dbt · **Priority:** Low · **Effort:** L · **Status:** Idea
+
+**Done when:** the league's iMessage group-chat history is ingested as a new source (raw export → B2 on
+the same date-partitioned layout as `s001`, staging models exposing messages/reactions at a tidy grain)
+and at least one analytics use case is built on it.
+
+**What:** treat the group chat as a first-class **data source** — the league has years of trash talk,
+trade haggling, and gameday reactions that nothing currently mines. iMessage history is locally
+extractable (the macOS `chat.db` SQLite store, or a one-off export) → upload to B2 → ingest like any
+other source → build staging/intermediate models → surface insights. This is the **ingest + analytics**
+side; pushing alerts *into* the chat is the consumer side tracked in FF-010.
+
+**Pipeline pieces it will need:**
+- An **extractor** for the chat history (`chat.db` SQLite or an export tool), normalized to one row per
+  message (sender owner, timestamp, text, thread/reply, attachments) + one row per **reaction/tapback**
+  (message, reactor, type). Map chat participants → `owner_id`.
+- **Upload to B2** under a new source (e.g. `s003`), same partition pattern as ESPN, then the usual
+  `ingest_raw_data_from_cloud` → `base_s003__messages` / `base_s003__reactions` → staging.
+- **PII / consent care** — chat content is personal; it's owner data, so it lives in the
+  **sensitive/gitignored** path, never the git-tracked seeds (see CLAUDE.md gotchas + the public-repo
+  constraint). Get league buy-in before ingesting (overlaps OD-style discussion).
+
+**Brainstormed analytics use cases (to prioritize later):**
+- **Trash-talk leaderboard** — message volume + most-reacted messages per owner; who runs their mouth.
+- **Reaction tallies** — most-loved / most-laughed / most-disliked messages (tapback counts), "burn of
+  the year."
+- **Activity timeline** — chat volume by week/season, spikes around the draft, trade deadline, big
+  upsets; correlate chatter with on-field results (do winners talk more?).
+- **Trade-negotiation history** — surface trade-proposal threads alongside the actual roster moves
+  (ties into FF-006 ownership-change work).
+- **Catchphrases / nicknames** — per-owner word clouds, recurring slang (feeds OD-001 naming culture).
+- **LLM season recap** — feed chat + results to a model for a weekly/season writeup (a concrete
+  consumer for FF-010's event feed).
+- **Profanity / "curse index"** — playful per-owner counter.
+
+**Why later:** it's a brand-new source (extractor + schemas + B2 layout) and needs a league consent call
+on ingesting personal chat data, so it's a deliberate L. Relates to the dormant `groupme/` puller
+(another chat source we already keep around) and to FF-010 (the events/notification consumer that could
+push *back* into the chat).
+
+---
+
 ## FF-011 — Unify "league single best/worst week" logic
 
-**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Doing
+**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Done
 
 **Done when:** the league's single highest/lowest regular-season week is defined in exactly one place,
 with both the season title and the week-grain chip flag sourced from it (no parallel computation).
@@ -327,7 +405,7 @@ depends on it.
 
 ## FF-012 — H2H Dashboard
 
-**Area:** dbt, frontend · **Priority:** Med · **Effort:** M · **Status:** Doing
+**Area:** dbt, frontend · **Priority:** Med · **Effort:** M · **Status:** Done
 
 **Done when:** `/stats_center/h2h_dashboard` lets you pick 2+ owners and compare them across a
 catalog of career metrics (leader highlighted per metric) plus the true pairwise head-to-head
@@ -349,7 +427,7 @@ metrics. Possible UI follow-ups: a prominent 2-owner banner, sortable/pinned met
 
 ## FF-013 — Shootout / Slugfest records in League Highlights
 
-**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Doing
+**Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Done
 
 **Done when:** the League Highlights page surfaces the highest- and lowest-*combined-score*
 regular-season games (both teams added together) — all-time top-3 and per-season — using the

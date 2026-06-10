@@ -323,12 +323,20 @@ matchup_week_records as (
     cross join (values ('best_matchup_amount'), ('worst_matchup_amount')) as directions (metric_key)
 ),
 
-margin_records as (
+-- Single-extreme game records ranked on one number: the victory margin (tightest game / biggest
+-- blowout) or the combined score (shootout / slugfest). The winner/loser join and the composed
+-- "def. X, score" detail are identical for all four, so the direction key just picks which number
+-- is ranked. (season_highlights.matchup_candidates is the per-season single-winner counterpart.)
+matchup_game_records as (
     select
         winner.owner_id,
         winner.owner_name,
         directions.metric_key,
-        margins.margin as metric_value,
+        case directions.metric_key
+            when 'highest_shootouts' then margins.combined
+            when 'lowest_slugfests' then margins.combined
+            else margins.margin
+        end as metric_value,
         0::double as tiebreak,
         margins.year::varchar || ' W' || margins.week::varchar as season_or_week,
         'def. ' || loser.owner_name || ', ' ||
@@ -338,28 +346,10 @@ margin_records as (
         on margins.winner_team_year_id = winner.team_year_id
     inner join {{ ref("int__owner_team_year_map") }} as loser
         on margins.loser_team_year_id = loser.team_year_id
-    cross join (values ('tightest_matchups'), ('biggest_blowouts')) as directions (metric_key)
-    where not margins.is_tie
-),
-
--- Combined-score records: the highest-scoring (shootout) / lowest-scoring (slugfest) games ever,
--- both teams added together. Mirrors margin_records exactly, ranked on `combined` instead of margin.
-combined_records as (
-    select
-        winner.owner_id,
-        winner.owner_name,
-        directions.metric_key,
-        margins.combined as metric_value,
-        0::double as tiebreak,
-        margins.year::varchar || ' W' || margins.week::varchar as season_or_week,
-        'def. ' || loser.owner_name || ', ' ||
-        round(margins.winner_score, 2)::varchar || '-' || round(margins.loser_score, 2)::varchar as detail
-    from {{ ref("int__matchup_margins") }} as margins
-    inner join {{ ref("int__owner_team_year_map") }} as winner
-        on margins.winner_team_year_id = winner.team_year_id
-    inner join {{ ref("int__owner_team_year_map") }} as loser
-        on margins.loser_team_year_id = loser.team_year_id
-    cross join (values ('highest_shootouts'), ('lowest_slugfests')) as directions (metric_key)
+    cross join (
+        values
+        ('tightest_matchups'), ('biggest_blowouts'), ('highest_shootouts'), ('lowest_slugfests')
+    ) as directions (metric_key)
     where not margins.is_tie
 ),
 
@@ -426,9 +416,7 @@ candidates as (
     union all
     select * from matchup_week_records
     union all
-    select * from margin_records
-    union all
-    select * from combined_records
+    select * from matchup_game_records
     union all
     select * from transaction_records
     union all

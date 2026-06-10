@@ -17,16 +17,22 @@ title_candidates as (
     where is_title_holder
 ),
 
--- Per-season margin leaderboards (winner is the owner, loser the opponent). The full display
--- subtitle is composed here so the frontend stays thin (mirrors all_time_records.margin_records).
-margin_candidates as (
+-- Per-season game-level titles (winner is the owner, loser the opponent), each ranked on a single
+-- number: the victory margin (tightest game / biggest blowout) or the combined score (shootout /
+-- slugfest). The winner/loser join and the composed display subtitle are identical for all four, so
+-- the direction key just picks which number is ranked. Mirrors all_time_records' matchup_game_records.
+matchup_candidates as (
     select
         margins.year,
         winner.team_year_id,
         winner.owner_id,
         winner.owner_name,
         directions.metric_key,
-        margins.margin as metric_value,
+        case directions.metric_key
+            when 'highest_shootouts' then margins.combined
+            when 'lowest_slugfests' then margins.combined
+            else margins.margin
+        end as metric_value,
         'def. ' || loser.owner_name || ' · ' ||
         round(margins.winner_score, 2)::varchar || '-' || round(margins.loser_score, 2)::varchar ||
         ' · Wk ' || margins.week::varchar as detail
@@ -35,29 +41,10 @@ margin_candidates as (
         on margins.winner_team_year_id = winner.team_year_id
     inner join {{ ref("int__owner_team_year_map") }} as loser
         on margins.loser_team_year_id = loser.team_year_id
-    cross join (values ('tightest_matchups'), ('biggest_blowouts')) as directions (metric_key)
-    where not margins.is_tie
-),
-
--- Per-season combined-score titles: the highest-scoring (shootout) / lowest-scoring (slugfest) game
--- that year, both teams added together. Mirrors margin_candidates, ranked on `combined`.
-combined_candidates as (
-    select
-        margins.year,
-        winner.team_year_id,
-        winner.owner_id,
-        winner.owner_name,
-        directions.metric_key,
-        margins.combined as metric_value,
-        'def. ' || loser.owner_name || ' · ' ||
-        round(margins.winner_score, 2)::varchar || '-' || round(margins.loser_score, 2)::varchar ||
-        ' · Wk ' || margins.week::varchar as detail
-    from {{ ref("int__matchup_margins") }} as margins
-    inner join {{ ref("int__owner_team_year_map") }} as winner
-        on margins.winner_team_year_id = winner.team_year_id
-    inner join {{ ref("int__owner_team_year_map") }} as loser
-        on margins.loser_team_year_id = loser.team_year_id
-    cross join (values ('highest_shootouts'), ('lowest_slugfests')) as directions (metric_key)
+    cross join (
+        values
+        ('tightest_matchups'), ('biggest_blowouts'), ('highest_shootouts'), ('lowest_slugfests')
+    ) as directions (metric_key)
     where not margins.is_tie
 ),
 
@@ -108,9 +95,7 @@ postseason_title_candidates as (
 candidates as (
     select * from title_candidates
     union all
-    select * from margin_candidates
-    union all
-    select * from combined_candidates
+    select * from matchup_candidates
     union all
     select * from transaction_candidates
     union all

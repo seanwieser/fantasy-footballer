@@ -205,7 +205,7 @@ class DbManager:
                 "--project-dir",
                 "dbt/fantasy_footballer",
                 "--target",
-                "app",
+                "app"
             ])
         else:
             raise RuntimeError("Not a supported dbt action.")

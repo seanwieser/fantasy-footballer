@@ -20,10 +20,13 @@ seeds:
         data_tests:
           - not_null
       - name: section
-        description: "Top-level grouping (Scoring, Matchups, Shotgun, Clutch) the By-Season cards cluster under."
+        description: "Top-level grouping the By-Season cards cluster under — must match the frontend's SECTIONS / SECTION_COLORS keys, else the section renders with no color/icon."
         data_type: varchar
         data_tests:
           - not_null
+          - accepted_values:
+              arguments:
+                values: [ 'Scoring', 'Postseason', 'Matchups', 'Shotgun', 'Clutch', 'Transactions' ]
       - name: metric_label
         data_type: varchar
         data_tests:
@@ -33,6 +36,9 @@ seeds:
         data_type: int
         data_tests:
           - not_null
+          - accepted_values:
+              arguments:
+                values: [ 1, -1 ]
       - name: value_format
         description: "int, points, or pct — drives display formatting."
         data_type: varchar

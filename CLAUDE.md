@@ -146,8 +146,18 @@ properties.yml first.
 - `test_average_equals(value, tolerance=0.01, allow_null=false)` — sanity-checks
   computed averages (e.g. league-wide OW should average 0.5).
 - `test_range(min_value, max_value, inclusive=true, allow_null=false)` — bounds check.
+- `assert_all_values_present(to, field)` — inverse of `relationships`: every value of the
+  tested column must appear in `to.field`. Used on the metric-catalog seeds to assert no
+  orphan rows (every `metric_key` produces at least one mart row).
 
 Prefer these over inline SQL tests.
+
+**Cross-mart consistency (singular) tests** in `tests/*.sql` guard invariants that span models —
+the genre to extend when two marts should agree. Current set: `assert_matchup_titles_match_week_chips`
+(chip↔title), `assert_h2h_extremes_within_league_records` (rivalry extremes bounded by league records),
+`assert_postseason_placements_match_espn`, `assert_career_record_matches_source` (H2H-summed record ↔
+raw ESPN `base_s001__teams`), `assert_league_reg_season_zero_sum` (per-season wins=losses & PF=PA), and
+`assert_matchup_margins_arithmetic` (`margin`/`combined` definitions).
 
 ### SQL style
 
@@ -281,6 +291,10 @@ A "source" = one upstream data provider (currently just `s001` = ESPN). To add o
 - isort runs in pre-commit.
 - All inline pylint disables should be narrow and commented. There are existing
   examples (`# pylint: disable=broad-exception-caught`) — follow that style.
+- **Inline comments (code, SQL, and config) describe the current state/intent, not the
+  change that produced it.** Diff-narrating phrasing — "now lives in…", "moved from…",
+  "removed the X flag" — goes stale the moment the next change lands and the reader has no
+  diff in hand. Write what the code *is/does*, or drop the comment if the code already says it.
 
 ## Local dev
 

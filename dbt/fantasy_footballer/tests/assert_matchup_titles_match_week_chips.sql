@@ -1,7 +1,7 @@
 -- FF-011 invariant: a team's Best-/Worst-week season title (int__season_titles) must line up 1:1 with
 -- whether any of its weeks carries the is_best_week / is_worst_week spotlight chip
--- (int__team_week_highlights). Both now derive from int__league_season_week_extremes, so this should
--- always hold — the test fails loudly if a future change makes them drift. Returns the offending rows.
+-- (int__team_week_highlights). Both derive from int__league_season_week_extremes, so it holds by
+-- construction; the test fails loudly if a future change breaks that.
 with titles as (
     select
         team_year_id,

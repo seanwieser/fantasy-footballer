@@ -2,7 +2,7 @@
 -- must fall within the league-wide regular-season extremes computed in int__matchup_margins. If an
 -- int__owner_head_to_head extreme exceeds the league record, an out-of-universe game has leaked in —
 -- e.g. a playoff meeting (2-week-aggregate score on a different scale) being mixed into the rivalry
--- numbers, the exact bug this guards against. Returns the offending pairs (empty = pass).
+-- numbers, the exact bug this guards against.
 -- Ties are included in the league bounds (int__matchup_margins keeps them) so a tie game in the H2H
 -- side can't trip a false positive.
 with league as (

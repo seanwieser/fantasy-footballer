@@ -64,7 +64,7 @@ def preview():
     with ui.column().classes("w-full items-center px-8 py-6"):
         with ui.column().classes("max-w-7xl w-full gap-2"):
             for section, color, groups in LAYOUT:
-                lh.section_header(section)
+                ui.label(section).classes(f"text-2xl font-bold text-{color}-8 mt-6")
                 with ui.grid(columns=2).classes("w-full gap-4"):
                     for group in groups:
                         if isinstance(group, dict):  # empty-state placeholder

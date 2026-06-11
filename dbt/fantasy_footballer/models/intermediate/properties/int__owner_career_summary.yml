@@ -66,6 +66,26 @@ models:
         data_type: int
         data_tests:
           - not_null
+      - name: best_lineup_title_count
+        description: Seasons with the fewest regular-season points left on the bench vs optimal
+        data_type: int
+        data_tests:
+          - not_null
+      - name: worst_lineup_title_count
+        description: Seasons with the most regular-season points left on the bench vs optimal
+        data_type: int
+        data_tests:
+          - not_null
+      - name: most_efficient_lineup_title_count
+        description: Seasons capturing the highest share of the optimal lineup (efficiency)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: least_efficient_lineup_title_count
+        description: Seasons capturing the lowest share of the optimal lineup (efficiency)
+        data_type: int
+        data_tests:
+          - not_null
       - name: seasons_played
         description: Number of regular seasons the owner fielded a team
         data_type: int

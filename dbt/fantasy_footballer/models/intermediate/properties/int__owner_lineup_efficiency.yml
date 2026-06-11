@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: int__owner_lineup_efficiency
+    description: >
+      One row per owner-season: season totals of actual-started vs optimal-lineup points (regular
+      season), with `points_left_on_table` (optimal − actual, the avoidable start/sit loss) and
+      `lineup_efficiency` (actual / optimal). Backs the best/worst lineup-setter season title. Rolls
+      up [[int__optimal_lineups]] via [[int__owner_team_year_map]].
+    columns:
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: owner_year_id
+        description: owner_id_year — the grain
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: team_year_id
+        description: team_id_year (1:1 with owner_year_id) — join key for season-title subtitles
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: actual_points
+        description: Points the owner actually started across the regular season
+        data_type: double
+        data_tests:
+          - not_null
+      - name: optimal_points
+        description: Best-legal-lineup points across the regular season (>= actual_points)
+        data_type: double
+        data_tests:
+          - not_null
+      - name: points_left_on_table
+        description: optimal_points − actual_points; avoidable points lost to start/sit decisions
+        data_type: double
+        data_tests:
+          - not_null
+      - name: lineup_efficiency
+        description: actual_points / optimal_points (0-1); 1.0 = a perfect season of lineups
+        data_type: double
+        data_tests:
+          - not_null

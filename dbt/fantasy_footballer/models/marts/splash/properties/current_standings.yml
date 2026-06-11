@@ -31,3 +31,6 @@ models:
       - name: streak
         description: Current streak in format of type + length (e.g., W3, L2)
         data_type: varchar
+      - name: owner_id
+        description: Owner identifier, hidden in the table and used to cross-link the row to the owner spotlight
+        data_type: int

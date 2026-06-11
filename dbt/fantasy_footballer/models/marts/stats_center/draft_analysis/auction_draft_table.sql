@@ -1,6 +1,7 @@
 select
     owner_team_year_map.year,
     owner_team_year_map.owner_name as owner,
+    owner_team_year_map.owner_id,
     owner_team_year_map.team_name as team,
     nominating_owner_team_year_map.owner_name as nominating_owner,
     draftpicks.player_name as player,

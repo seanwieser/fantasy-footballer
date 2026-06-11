@@ -2,7 +2,6 @@ select
     year,
     player_name,
     position_slot as position,
-    is_flex,
     position_rank,
     nfl_team,
     round(total_points, 2) as total_points,

@@ -34,6 +34,7 @@ reference it in conversation, branches, and commits.
 | FF-014 | Postseason history page | frontend, dbt | Med | M | Done |
 | FF-015 | iMessage group-chat data pipeline + analytics | backend, dbt | Low | L | Idea |
 | FF-016 | Revise pre-Claude-Code pages/dbt/backend | frontend, dbt, backend | Med | L | Idea |
+| FF-017 | Roster-picker value: acquisition cost vs utilized points | dbt, frontend | Med | L | Idea |
 
 ---
 
@@ -367,6 +368,43 @@ Likely splits into several small PRs, one per page/area.
 **Open questions:** which pages actually need work vs. already conform; whether to fold specific
 known asks (FF-006 owner filter on Player Data) into this sweep or keep them separate; how much to
 unify the older marts onto the seed-catalog pattern vs. leave page-specific.
+
+---
+
+## FF-017 — Roster-picker value: acquisition cost vs utilized points
+
+**Area:** dbt, frontend · **Priority:** Med · **Effort:** L · **Status:** Idea
+
+**Done when:** there's a per-owner-season metric (candidate season title "best/worst roster picker")
+measuring **return on acquisition spend** — what each owner *paid* to acquire players (auction draft
+$ + waiver FAAB) against the **utilized points** those players actually produced in the owner's
+starting lineup — so the title rewards getting started-lineup production cheaply, not raw output or
+free bench churn.
+
+**Why:** the obvious "total roster output" picker title (sum of rostered points) is uninteresting —
+bench churn is free and low-skill, and it just tracks team strength. Real roster-picking skill is
+*value*: production per dollar spent acquiring the player. The Roster Production work (FF-006) gives
+us the **utilized points** side (`points_started` in `int__owner_player_season`); this item pairs it
+with **acquisition cost**.
+
+**Pieces it will need:**
+- **Cost per acquired player:** auction draft `bid_amount` is already in `base_s001__draftpicks` /
+  `auction_draft_table`. Waiver/FAAB spend *per player acquisition* is the open data question — we
+  track team-level FAAB budget/acquisitions but per-pickup FAAB cost may not be in the source; snake
+  (non-auction) drafts have no $ at all (would need a pick-value proxy / draft-capital curve).
+- **Value metric:** utilized points per dollar, or points-over-expected-given-cost (a cost→points
+  baseline curve), rolled up to owner-season. Decide whether to scope to auction years only (clean $)
+  or build a cross-format draft-capital proxy.
+- Wire into `int__season_titles` (+ `_long`) and the seed catalogs (`season_highlight_metrics`,
+  `all_time_record_metrics`, mirror in `h2h_metrics` per CLAUDE.md). Regular-season utilized points.
+
+**Open questions:** is per-acquisition FAAB cost available in the ESPN source? handle snake-draft
+years (pick-value proxy vs auction-only); per-dollar ratio vs over-expectation model; relationship to
+FF-009 (value-over-replacement framing).
+
+**Why later:** depends on acquisition-cost data we haven't confirmed we have for waivers, and wants a
+cost→points baseline — more than a one-row-seed title. Captured now so the utilized-points side
+(shipped with FF-006) can be built on deliberately.
 
 ---
 

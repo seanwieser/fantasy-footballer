@@ -61,24 +61,27 @@ def filter_ui(selection: SosDropDownSelection):
 def sos_data_table(selection):
     """Data table displaying all sos data."""
     sos_data_df = DbManager.query(f"""
-        select 
-            year            as Year, 
+        select
+            year            as Year,
             owner_name      as "Owner Name",
-            sos             as "Strength of Schedule", 
-            sosr            as "Strength of Schedule Remaining", 
+            owner_id        as "Owner Id",
+            sos             as "Strength of Schedule",
+            sosr            as "Strength of Schedule Remaining"
         from main_marts.strength_of_schedule
-        where   
+        where
             {selection.get_filter('year')} and
             {selection.get_filter('owner_name')}
         order by sos desc
     """)
 
-    table(sos_data_df,
+    sos_table = table(sos_data_df,
           pagination=25,
-          classes="mx-auto w-full",
+          classes="mx-auto w-full cursor-pointer",
           format_field_names=False,
-          hidden_fields=[field for field, value in selection.__dict__.items() if value != "ALL"],
+          hidden_fields=[field for field, value in selection.__dict__.items() if value != "ALL"] + ["owner_id"],
     )
+    sos_table.on("rowClick",
+                 lambda event: ui.navigate.to(f"/owner_history/{event.args[1]['Owner Id']}/{event.args[1]['Year']}"))
 
 
 def refresh_table(selection, field, value):

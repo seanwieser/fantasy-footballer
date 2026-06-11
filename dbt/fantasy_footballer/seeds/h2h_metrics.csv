@@ -42,3 +42,7 @@ clutch_winning_titles,Clutch,Clutch-winning titles,int,1,40,detail,"Seasons with
 clutch_losing_titles,Clutch,Clutch-losing titles,int,1,41,detail,"Seasons with the most clutch losses — games decided by under 10 points."
 career_acquisitions,Transactions,Career acquisitions,int,1,42,detail,"Total roster acquisitions (waiver / free-agent adds) across every season."
 career_trades,Transactions,Career trades,int,1,43,detail,"Total trades completed across every season."
+best_lineup_titles,Lineups,Fewest-points-left titles,int,1,44,detail,"Seasons finishing with the fewest regular-season points left on the bench versus the optimal lineup."
+worst_lineup_titles,Lineups,Most-points-left titles,int,1,45,detail,"Seasons finishing with the most regular-season points left on the bench versus the optimal lineup."
+most_efficient_lineup_titles,Lineups,Most-efficient-lineup titles,int,1,46,detail,"Seasons finishing with the highest share of the optimal lineup captured (efficiency)."
+least_efficient_lineup_titles,Lineups,Least-efficient-lineup titles,int,1,47,detail,"Seasons finishing with the lowest share of the optimal lineup captured (efficiency)."

@@ -431,6 +431,38 @@ candidates as (
         trades_total::double as metric_value,
         null::varchar as override_display
     from career
+    union all
+    select
+        owner_id,
+        owner_name,
+        'best_lineup_titles' as metric_key,
+        best_lineup_title_count::double as metric_value,
+        null::varchar as override_display
+    from career
+    union all
+    select
+        owner_id,
+        owner_name,
+        'worst_lineup_titles' as metric_key,
+        worst_lineup_title_count::double as metric_value,
+        null::varchar as override_display
+    from career
+    union all
+    select
+        owner_id,
+        owner_name,
+        'most_efficient_lineup_titles' as metric_key,
+        most_efficient_lineup_title_count::double as metric_value,
+        null::varchar as override_display
+    from career
+    union all
+    select
+        owner_id,
+        owner_name,
+        'least_efficient_lineup_titles' as metric_key,
+        least_efficient_lineup_title_count::double as metric_value,
+        null::varchar as override_display
+    from career
 ),
 
 joined as (

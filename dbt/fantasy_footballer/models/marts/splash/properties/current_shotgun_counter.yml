@@ -9,6 +9,9 @@ models:
         data_type: varchar
         tests:
           - not_null
+      - name: owner_id
+        description: Owner identifier, hidden in the table and used to cross-link the row to the owner spotlight
+        data_type: int
       - name: count
         description: Total number of shotgun weeks for the owner in the current season
         data_type: int

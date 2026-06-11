@@ -71,16 +71,17 @@ def filter_ui(selection: SnakeDraftDropDownSelection):
 def snake_draft_data_table(selection):
     """Data table displaying all draft data."""
     snake_analysis_data_df = DbManager.query(f"""
-        select 
+        select
             year as "Year",
             owner as "Owner",
+            owner_id as "Owner Id",
             team as "Team",
             player as "Player",
             position as "Position",
             round as "Round",
             round_pick as "Round Pick"
         from main_marts.snake_draft_table
-        where   
+        where
             {selection.get_filter('year')} and
             {selection.get_filter('owner')} and
             {selection.get_filter('position')} and
@@ -89,12 +90,14 @@ def snake_draft_data_table(selection):
         order by year desc, round, round_pick
     """)
 
-    table(snake_analysis_data_df,
+    snake_table = table(snake_analysis_data_df,
           pagination=25,
-          classes="mx-auto w-full",
+          classes="mx-auto w-full cursor-pointer",
           format_field_names=False,
-          hidden_fields=[field for field, value in selection.__dict__.items() if value != "ALL"],
+          hidden_fields=[field for field, value in selection.__dict__.items() if value != "ALL"] + ["owner_id"],
     )
+    snake_table.on("rowClick",
+                   lambda event: ui.navigate.to(f"/owner_history/{event.args[1]['Owner Id']}/{event.args[1]['Year']}"))
 
 def refresh_table(selection, field, value):
     """Refresh table with new selection."""

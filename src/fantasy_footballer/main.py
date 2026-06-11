@@ -10,10 +10,10 @@ from frontend.admin import home
 from frontend.gallery import home
 from frontend.login.home import AuthMiddleware
 from frontend.owner_history import home, spotlight
-from frontend.splash import home
-from frontend.stats_center import (h2h_dashboard, home, league_highlights,
+from frontend.splash import current_season, home
+from frontend.stats_center import (h2h_dashboard, league_highlights,
                                    player_data, postseason_history,
-                                   strength_of_schedule)
+                                   roster_production, strength_of_schedule)
 from frontend.stats_center.draft_analysis import draft_analysis
 from nicegui import app, ui
 

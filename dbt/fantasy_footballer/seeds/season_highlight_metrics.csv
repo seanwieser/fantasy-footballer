@@ -19,3 +19,8 @@ highest_shootouts,Combined,Matchups,Shootout,1,points,17,"Highest combined score
 lowest_slugfests,Combined,Matchups,Slugfest,-1,points,18,"Lowest combined score in a regular-season game this season — both teams added together.",
 champion,Results,Postseason,Champion,1,seed,19,"Won the league championship this season (shown with their regular-season seed).",
 toilet_bowl_loser,Results,Postseason,Toilet Bowl Loser,1,seed,20,"Finished dead last — the toilet bowl winner — this season (shown with their regular-season seed).",
+best_lineup_title,Lineups,Lineups,Fewest points left,-1,points,23,"Fewest regular-season points left on the bench versus the optimal lineup this season.",
+worst_lineup_title,Lineups,Lineups,Most points left,1,points,24,"Most regular-season points left on the bench versus the optimal lineup this season.",
+most_efficient_lineup_title,Lineups,Lineups,Most efficient lineup,1,pct,25,"Highest share of the optimal lineup captured this season — actual points as a percent of the best legal lineup.",
+least_efficient_lineup_title,Lineups,Lineups,Least efficient lineup,-1,pct,26,"Lowest share of the optimal lineup captured this season — actual points as a percent of the best legal lineup.",
+underutilized_player,Lineups,Lineups,Most underutilized player,1,points,27,"The best player most left on the bench — most regular-season points one player scored in weeks they belonged in the owner's optimal lineup but were benched.","Everyone started their best players"

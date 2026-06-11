@@ -1,0 +1,79 @@
+version: 2
+
+models:
+  - name: owner_roster_production
+    description: >
+      One row per owner-season-player for the owner-spotlight Roster Production card: each player a
+      manager rostered that regular season and what they produced while held (points + weeks),
+      ordered most productive first. A mid-season trade attributes weeks/points to each holder.
+      Thin display wrap of [[int__owner_player_season]] (rounding only).
+    columns:
+      - name: owner_id
+        description: Manager who rostered the player
+        data_type: int
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('owner_year_map')
+                field: owner_id
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: player_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: position
+        description: Player's position slot designation
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: nfl_team
+        description: NFL team abbreviation
+        data_type: varchar
+      - name: weeks_held
+        description: Regular-season weeks this owner rostered the player (bench/IR included)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: weeks_started
+        description: Of weeks_held, weeks the player occupied an active (non-bench/IR) lineup slot
+        data_type: int
+        data_tests:
+          - not_null
+      - name: points_held
+        description: Fantasy points scored while on this owner's roster (all held weeks), rounded
+        data_type: double
+        data_tests:
+          - not_null
+      - name: points_started
+        description: Fantasy points scored in weeks this owner started the player, rounded
+        data_type: double
+        data_tests:
+          - not_null
+      - name: avg_points
+        description: points_held divided by weeks_held, rounded
+        data_type: double
+        data_tests:
+          - not_null
+      - name: player_reg_season_points
+        description: The player's regular-season fantasy total across all owners/weeks, rounded
+        data_type: double
+      - name: capture_rate
+        description: >
+          Share of the player's whole regular-season output this owner started:
+          points_started / player_reg_season_points. Low when the player was only rostered part of the
+          season (acquisition timing). Null for non-positive totals or net-negative starts.
+        data_type: double
+      - name: roster_utilization
+        description: >
+          Of the points the player scored while on this owner's roster, the share the owner started:
+          points_started / points_held (pure start/sit deployment; ~100% for a full-time starter).
+          Null when points_held is not positive or starts are net-negative.
+        data_type: double

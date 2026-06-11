@@ -1,6 +1,7 @@
 select
     sos_table.year,
     owner_team_map.owner_name,
+    owner_team_map.owner_id,
     round(sos_table.sos, 4) as sos,
     round(sos_table.sosr, 4) as sosr
 from {{ ref("int__strength_of_schedule") }} as sos_table

@@ -19,11 +19,6 @@ models:
         data_type: varchar
         data_tests:
           - not_null
-      - name: is_flex
-        description: "Boolean flag indicating if player is eligible for flex position"
-        data_type: bool
-        data_tests:
-          - not_null
       - name: position_rank
         description: "Rank of player within their position"
         data_type: int

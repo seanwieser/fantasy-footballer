@@ -70,14 +70,19 @@ title_count_candidates as (
             lucky_winner_title_count,
             unlucky_loser_title_count,
             shotgun_title_count,
-            no_shotgun_season_count
+            no_shotgun_season_count,
+            best_lineup_title_count,
+            worst_lineup_title_count,
+            most_efficient_lineup_title_count,
+            least_efficient_lineup_title_count
         from career
     )
     on  --noqa: LT02
         scoring_title_count, non_scoring_title_count, matchup_title_count, bad_matchup_title_count,  --noqa: LT02
         non_playoff_scoring_title_count, playoff_non_scoring_title_count, clutch_winning_title_count,  --noqa: LT02
         clutch_losing_title_count, lucky_winner_title_count, unlucky_loser_title_count,  --noqa: LT02
-        shotgun_title_count, no_shotgun_season_count  --noqa: LT02
+        shotgun_title_count, no_shotgun_season_count, best_lineup_title_count, worst_lineup_title_count,  --noqa: LT02
+        most_efficient_lineup_title_count, least_efficient_lineup_title_count  --noqa: LT02
     into name metric_key value metric_value
 ),
 
@@ -308,6 +313,52 @@ shotgun_season_records as (
     from {{ ref("int__season_titles") }} as titles
 ),
 
+-- Single-season lineup-setter extremes: the most / fewest regular-season points an owner ever left
+-- on the bench vs the optimal legal lineup (subtitle = that season's efficiency).
+lineup_season_records as (
+    select
+        titles.owner_id,
+        titles.owner_name,
+        directions.metric_key,
+        titles.points_left_on_table as metric_value,
+        0::double as tiebreak,
+        titles.year::varchar as season_or_week,
+        round(titles.lineup_efficiency * 100, 1)::varchar || '% of optimal' as detail
+    from {{ ref("int__season_titles") }} as titles
+    cross join (values ('most_points_left_season'), ('fewest_points_left_season')) as directions (metric_key)
+),
+
+-- Single-season lineup-efficiency extremes: the highest / lowest share of the optimal lineup an owner
+-- ever captured in a season (subtitle = that season's points left on the bench).
+efficiency_season_records as (
+    select
+        titles.owner_id,
+        titles.owner_name,
+        directions.metric_key,
+        (titles.lineup_efficiency * 100)::double as metric_value,
+        0::double as tiebreak,
+        titles.year::varchar as season_or_week,
+        round(titles.points_left_on_table, 1)::varchar || ' pts left' as detail
+    from {{ ref("int__season_titles") }} as titles
+    cross join (values ('highest_lineup_efficiency_season'), ('lowest_lineup_efficiency_season'))
+        as directions (metric_key)
+),
+
+-- Biggest single-player bench waste ever: the best player most left out of an owner's optimal lineup
+-- in one regular season (subtitle = the player + that season).
+underutilized_player_records as (
+    select
+        underutilization.owner_id,
+        underutilization.owner_name,
+        'most_underutilized_player' as metric_key,
+        underutilization.points_left_on_bench as metric_value,
+        0::double as tiebreak,
+        underutilization.year::varchar as season_or_week,
+        underutilization.player_name || ' · ' || underutilization.weeks_benched_deserving::varchar
+        || ' wk benched' as detail
+    from {{ ref("int__owner_player_underutilization") }} as underutilization
+),
+
 -- Single-extreme records sourced at week / game grain (regular season)
 matchup_week_records as (
     select
@@ -456,6 +507,12 @@ candidates as (
     select * from clutch_season_records
     union all
     select * from shotgun_season_records
+    union all
+    select * from lineup_season_records
+    union all
+    select * from efficiency_season_records
+    union all
+    select * from underutilized_player_records
     union all
     select * from matchup_week_records
     union all

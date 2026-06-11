@@ -92,6 +92,22 @@ postseason_title_candidates as (
         (directions.metric_key = 'toilet_bowl_loser' and postseason.is_last)
 ),
 
+-- Per-season underutilized-player candidates: every owner-player who left points on the bench, ranked
+-- to the single biggest waste that year (the best player most left out of the optimal lineup). Detail
+-- names the player + how many weeks they deserved a start but sat.
+underutilized_player_candidates as (
+    select
+        underutilization.year,
+        underutilization.team_year_id,
+        underutilization.owner_id,
+        underutilization.owner_name,
+        'underutilized_player' as metric_key,
+        underutilization.points_left_on_bench as metric_value,
+        underutilization.player_name || ' · ' || underutilization.weeks_benched_deserving::varchar ||
+        ' wk benched' as detail
+    from {{ ref("int__owner_player_underutilization") }} as underutilization
+),
+
 candidates as (
     select * from title_candidates
     union all
@@ -100,6 +116,8 @@ candidates as (
     select * from transaction_candidates
     union all
     select * from postseason_title_candidates
+    union all
+    select * from underutilized_player_candidates
 ),
 
 -- Regular-season weekly scores, used to find each team's best/worst single week.
@@ -153,6 +171,8 @@ title_context as (
         luck_weeks.unlucky_label,
         season_titles.playoff_teams_outscored,
         season_titles.nonplayoff_teams_outscoring,
+        lineup.lineup_efficiency,
+        lineup.points_left_on_table,
         -- Ordinal of the end-of-regular-season standing, e.g. "7th seed".
         teams.standing::varchar || case
             when teams.standing % 100 in (11, 12, 13) then 'th'
@@ -164,6 +184,7 @@ title_context as (
     from {{ ref("base_s001__teams") }} as teams
     left join {{ ref("int__clutch_records") }} as clutch on teams.team_year_id = clutch.team_year_id
     left join {{ ref("int__season_titles") }} as season_titles on teams.team_year_id = season_titles.team_year_id
+    left join {{ ref("int__owner_lineup_efficiency") }} as lineup on teams.team_year_id = lineup.team_year_id
     left join extreme_weeks on teams.team_year_id = extreme_weeks.team_year_id
     left join shotgun_weeks on teams.team_year_id = shotgun_weeks.team_year_id
     left join luck_weeks on teams.team_year_id = luck_weeks.team_year_id
@@ -196,6 +217,10 @@ ranked as (
             when 'shotgun_title' then ctx.shotgun_label
             when 'lucky_winner_title' then ctx.lucky_label
             when 'unlucky_loser_title' then ctx.unlucky_label
+            when 'best_lineup_title' then round(ctx.lineup_efficiency * 100, 1)::varchar || '% of optimal'
+            when 'worst_lineup_title' then round(ctx.lineup_efficiency * 100, 1)::varchar || '% of optimal'
+            when 'most_efficient_lineup_title' then round(ctx.points_left_on_table, 1)::varchar || ' pts left'
+            when 'least_efficient_lineup_title' then round(ctx.points_left_on_table, 1)::varchar || ' pts left'
         end) as detail,
         rank() over (
             partition by candidates.year, candidates.metric_key

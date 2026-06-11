@@ -8,9 +8,9 @@ from frontend.utils import (SECTION_COLORS, common_header, get_current_year,
                             medal)
 from nicegui import ui
 
-SECTIONS = ["Scoring", "Postseason", "Matchups", "Shotgun", "Clutch", "Transactions"]
+SECTIONS = ["Scoring", "Postseason", "Matchups", "Lineups", "Shotgun", "Clutch", "Transactions"]
 SECTION_ICONS = {"Scoring": "sports_football", "Clutch": "bolt", "Matchups": "sports_kabaddi", "Shotgun": "sports_bar",
-                 "Transactions": "swap_horiz", "Postseason": "emoji_events"}
+                 "Transactions": "swap_horiz", "Postseason": "emoji_events", "Lineups": "fact_check"}
 
 # Within a section, cards cluster by `category` for scannability (order comes from the seed's
 # display_order); these are the friendly sub-cluster headers.
@@ -154,36 +154,48 @@ def _subsection(title, groups, color, owners, render):
             render(group, color, owners)
 
 
-def all_time_tab(owners):
-    """All-time view: each section's cards grouped by category into scannable clusters."""
-    for section in SECTIONS:
-        color = SECTION_COLORS[section]
-        section_header(section)
-        rows = DbManager.query(f"""
-            select *
-            from main_marts.all_time_records
-            where section = '{section}'
-            order by display_order, rank
-        """, to_dict=True)
-        by_category = {}
-        for group in _runs(rows, "metric_key"):
-            by_category.setdefault(group[0]["category"], []).append(group)
-        # by_category preserves seed display_order (rows are ordered by it). Only label
-        # sub-clusters when a section spans multiple categories — Clutch/Shotgun are
-        # single-category, so a header would just echo the section title.
-        labeled = len(by_category) > 1
-        for category, cat_groups in by_category.items():
-            title = CATEGORY_LABELS.get(category, category) if labeled else None
-            _subsection(title, cat_groups, color, owners, podium_card)
+def _section_subtabs(render_one):
+    """
+    Build a secondary tab group over SECTIONS; `render_one(section)` fills each section's panel.
+
+    Splits the otherwise very long All-Time / By-Season scroll into one tab per section so each
+    view stays scannable. Returns the section-tab element (the caller may need it for navigation).
+    """
+    with ui.tabs().props("inline-label dense active-color=primary").classes("w-full") as section_tabs:
+        tab_objs = {section: ui.tab(section, icon=SECTION_ICONS[section]) for section in SECTIONS}
+    with ui.tab_panels(section_tabs, value=tab_objs[SECTIONS[0]]).classes("w-full"):
+        for section in SECTIONS:
+            with ui.tab_panel(tab_objs[section]):
+                render_one(section)
+    return section_tabs
 
 
-def section_header(section):
-    """Section banner: color icon + title with a thin colored rule beneath it."""
+def all_time_section(section, owners):
+    """All-time cards for one section, grouped by category into scannable clusters."""
     color = SECTION_COLORS[section]
-    with ui.row().classes("w-full items-center gap-2 mt-8 mb-1"):
-        ui.icon(SECTION_ICONS[section], size="1.9rem").classes(f"text-{color}-7")
-        ui.label(section).classes(f"text-2xl font-bold text-{color}-8")
-    ui.separator().classes(f"bg-{color}-4")
+    rows = DbManager.query(f"""
+        select *
+        from main_marts.all_time_records
+        where section = '{section}'
+        order by display_order, rank
+    """, to_dict=True)
+    if not rows:
+        ui.label("No records in this section yet").classes("mx-auto text-gray-500 py-6")
+        return
+    by_category = {}
+    for group in _runs(rows, "metric_key"):
+        by_category.setdefault(group[0]["category"], []).append(group)
+    # by_category preserves seed display_order (rows are ordered by it). Only label sub-clusters when
+    # a section spans multiple categories — single-category sections would just echo the tab title.
+    labeled = len(by_category) > 1
+    for category, cat_groups in by_category.items():
+        title = CATEGORY_LABELS.get(category, category) if labeled else None
+        _subsection(title, cat_groups, color, owners, podium_card)
+
+
+def all_time_tab(owners):
+    """All-time view: a section sub-tab group, each holding that section's record cards."""
+    _section_subtabs(lambda section: all_time_section(section, owners))
 
 
 def empty_card(label, description, color, message):
@@ -194,57 +206,67 @@ def empty_card(label, description, color, message):
             ui.label(message or "Not awarded this season").classes("text-sm opacity-50 italic text-center")
 
 
-def render_season(year, owners):
-    """Render every season-title card (held or empty) grouped by section."""
-    # Catalog drives the grid so a title with no holder this year still shows a placeholder card.
-    catalog = DbManager.query("""
-        select metric_key, section, metric_label, description, empty_label
-        from main_seed_data.season_highlight_metrics
-        order by display_order
-    """, to_dict=True)
+def render_season_section(section, metrics, year, owners):
+    """
+    Render one section's season-title cards (held or empty) for `year`.
+
+    The catalog `metrics` drives the grid so a title with no holder this year still shows a
+    placeholder card; holders are looked up per section so changing the season is a small query.
+    """
+    if not metrics:
+        ui.label("No titles in this section").classes("mx-auto text-gray-500 py-6")
+        return
     holders = DbManager.query(f"""
         select *
         from main_marts.season_highlights
-        where year = {year}
+        where year = {year} and section = '{section}'
         order by display_order, rank
     """, to_dict=True)
     held = {group[0]["metric_key"]: group for group in _runs(holders, "metric_key")}
-
-    by_section = {}
-    for meta in catalog:
-        by_section.setdefault(meta["section"], []).append(meta)
-    for section in SECTIONS:
-        metrics = by_section.get(section)
-        if not metrics:
-            continue
-        section_header(section)
-        color = SECTION_COLORS[section]
-        with ui.grid(columns=_balanced_cols(len(metrics))).classes("w-full gap-4"):
-            for meta in metrics:
-                group = held.get(meta["metric_key"])
-                if group:
-                    podium_card(group, color, owners)
-                else:
-                    empty_card(meta["metric_label"], meta["description"], color, meta["empty_label"])
+    color = SECTION_COLORS[section]
+    with ui.grid(columns=_balanced_cols(len(metrics))).classes("w-full gap-4"):
+        for meta in metrics:
+            group = held.get(meta["metric_key"])
+            if group:
+                podium_card(group, color, owners)
+            else:
+                empty_card(meta["metric_label"], meta["description"], color, meta["empty_label"])
 
 
 def season_tab(owners):
-    """Season view: a season picker driving a refreshable panel of that year's highlights."""
+    """Season view: a season picker above a section sub-tab group of that year's title cards."""
     years = [str(row["year"]) for row in DbManager.query(
         "select distinct year from main_marts.season_highlights order by year desc", to_dict=True)]
     default = str(get_current_year())
     if default not in years and years:
         default = years[0]
+    # Catalog drives the grid (placeholder cards for unheld titles); read once, grouped by section.
+    catalog = DbManager.query("""
+        select metric_key, section, metric_label, description, empty_label
+        from main_seed_data.season_highlight_metrics
+        order by display_order
+    """, to_dict=True)
+    by_section = {}
+    for meta in catalog:
+        by_section.setdefault(meta["section"], []).append(meta)
 
     season_select = ui.select(years, value=default, label="Season").props("outlined dense").classes("w-40")
 
-    @ui.refreshable
-    def panel():
-        """Refreshable container for the selected season's highlights."""
-        render_season(int(season_select.value), owners)
+    # Stable section tabs; each panel's cards refresh in place when the season changes (so the
+    # active section is preserved across years rather than snapping back to the first tab).
+    panels = []
+    with ui.tabs().props("inline-label dense active-color=primary").classes("w-full") as section_tabs:
+        tab_objs = {section: ui.tab(section, icon=SECTION_ICONS[section]) for section in SECTIONS}
+    with ui.tab_panels(section_tabs, value=tab_objs[SECTIONS[0]]).classes("w-full"):
+        for section in SECTIONS:
+            with ui.tab_panel(tab_objs[section]):
+                @ui.refreshable
+                def section_cards(section=section):
+                    render_season_section(section, by_section.get(section, []), int(season_select.value), owners)
+                section_cards()
+                panels.append(section_cards)
 
-    season_select.on_value_change(panel.refresh)
-    panel()
+    season_select.on_value_change(lambda: [panel.refresh() for panel in panels])
 
 
 @ui.page("/stats_center/league_highlights")

@@ -14,6 +14,11 @@ models:
         data_type: varchar
         data_tests:
           - not_null
+      - name: owner_id
+        description: "Owner identifier, hidden in the table and used to cross-link the row to the owner spotlight"
+        data_type: int
+        data_tests:
+          - not_null
       - name: team
         description: "Name of the fantasy team"
         data_type: varchar

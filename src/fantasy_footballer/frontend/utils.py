@@ -2,7 +2,7 @@
 import datetime
 
 from backend.db import DbManager
-from inflection import humanize, titleize
+from inflection import titleize
 from nicegui import app, context, ui
 from pandas import DataFrame
 
@@ -13,7 +13,7 @@ VALID_POSITIONS = ["QB", "RB", "WR", "TE", "D/ST", "K"]
 # Highlights page and the owner-spotlight Highlights card so the visual language stays in sync.
 SECTION_COLORS = {"Scoring": "blue", "Clutch": "red", "Matchups": "orange", "Shotgun": "green",
                   "Record": "purple", "Postseason": "teal", "Head to Head": "cyan", "The Rivalry": "pink",
-                  "Transactions": "indigo"}
+                  "Transactions": "indigo", "Lineups": "amber"}
 MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
 
 def medal(rank):
@@ -89,27 +89,35 @@ def logout() -> None:
     app.storage.user.clear()
     ui.navigate.to("/login")
 
-def common_header() -> None:
-    """Header that is common for all pages."""
-    page_by_access_level = {"owner_history": 0, "stats_center": 0, "gallery": 1, "admin": 2}
+def get_access_level() -> int:
+    """Highest page access level the current user may see (public=0, member=1, admin=2)."""
     username = app.storage.user.get("username")
+    if username == "admin":
+        return 2
     if username == "public":
-        valid_pages = [page for page, access_level in page_by_access_level.items() if access_level == 0]
-    elif username == "admin":
-        valid_pages = [page for page, access_level in page_by_access_level.items() if access_level <= 2]
-    else:
-        valid_pages = [page for page, access_level in page_by_access_level.items() if access_level <= 1]
+        return 0
+    return 1
 
+
+def common_header() -> None:
+    """Header: home + logout (+ shutdown for admins). Section navigation lives on the splash hub."""
     current_page = context.client.page.path.replace("/", "")
     with ui.header().classes(replace="row items-center"):
-        color = "red" if current_page == "" else "primary"
-        ui.button(on_click=lambda: ui.navigate.to("/"), icon="home").props(f"square color={color}")
-        for page in valid_pages:
-            color = "red" if page == current_page else "primary"
-            ui.button(humanize(page),
-                      on_click=lambda page=page: ui.navigate.to(f"/{page}")
-                      ).props(f"square color={color}")
+        home_color = "red" if current_page == "" else "primary"
+        ui.button(on_click=lambda: ui.navigate.to("/"), icon="home").props(f"square color={home_color}")
+        ui.space()
+        if get_access_level() >= 2:
+            ui.button(on_click=app.shutdown, icon="power_settings_new").props("square color=negative")
         ui.button(on_click=logout, icon="logout").props("square color=primary")
+
+def section_tile(label: str, icon: str, icon_color: str, route: str) -> None:
+    """Clickable navigation tile (icon + label) linking to a section route. The splash hub's tile."""
+    with ui.card() \
+            .classes("w-full h-full p-5 gap-2 items-center justify-center "
+                     "hover:shadow-lg transition-shadow cursor-pointer") \
+            .on("click", lambda: ui.navigate.to(route)):
+        ui.icon(icon, size="3rem", color=f"{icon_color}-6").classes("mx-auto")
+        ui.label(label).classes("text-lg font-semibold text-center leading-tight mx-auto")
 
 def format_field_name(field_name, extra_funcs=None):
     """Format field names to be displayed on UI (applying extra functions if passed)."""

@@ -75,6 +75,7 @@ def auction_draft_data_table(selection):
         select
             year as "Year",
             owner as "Owner",
+            owner_id as "Owner Id",
             team as "Team",
             nominating_owner as "Nominating Owner",
             keeper as "Keeper",
@@ -84,7 +85,7 @@ def auction_draft_data_table(selection):
             round_pick as "Round Pick",
             bid_amount as "Bid Amount"
         from main_marts.auction_draft_table
-        where   
+        where
             {selection.get_filter('year')} and
             {selection.get_filter('owner')} and
             {selection.get_filter('nominating_owner')} and
@@ -93,21 +94,25 @@ def auction_draft_data_table(selection):
         order by bid_amount desc
     """)
 
-    table(
+    auction_table = table(
         auction_draft_data_df,
         pagination=25,
-        classes="mx-auto w-full",
+        classes="mx-auto w-full cursor-pointer",
         format_field_names=False,
-        hidden_fields=[field for field, value in selection.__dict__.items() if value != "ALL"],
+        hidden_fields=[field for field, value in selection.__dict__.items() if value != "ALL"] + ["owner_id"],
         slots=[{
             "name": "body-cell-Keeper",
             "template": r"""
                 <q-td :props="props">
-                    <q-icon :name="props.value.includes('true') ? 'done' : 'close'" 
+                    <q-icon :name="props.value.includes('true') ? 'done' : 'close'"
                             :color="props.value.includes('true') ? 'green-3' : 'red-3'" />
                 </q-td>"""
         }]
     )
+    def to_spotlight(event):
+        row = event.args[1]
+        ui.navigate.to(f"/owner_history/{row['Owner Id']}/{row['Year']}")
+    auction_table.on("rowClick", to_spotlight)
 
 def refresh_table(selection, field, value):
     """Refresh table with new selection."""

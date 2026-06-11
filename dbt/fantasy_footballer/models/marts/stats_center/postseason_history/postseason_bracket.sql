@@ -174,4 +174,4 @@ inner join final_round
     on
         slots.year = final_round.year and
         slots.bracket = final_round.bracket
-order by slots.year desc, slots.bracket, slots.round_num, slots.top_seed
+order by slots.year desc, slots.bracket asc, slots.round_num asc, slots.top_seed asc

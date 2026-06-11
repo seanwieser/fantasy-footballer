@@ -20,8 +20,8 @@ snubs as (
         owner_name,
         'snub' as kind,
         playoff_teams_outscored as context_count,
-        'Outscored ' || playoff_teams_outscored::varchar
-        || ' who made it' as detail
+        'Outscored ' || playoff_teams_outscored::varchar ||
+        ' who made it' as detail
     from titles
     where is_snubbed
 ),
@@ -33,8 +33,8 @@ lucked_in as (
         owner_name,
         'lucky_in' as kind,
         nonplayoff_teams_outscoring as context_count,
-        'Snuck in over ' || nonplayoff_teams_outscoring::varchar
-        || ' who outscored them' as detail
+        'Snuck in over ' || nonplayoff_teams_outscoring::varchar ||
+        ' who outscored them' as detail
     from titles
     where is_lucked_in
 )
@@ -51,4 +51,4 @@ from (
     union all
     select * from lucked_in
 )
-order by year desc, kind, context_count desc, owner_name
+order by year desc, kind asc, context_count desc, owner_name asc

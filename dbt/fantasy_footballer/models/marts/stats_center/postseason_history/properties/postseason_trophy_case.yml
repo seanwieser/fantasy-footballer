@@ -69,3 +69,8 @@ models:
         data_type: int
         data_tests:
           - not_null
+      - name: last_year
+        description: The owner's most recent season — links each card to their owner-spotlight.
+        data_type: int
+        data_tests:
+          - not_null

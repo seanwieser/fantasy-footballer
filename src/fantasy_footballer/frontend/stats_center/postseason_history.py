@@ -29,15 +29,29 @@ def _seed_tag(seed):
     ui.label(f"#{seed}").classes("text-xs opacity-50 shrink-0")
 
 
+# Shared hover/cursor affordance for any element that links to an owner-spotlight.
+_LINK_CLASSES = "cursor-pointer rounded hover:bg-gray-500/10 transition-colors"
+
+
+def _link_to_owner(element, owner_id, year):
+    """Make a card/row navigate to that owner's season spotlight on click (cross-links the platform)."""
+    element.classes(_LINK_CLASSES).on(
+        "click", lambda: ui.navigate.to(f"/owner_history/{owner_id}/{year}"))
+    return element
+
+
 # ---- Brackets tab ---------------------------------------------------------------------------
 
-def _participant_row(owner_id, owner_name, seed, score, is_advancer):
-    """One side of a matchup: seed, headshot, name, score — emphasized for whoever moves on."""
+def _participant_row(game, side, is_advancer):
+    """One side (`top`/`low`) of a matchup: seed, headshot, name, score — emphasized for the advancer."""
+    owner_id = game[f"{side}_seed_owner_id"]
+    score = game[f"{side}_seed_score"]
     weight = "font-bold" if is_advancer else "font-normal opacity-70"
-    with ui.row().classes("w-full items-center gap-2 no-wrap"):
-        _seed_tag(seed)
+    row = _link_to_owner(ui.row().classes("w-full items-center gap-2 no-wrap"), owner_id, game["year"])
+    with row:
+        _seed_tag(game[f"{side}_seed"])
         _headshot(owner_id, px=26, ring=COLOR if is_advancer else None)
-        ui.label(owner_name).classes(f"{weight} text-sm truncate grow")
+        ui.label(game[f"{side}_seed_owner_name"]).classes(f"{weight} text-sm truncate grow")
         if score is not None:
             ui.label(f"{score:.2f}").classes(f"{weight} text-sm shrink-0")
 
@@ -48,17 +62,14 @@ def _matchup_card(game):
     border = f"border-2 border-{COLOR}-5" if champ else "border border-gray-200 dark:border-gray-700"
     with ui.card().classes(f"w-60 gap-1 p-3 rounded-lg {border}"):
         if game["is_bye"]:
-            _participant_row(game["top_seed_owner_id"], game["top_seed_owner_name"],
-                             game["top_seed"], None, is_advancer=True)
+            _participant_row(game, "top", is_advancer=True)
             ui.label("BYE").classes("text-xs opacity-40 italic text-center w-full")
             return
         # The advancer is the winner in the championship bracket, but the LOSER in the toilet bowl.
         advancer = game["advancer_owner_id"]
-        _participant_row(game["top_seed_owner_id"], game["top_seed_owner_name"], game["top_seed"],
-                         game["top_seed_score"], is_advancer=advancer == game["top_seed_owner_id"])
+        _participant_row(game, "top", advancer == game["top_seed_owner_id"])
         ui.separator().classes("opacity-30")
-        _participant_row(game["low_seed_owner_id"], game["low_seed_owner_name"], game["low_seed"],
-                         game["low_seed_score"], is_advancer=advancer == game["low_seed_owner_id"])
+        _participant_row(game, "low", advancer == game["low_seed_owner_id"])
 
 
 def _round_game_label(game):
@@ -110,7 +121,7 @@ def _bracket(title, icon, rows, side_card=None):
             side_card()
 
 
-def _luck_column(title, icon, tooltip, rows):
+def _luck_column(title, icon, tooltip, rows, year):
     """A titled vertical list of snub / lucky-in owner cards."""
     with ui.column().classes("gap-2 grow min-w-0"):
         with ui.row().classes("items-center gap-2 no-wrap"):
@@ -122,7 +133,10 @@ def _luck_column(title, icon, tooltip, rows):
             ui.label("None this season").classes("text-sm opacity-50 italic")
             return
         for row in rows:
-            with ui.card().classes("w-full gap-2 px-3 py-2 rounded-lg flex-row items-center no-wrap"):
+            card = _link_to_owner(
+                ui.card().classes("w-full gap-2 px-3 py-2 rounded-lg flex-row items-center no-wrap"),
+                row["owner_id"], year)
+            with card:
                 _headshot(row["owner_id"], px=32)
                 with ui.column().classes("gap-0 min-w-0"):
                     ui.label(row["owner_name"]).classes("text-sm font-semibold truncate")
@@ -144,20 +158,19 @@ def _snub_luck_lists(year):
     ui.separator().classes(f"bg-{COLOR}-3 mt-6")
     with ui.row().classes("w-full gap-8 items-start mt-2"):
         _luck_column("Snubs", "sentiment_very_dissatisfied",
-                     "Missed the playoffs despite outscoring at least one team that made it.", snubs)
+                     "Missed the playoffs despite outscoring at least one team that made it.", snubs, year)
         _luck_column("Lucky-In", "casino",
-                     "Made the playoffs despite being outscored by at least one team that missed.", lucky)
+                     "Made the playoffs despite being outscored by at least one team that missed.", lucky, year)
 
 
 def _podium_card(timeline, placements, title):
     """Finishers card shown beside a bracket: the winners podium, or the dead-last loser."""
     with ui.card().classes("gap-2 p-4 rounded-xl shadow-sm self-center shrink-0"):
         ui.label(title).classes(f"text-xs font-semibold uppercase tracking-wide text-{COLOR}-7")
-        for key, emoji, label in PLACEMENTS:
-            if key not in placements or timeline[f"{key}_owner_id"] is None:
-                continue
-            _finisher_line(emoji, label, timeline[f"{key}_owner_id"],
-                           timeline[f"{key}_owner_name"], timeline[f"{key}_seed"])
+        for placement in PLACEMENTS:
+            key = placement[0]
+            if key in placements and timeline[f"{key}_owner_id"] is not None:
+                _finisher_line(placement, timeline)
 
 
 def _render_brackets(year):
@@ -204,15 +217,18 @@ def brackets_tab():
 
 # ---- Timeline tab ---------------------------------------------------------------------------
 
-def _finisher_line(emoji, label, owner_id, owner_name, seed):
-    """One placement line within a season card."""
-    with ui.row().classes("w-full items-center gap-2 no-wrap"):
+def _finisher_line(placement, row):
+    """One placement line (champion / runner-up / …) within a season or podium card."""
+    key, emoji, label = placement
+    owner_id = row[f"{key}_owner_id"]
+    line = _link_to_owner(ui.row().classes("w-full items-center gap-2 no-wrap"), owner_id, row["year"])
+    with line:
         ui.label(emoji).classes("text-lg w-6 text-center shrink-0")
         _headshot(owner_id, px=30)
         with ui.column().classes("gap-0 min-w-0 grow"):
-            ui.label(owner_name).classes("text-sm font-semibold truncate")
+            ui.label(row[f"{key}_owner_name"]).classes("text-sm font-semibold truncate")
             ui.label(label).classes("text-xs opacity-50")
-        _seed_tag(seed)
+        _seed_tag(row[f"{key}_seed"])
 
 
 def _season_card(row):
@@ -220,11 +236,9 @@ def _season_card(row):
     with ui.card().classes("w-72 gap-2 p-4 rounded-xl shadow-sm"):
         ui.label(str(row["year"])).classes(f"text-2xl font-bold text-{COLOR}-8 w-full text-center")
         ui.separator().classes(f"bg-{COLOR}-3")
-        for key, emoji, label in PLACEMENTS:
-            owner_id = row[f"{key}_owner_id"]
-            if owner_id is None:
-                continue
-            _finisher_line(emoji, label, owner_id, row[f"{key}_owner_name"], row[f"{key}_seed"])
+        for placement in PLACEMENTS:
+            if row[f"{placement[0]}_owner_id"] is not None:
+                _finisher_line(placement, row)
 
 
 def timeline_tab():
@@ -249,7 +263,10 @@ def _trophy_count(emoji, count, label):
 
 def _trophy_card(owner):
     """One owner's career hardware + playoff / toilet records, as a slim single row."""
-    with ui.card().classes("w-full gap-3 px-3 py-2 rounded-lg shadow-sm flex-row items-center no-wrap"):
+    card = _link_to_owner(
+        ui.card().classes("w-full gap-3 px-3 py-2 rounded-lg shadow-sm flex-row items-center no-wrap"),
+        owner["owner_id"], owner["last_year"])
+    with card:
         _headshot(owner["owner_id"], px=34, ring=COLOR if owner["championships"] else None)
         with ui.column().classes("gap-0 min-w-0 grow"):
             ui.label(owner["owner_name"]).classes("text-sm font-bold truncate")

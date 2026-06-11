@@ -33,6 +33,7 @@ reference it in conversation, branches, and commits.
 | FF-013 | Shootout / Slugfest records in League Highlights | dbt | Low | S | Done |
 | FF-014 | Postseason history page | frontend, dbt | Med | M | Done |
 | FF-015 | iMessage group-chat data pipeline + analytics | backend, dbt | Low | L | Idea |
+| FF-016 | Revise pre-Claude-Code pages/dbt/backend | frontend, dbt, backend | Med | L | Idea |
 
 ---
 
@@ -330,6 +331,42 @@ side; pushing alerts *into* the chat is the consumer side tracked in FF-010.
 on ingesting personal chat data, so it's a deliberate L. Relates to the dormant `groupme/` puller
 (another chat source we already keep around) and to FF-010 (the events/notification consumer that could
 push *back* into the chat).
+
+---
+
+## FF-016 — Revise pre-Claude-Code pages/dbt/backend
+
+**Area:** frontend, dbt, backend · **Priority:** Med · **Effort:** L · **Status:** Idea
+
+**Done when:** the pages (and their dbt models + any backend) built *before* the conventions in
+CLAUDE.md / MODELS.md / FRONTEND.md / BACKEND.md were established are brought up to current
+standards — matching the filter-page pattern, the seed-catalog/mart layering, contracts +
+properties coverage, cross-links between views, and the documentation maps — with no behavior
+regressions.
+
+**What:** the earliest features were built before Claude Code (and before the current documented
+patterns) and haven't been revisited since. They predate things the newer pages take for granted:
+the canonical `DropDownSelection` / `@ui.refreshable` filter-page pattern, mart-side display
+formatting (thin frontend), the seed-catalog metric machinery, liberal cross-linking between views,
+and the MODELS.md / FRONTEND.md / BACKEND.md upkeep. Audit each and bring it in line.
+
+**Pages to revise (non-exhaustive — confirm by walking the older `marts`/pages):**
+- **Player Data** (`/stats_center/player_data`) — it's cited as the *canonical* filter-page
+  example, but verify it still fully matches the pattern and the dbt behind it is clean (ties into
+  FF-006 owner filter).
+- **Draft Analysis** (`/stats_center/draft_analysis`) — review the snake-draft marts + page.
+- **Strength of Schedule** (`/stats_center/strength_of_schedule`).
+- …and any other early Stats Center / Owner History / Splash modules that predate the conventions.
+
+**How to approach:** treat it as a per-page sweep rather than one big rewrite — for each page,
+(1) check the page module against the FRONTEND.md filter-page pattern and push display logic into
+the mart, (2) check its dbt models against MODELS.md layering + contracts/properties coverage,
+(3) add sensible cross-links to owner spotlights / seasons / matchups, (4) update the doc maps.
+Likely splits into several small PRs, one per page/area.
+
+**Open questions:** which pages actually need work vs. already conform; whether to fold specific
+known asks (FF-006 owner filter on Player Data) into this sweep or keep them separate; how much to
+unify the older marts onto the seed-catalog pattern vs. leave page-specific.
 
 ---
 

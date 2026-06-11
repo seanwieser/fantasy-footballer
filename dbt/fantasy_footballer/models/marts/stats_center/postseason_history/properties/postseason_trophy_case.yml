@@ -1,12 +1,11 @@
 version: 2
 
 models:
-  - name: int__owner_postseason_summary
+  - name: postseason_trophy_case
     description: >
-      One row per owner — career postseason roll-up across every season: playoff appearances,
-      championships / runner-ups / third places, toilet-bowl appearances, last-place ("toilet bowl
-      winner") and second-to-last finishes, and best (lowest) final standing. Aggregates the
-      team-season placements in [[int__team_postseason]] up to the owner via [[int__owner_team_year_map]].
+      One row per owner: the career postseason trophy case for the Postseason History page
+      (championships, runner-ups, 3rd places, toilet bowls, playoff W-L, best finish). Thin
+      display wrap of int__owner_postseason_summary, ordered most-decorated first. See MODELS.md.
     columns:
       - name: owner_id
         data_type: int
@@ -18,7 +17,7 @@ models:
         data_tests:
           - not_null
       - name: playoff_appearances
-        description: Seasons the owner reached the winners (championship) bracket.
+        description: Seasons the owner reached the winners bracket
         data_type: int
         data_tests:
           - not_null
@@ -35,12 +34,11 @@ models:
         data_tests:
           - not_null
       - name: toilet_bowl_appearances
-        description: Seasons the owner finished in the bottom-4 toilet bowl bracket.
         data_type: int
         data_tests:
           - not_null
       - name: last_place_finishes
-        description: Seasons finishing dead last (12th) — the toilet bowl "winner".
+        description: Dead-last finishes (toilet-bowl winner)
         data_type: int
         data_tests:
           - not_null
@@ -49,29 +47,25 @@ models:
         data_tests:
           - not_null
       - name: best_finish
-        description: Lowest (best) ESPN final standing the owner ever achieved.
+        description: Best (lowest) final standing the owner has ever reached
         data_type: int
         data_tests:
           - not_null
       - name: playoff_wins
-        description: >
-          Wins in the championship (winners) bracket only — the true playoff record, which reconciles
-          with playoff_appearances. Toilet-bowl games are counted separately. Filler/middle games excluded.
+        description: Championship-bracket wins (the true playoff record; reconciles with playoff_appearances)
         data_type: int
         data_tests:
           - not_null
       - name: playoff_losses
-        description: Losses in the championship (winners) bracket only.
         data_type: int
         data_tests:
           - not_null
       - name: toilet_bowl_wins
-        description: Wins in the toilet-bowl bracket only (kept separate from the playoff record).
+        description: Toilet-bowl-bracket wins (kept separate from the playoff record)
         data_type: int
         data_tests:
           - not_null
       - name: toilet_bowl_losses
-        description: Losses in the toilet-bowl bracket only.
         data_type: int
         data_tests:
           - not_null

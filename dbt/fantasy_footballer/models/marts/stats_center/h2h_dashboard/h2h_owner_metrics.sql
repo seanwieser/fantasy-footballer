@@ -381,6 +381,14 @@ candidates as (
     select
         owner_id,
         owner_name,
+        'toilet_bowl_record' as metric_key,
+        toilet_bowl_wins::double / nullif(toilet_bowl_wins + toilet_bowl_losses, 0) * 100 as metric_value,
+        toilet_bowl_wins::varchar || '-' || toilet_bowl_losses::varchar as override_display
+    from postseason
+    union all
+    select
+        owner_id,
+        owner_name,
         'second_to_last_finishes' as metric_key,
         second_to_last_finishes::double as metric_value,
         null::varchar as override_display

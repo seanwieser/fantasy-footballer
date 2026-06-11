@@ -76,6 +76,23 @@ models:
         data_type: int
         data_tests:
           - not_null
+      - name: toilet_wins
+        description: Toilet-bowl-bracket wins against this opponent (kept separate from the playoff record).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: toilet_losses
+        data_type: int
+        data_tests:
+          - not_null
+      - name: toilet_ties
+        data_type: int
+        data_tests:
+          - not_null
+      - name: toilet_games
+        data_type: int
+        data_tests:
+          - not_null
       - name: avg_points_for
         description: Owner's average score across regular-season meetings with this opponent.
         data_type: double

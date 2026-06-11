@@ -39,6 +39,14 @@ shaped as (
             when playoff_wins > playoff_losses then owner_id
             when playoff_losses > playoff_wins then opponent_owner_id
         end as rivalry_playoff_record_leader,
+        case
+            when toilet_games = 0 then 'None'
+            else toilet_wins::varchar || '-' || toilet_losses::varchar
+        end as rivalry_toilet_record,
+        case
+            when toilet_wins > toilet_losses then owner_id
+            when toilet_losses > toilet_wins then opponent_owner_id
+        end as rivalry_toilet_record_leader,
         round(reg_points_for, 0)::bigint::varchar || '-' || round(reg_points_against, 0)::bigint::varchar ||
         case when reg_points_for - reg_points_against >= 0 then ' (+' else ' (' end ||
         round(reg_points_for - reg_points_against, 0)::bigint::varchar || ')' as rivalry_points,

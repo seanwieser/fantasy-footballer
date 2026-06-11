@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: postseason_snub_luck
+    description: >
+      One row per snubbed or lucked-in team-season, for the side-by-side Snubs / Lucky-In lists on the
+      Postseason History brackets tab. Uses the platform-canonical definitions from int__season_titles
+      (snub = missed the playoffs despite outscoring >= 1 playoff team; lucky-in = made the playoffs
+      despite being outscored by >= 1 non-playoff team), so it stays consistent with League Highlights
+      and the H2H dashboard. See MODELS.md.
+    columns:
+      - name: year
+        description: Season
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: kind
+        description: "'snub' or 'lucky_in'"
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["snub", "lucky_in"]
+      - name: context_count
+        description: >
+          For a snub, how many playoff teams they outscored; for a lucky-in, how many non-playoff teams
+          outscored them. Drives the within-list ordering (most egregious first).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: detail
+        description: Pre-composed subtitle, e.g. "Outscored 3 who made it" / "Snuck in over 2 who outscored them"
+        data_type: varchar
+        data_tests:
+          - not_null

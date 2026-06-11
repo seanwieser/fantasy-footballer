@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: postseason_timeline
+    description: >
+      One row per season for the Postseason History timeline: the four headline finishers
+      (champion, runner-up, 3rd place, toilet-bowl loser = dead last), each with the owner's
+      regular-season seed so the page can frame the upset/collapse factor. Sourced from
+      int__team_postseason. See MODELS.md.
+    columns:
+      - name: year
+        description: Season
+        data_type: int
+        data_tests:
+          - not_null
+          - unique
+      - name: champion_owner_id
+        description: Owner id of the league champion
+        data_type: int
+        data_tests:
+          - not_null
+      - name: champion_owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: champion_seed
+        description: Champion's regular-season seed (upset factor)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: runner_up_owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: runner_up_owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: runner_up_seed
+        data_type: int
+        data_tests:
+          - not_null
+      - name: third_owner_id
+        description: Owner id of the 3rd-place finisher (null in a season with no 3rd-place game)
+        data_type: int
+      - name: third_owner_name
+        data_type: varchar
+      - name: third_seed
+        data_type: int
+      - name: toilet_owner_id
+        description: Owner id of the toilet-bowl loser (dead last)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: toilet_owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: toilet_seed
+        description: Toilet-bowl loser's regular-season seed (collapse factor)
+        data_type: int
+        data_tests:
+          - not_null

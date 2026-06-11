@@ -10,6 +10,10 @@ with results as (
         twr.year,
         twr.week,
         coalesce(twr.is_playoff, false) as is_playoff,
+        -- A true playoff meeting = both owners in the championship (winners) bracket. Toilet-bowl and
+        -- consolation meetings are NOT counted as playoff meetings (kept separate, like the records).
+        coalesce(ptw.is_meaningful and ptw.bracket = 'winners', false) as is_championship_meeting,
+        coalesce(ptw.is_meaningful and ptw.bracket = 'toilet_bowl', false) as is_toilet_meeting,
         twr.year * 100 + twr.week as sort_key,
         twr.score_for - twr.score_against as margin_signed,
         twr.score_for + twr.score_against as combined,
@@ -22,6 +26,8 @@ with results as (
     from {{ ref("int__team_week_results") }} as twr
     left join {{ ref("int__lucky_records") }} as luck
         on twr.team_week_id = luck.team_week_id
+    left join {{ ref("int__postseason_team_weeks") }} as ptw
+        on twr.team_week_id = ptw.team_week_id
     where
         twr.outcome in ('W', 'L', 'T') and
         twr.opponent_owner_id is not null
@@ -37,7 +43,8 @@ reg_results as (
     where not is_playoff
 ),
 
--- Playoff meetings → just the head-to-head W-L record (the only playoff-aware output).
+-- Championship-bracket meetings → just the head-to-head W-L record (the only playoff-aware output).
+-- Toilet-bowl / consolation meetings are excluded, so this is a true playoff rivalry record.
 playoff_record as (
     select
         owner_id,
@@ -47,7 +54,21 @@ playoff_record as (
         count_if(outcome = 'T')::int as playoff_ties,
         count(*)::int as playoff_games
     from results
-    where is_playoff
+    where is_championship_meeting
+    group by owner_id, opponent_owner_id
+),
+
+-- Toilet-bowl meetings → their own head-to-head W-L record, kept separate from the playoff record.
+toilet_record as (
+    select
+        owner_id,
+        opponent_owner_id,
+        count_if(outcome = 'W')::int as toilet_wins,
+        count_if(outcome = 'L')::int as toilet_losses,
+        count_if(outcome = 'T')::int as toilet_ties,
+        count(*)::int as toilet_games
+    from results
+    where is_toilet_meeting
     group by owner_id, opponent_owner_id
 ),
 
@@ -181,6 +202,10 @@ select
     coalesce(playoff_record.playoff_losses, 0)::int as playoff_losses,
     coalesce(playoff_record.playoff_ties, 0)::int as playoff_ties,
     coalesce(playoff_record.playoff_games, 0)::int as playoff_games,
+    coalesce(toilet_record.toilet_wins, 0)::int as toilet_wins,
+    coalesce(toilet_record.toilet_losses, 0)::int as toilet_losses,
+    coalesce(toilet_record.toilet_ties, 0)::int as toilet_ties,
+    coalesce(toilet_record.toilet_games, 0)::int as toilet_games,
     pair_aggregates.avg_points_for,
     pair_aggregates.avg_margin,
     pair_aggregates.clutch_wins,
@@ -216,3 +241,7 @@ left join playoff_record
     on
         pair_aggregates.owner_id = playoff_record.owner_id and
         pair_aggregates.opponent_owner_id = playoff_record.opponent_owner_id
+left join toilet_record
+    on
+        pair_aggregates.owner_id = toilet_record.owner_id and
+        pair_aggregates.opponent_owner_id = toilet_record.opponent_owner_id

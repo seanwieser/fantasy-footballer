@@ -31,8 +31,9 @@ reference it in conversation, branches, and commits.
 | FF-011 | Unify "league single best/worst week" logic | dbt | Low | S | Done |
 | FF-012 | H2H Dashboard | dbt, frontend | Med | M | Done |
 | FF-013 | Shootout / Slugfest records in League Highlights | dbt | Low | S | Done |
-| FF-014 | Postseason history page | frontend, dbt | Med | M | Idea |
+| FF-014 | Postseason history page | frontend, dbt | Med | M | Done |
 | FF-015 | iMessage group-chat data pipeline + analytics | backend, dbt | Low | L | Idea |
+| FF-016 | Revise pre-Claude-Code pages/dbt/backend | frontend, dbt, backend | Med | L | Idea |
 
 ---
 
@@ -289,38 +290,6 @@ whether this wants the eventual FastAPI seam (see `architecture-roadmap.md`) as 
 
 ---
 
-## FF-014 — Postseason history page
-
-**Area:** frontend, dbt · **Priority:** Med · **Effort:** M · **Status:** Idea
-
-**Done when:** `/stats_center/postseason_history` is a real page (no longer the "Coming Soon…" stub at
-`frontend/stats_center/postseason_history.py`) presenting the league's postseason history — champions,
-runner-ups, and toilet-bowl finishes by season, plus the per-owner trophy case — with adding a season
-needing no page change.
-
-**What:** build out the postseason stub into a dedicated history page. The analytics already exist from
-the H2H / League-Highlights work — `int__team_postseason` (per team-season: bracket, final standing,
-`is_champion`/`is_last`, seed) and `int__owner_postseason_summary` (career rollup: championships,
-runner-ups, playoff appearances, toilet bowls, last-place finishes, best finish). This is mostly a
-**presentation** task over those models, mirroring the League-Highlights card/section style.
-
-**Pieces / ideas:**
-- A **season timeline** — one row/section per year: champion (with reg-season seed → upset factor),
-  runner-up, 3rd, and the toilet-bowl loser (dead last). Reuse the `seed`-format display already built
-  for the By-Season Champion / Toilet-Bowl titles.
-- A **trophy case per owner** — championships / runner-ups / toilet bowls stacked, from
-  `int__owner_postseason_summary` (the same numbers the H2H Postseason section compares).
-- Possibly a **bracket view** per season if `int__team_postseason` carries enough structure; otherwise a
-  flat finishing-order table.
-- Keep it a **thin page** over marts (add a `postseason_history` mart if the timeline needs display
-  shaping) — no new ESPN data; everything composes from existing intermediates.
-
-**Why now-ish:** the postseason intermediates were just built for FF-012; this is the natural page to
-surface them on their own rather than only inside League Highlights / H2H. Pairs with FF-008 (nav
-refactor) since it's a new top-level destination.
-
----
-
 ## FF-015 — iMessage group-chat data pipeline + analytics
 
 **Area:** backend, dbt · **Priority:** Low · **Effort:** L · **Status:** Idea
@@ -362,6 +331,42 @@ side; pushing alerts *into* the chat is the consumer side tracked in FF-010.
 on ingesting personal chat data, so it's a deliberate L. Relates to the dormant `groupme/` puller
 (another chat source we already keep around) and to FF-010 (the events/notification consumer that could
 push *back* into the chat).
+
+---
+
+## FF-016 — Revise pre-Claude-Code pages/dbt/backend
+
+**Area:** frontend, dbt, backend · **Priority:** Med · **Effort:** L · **Status:** Idea
+
+**Done when:** the pages (and their dbt models + any backend) built *before* the conventions in
+CLAUDE.md / MODELS.md / FRONTEND.md / BACKEND.md were established are brought up to current
+standards — matching the filter-page pattern, the seed-catalog/mart layering, contracts +
+properties coverage, cross-links between views, and the documentation maps — with no behavior
+regressions.
+
+**What:** the earliest features were built before Claude Code (and before the current documented
+patterns) and haven't been revisited since. They predate things the newer pages take for granted:
+the canonical `DropDownSelection` / `@ui.refreshable` filter-page pattern, mart-side display
+formatting (thin frontend), the seed-catalog metric machinery, liberal cross-linking between views,
+and the MODELS.md / FRONTEND.md / BACKEND.md upkeep. Audit each and bring it in line.
+
+**Pages to revise (non-exhaustive — confirm by walking the older `marts`/pages):**
+- **Player Data** (`/stats_center/player_data`) — it's cited as the *canonical* filter-page
+  example, but verify it still fully matches the pattern and the dbt behind it is clean (ties into
+  FF-006 owner filter).
+- **Draft Analysis** (`/stats_center/draft_analysis`) — review the snake-draft marts + page.
+- **Strength of Schedule** (`/stats_center/strength_of_schedule`).
+- …and any other early Stats Center / Owner History / Splash modules that predate the conventions.
+
+**How to approach:** treat it as a per-page sweep rather than one big rewrite — for each page,
+(1) check the page module against the FRONTEND.md filter-page pattern and push display logic into
+the mart, (2) check its dbt models against MODELS.md layering + contracts/properties coverage,
+(3) add sensible cross-links to owner spotlights / seasons / matchups, (4) update the doc maps.
+Likely splits into several small PRs, one per page/area.
+
+**Open questions:** which pages actually need work vs. already conform; whether to fold specific
+known asks (FF-006 owner filter on Player Data) into this sweep or keep them separate; how much to
+unify the older marts onto the seed-catalog pattern vs. leave page-specific.
 
 ---
 
@@ -461,3 +466,30 @@ seed columns — so shootout/slugfest follow the same one-crown-per-season shape
    `empty_label`). Update MODELS.md.
 5. Names to ratify with the league (see OD-001) — e.g. *Highest-scoring games* / *Lowest-scoring
    games*, or *Shootouts* / *Slugfests*.
+
+---
+
+## FF-014 — Postseason history page
+
+**Area:** frontend, dbt · **Priority:** Med · **Effort:** M · **Status:** Done
+
+**Done when:** `/stats_center/postseason_history` is a real page presenting the league's postseason
+history — champions, runner-ups, and toilet-bowl finishes by season, plus the per-owner trophy case —
+with adding a season needing no page change.
+
+**What (shipped):** the postseason stub is now a three-tab page. New marts under
+`marts/stats_center/postseason_history/`: `postseason_timeline` (one row per season — champion /
+runner-up / 3rd / toilet-bowl loser with reg-season seed), `postseason_trophy_case` (per-owner career
+hardware, thin wrap of `int__owner_postseason_summary`), and `postseason_bracket` (one row per
+bracket slot per round — game or first-round bye — collapsing `int__postseason_team_weeks`). The
+bracket mart handles every format era: byes are **data-derived** (winners team absent from round 1, so
+the 4-team era has none and the 6-team era byes the top 2 seeds), and round labels are computed
+**relative to each bracket's last round** rather than hard-coded weeks. Frontend `postseason_history.py`
+renders the **Brackets** tab (season picker → winners + toilet brackets as columns of matchup cards,
+bye slots and a bordered championship game), **Timeline** tab (newest-first season finisher cards), and
+**Trophy Case** tab (per-owner medal tallies + playoff record). Mirrors the League-Highlights card style;
+`SECTION_COLORS["Postseason"]` (teal).
+
+**Future ideas:** SVG connector lines between bracket rounds; link a season's champion to its
+owner-spotlight; surface `best_finish` / playoff win% sortable. Pairs with FF-008 (nav refactor) as a
+new top-level destination.

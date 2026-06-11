@@ -227,6 +227,14 @@ Never hard-code the current year.
 **Keep it current: if you add/remove a page or route, change which marts a page reads, or add a
 shared `utils.py` helper, update FRONTEND.md in the same change.**
 
+**Cross-link the platform.** Always look for sensible opportunities to connect pages — wherever an
+owner, season, matchup, or player appears, make it a link to the relevant destination (e.g. an owner
+name → their owner-spotlight `/owner_history/{owner_id}/{year}`, a season → that season's view). The
+app is a web of interrelated views, and the navigation between them is a core part of the UX; a name
+that *could* link somewhere useful generally should. Prefer making the whole card/row clickable
+(`.on("click", lambda: ui.navigate.to(...))` + `cursor-pointer`) over a bare underlined link when the
+element is card-shaped.
+
 Every NiceGUI page module follows the same shape:
 
 ```python
@@ -356,6 +364,9 @@ conventions:
 - **Open questions / decisions to discuss** (often with the league, not yet actionable) live in
   [`docs/open-discussion.md`](docs/open-discussion.md), with `OD-XXX` ids. Resolved ones graduate to
   the backlog or are decided and removed.
+- **Settled data investigations** (analyses we ran and concluded — especially ones we chose *not* to
+  build) live in [`docs/investigations.md`](docs/investigations.md), with `INV-XXX` ids. The point is to
+  preserve the finding (and any league fact it surfaced) so it isn't re-derived from scratch.
 - **Branch/commit convention:** branch `FF-00X-short-name`; reference the id in commit messages.
 
 ## Gotchas / don'ts

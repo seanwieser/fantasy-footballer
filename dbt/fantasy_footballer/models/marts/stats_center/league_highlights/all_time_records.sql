@@ -397,6 +397,49 @@ postseason_records as (
     ) as directions (metric_key)
 ),
 
+-- Career W-L leaderboards, ranked by total wins (tiebreak: win %). The W-L record headlines the card
+-- (via the display override below) with win % as the subtitle. Playoff = championship bracket; toilet
+-- bowl is kept separate — same split as int__owner_postseason_summary.
+postseason_game_records as (
+    select
+        postseason.owner_id,
+        postseason.owner_name,
+        directions.metric_key,
+        case directions.metric_key
+            when 'career_playoff_record' then postseason.playoff_wins
+            else postseason.toilet_bowl_wins
+        end::double as metric_value,
+        case directions.metric_key
+            when 'career_playoff_record'
+                then
+                    postseason.playoff_wins::double /
+                    nullif(postseason.playoff_wins + postseason.playoff_losses, 0)
+            else
+                postseason.toilet_bowl_wins::double /
+                nullif(postseason.toilet_bowl_wins + postseason.toilet_bowl_losses, 0)
+        end as tiebreak,
+        case directions.metric_key
+            when 'career_playoff_record'
+                then round(
+                    postseason.playoff_wins::double /
+                    nullif(postseason.playoff_wins + postseason.playoff_losses, 0) * 100, 0
+                )::bigint::varchar || '%'
+            else round(
+                postseason.toilet_bowl_wins::double /
+                nullif(postseason.toilet_bowl_wins + postseason.toilet_bowl_losses, 0) * 100, 0
+            )::bigint::varchar || '%'
+        end as season_or_week,
+        case directions.metric_key
+            when 'career_playoff_record'
+                then postseason.playoff_wins::varchar || '-' || postseason.playoff_losses::varchar
+            else postseason.toilet_bowl_wins::varchar || '-' || postseason.toilet_bowl_losses::varchar
+        end as detail
+    from postseason
+    cross join (
+        values ('career_playoff_record'), ('career_toilet_bowl_record')
+    ) as directions (metric_key)
+),
+
 candidates as (
     select * from title_count_shaped
     union all
@@ -421,6 +464,8 @@ candidates as (
     select * from transaction_records
     union all
     select * from postseason_records
+    union all
+    select * from postseason_game_records
 ),
 
 ranked as (
@@ -466,12 +511,21 @@ select
     owner_id,
     owner_name,
     coalesce(
-        -- Clutch season records headline the W-L record itself, not the raw win/loss count.
-        case when metric_key in ('clutchest_season', 'unclutchest_season') then detail end,
+        -- These metrics headline the W-L record itself, not the raw win/loss count (win % is the subtitle).
+        case
+            when metric_key in (
+                'clutchest_season', 'unclutchest_season', 'career_playoff_record', 'career_toilet_bowl_record'
+            ) then detail
+        end,
         {{ format_metric_value("metric_value", "value_format") }}
     ) as display_value,
     season_or_week,
-    case when metric_key in ('clutchest_season', 'unclutchest_season') then null else detail end as detail,
+    case
+        when metric_key in (
+            'clutchest_season', 'unclutchest_season', 'career_playoff_record', 'career_toilet_bowl_record'
+        ) then null
+        else detail
+    end as detail,
     metric_rank::int as rank
 from ranked
 where

@@ -1,0 +1,84 @@
+version: 2
+
+models:
+  - name: postseason_bracket
+    description: >
+      One row per winners/toilet-bowl bracket slot per round — a game or a first-round bye
+      (is_bye) — for the per-season bracket view. Collapses the two team-perspective rows of each
+      meaningful postseason game (int__postseason_team_weeks) into one matchup anchored on the
+      better seed; bye rows carry the lone bye team. round_label is derived relative to the
+      championship round so the 2-round (4-team) and 3-round (6-team) eras both work. See MODELS.md.
+    columns:
+      - name: year
+        description: Season
+        data_type: int
+        data_tests:
+          - not_null
+      - name: bracket
+        description: winners or toilet_bowl
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: round_num
+        description: Postseason round index (1 = first round), drives left-to-right bracket layout
+        data_type: int
+        data_tests:
+          - not_null
+      - name: round_label
+        description: First Round / Semifinal / Championship / 3rd Place Game / Toilet Bowl
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: is_championship_game
+        data_type: boolean
+        data_tests:
+          - not_null
+      - name: is_third_place_game
+        data_type: boolean
+        data_tests:
+          - not_null
+      - name: is_toilet_game
+        data_type: boolean
+        data_tests:
+          - not_null
+      - name: is_bye
+        description: True = lone top-seed slot auto-advancing with no first-round opponent
+        data_type: boolean
+        data_tests:
+          - not_null
+      - name: top_seed_owner_id
+        description: Owner id of the better-seeded participant (the bye team on a bye row)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: top_seed_owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: top_seed
+        description: Regular-season seed of the top-seeded participant
+        data_type: int
+        data_tests:
+          - not_null
+      - name: top_seed_score
+        description: Top seed's postseason game score (null on a bye)
+        data_type: double
+      - name: low_seed_owner_id
+        description: Owner id of the lower-seeded participant (null on a bye)
+        data_type: int
+      - name: low_seed_owner_name
+        data_type: varchar
+      - name: low_seed
+        data_type: int
+      - name: low_seed_score
+        data_type: double
+      - name: winner_owner_id
+        description: Owner id of the team that won the game (higher score; the bye team on a bye; null on a tie)
+        data_type: int
+      - name: winner_owner_name
+        data_type: varchar
+      - name: advancer_owner_id
+        description: >
+          Who moves on — the game winner in the winners bracket, but the LOSER in the toilet bowl
+          (you advance toward dead last by losing). Drives the bracket highlight. Null on a tie.
+        data_type: int

@@ -101,6 +101,14 @@ models:
       - name: rivalry_playoff_record_leader
         description: owner_id of the owner ahead in the postseason series; null when even or none played.
         data_type: int
+      - name: rivalry_toilet_record
+        description: 'Owner-perspective toilet-bowl series record (this row''s owner first), or "None" when they never met in the toilet bowl.'
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: rivalry_toilet_record_leader
+        description: owner_id of the owner ahead in the toilet-bowl series; null when even or none played.
+        data_type: int
       - name: rivalry_points
         description: 'Owner-perspective total points (this row''s owner first) + signed margin (e.g. "1205-1239 (-35)").'
         data_type: varchar

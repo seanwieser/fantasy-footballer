@@ -46,3 +46,5 @@ most_last_place_finishes,Postseason,Results,Most last-place finishes,count,1,3,i
 most_runner_ups,Postseason,Results,Most runner-up finishes,count,1,3,int,tenure,45,"Most times finishing as the championship runner-up."
 most_playoff_appearances,Postseason,Results,Most playoff appearances,count,1,3,int,tenure,46,"Most seasons reaching the winners (championship) bracket."
 most_toilet_bowls,Postseason,Results,Most toilet bowls,count,1,3,int,tenure,47,"Most seasons finishing in the bottom-four toilet bowl bracket."
+career_playoff_record,Postseason,Results,Playoff record,total,1,3,int,context,56,"Best career championship-bracket records, ranked by total playoff wins (win % breaks ties). Card shows W-L and win %."
+career_toilet_bowl_record,Postseason,Results,Toilet bowl record,total,1,3,int,context,57,"Best career toilet-bowl records, ranked by total toilet-bowl wins (win % breaks ties). Card shows W-L and win %."

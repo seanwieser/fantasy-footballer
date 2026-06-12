@@ -111,16 +111,22 @@ models:
         data_tests:
           - not_null
       - name: weeks_raw
-        description: Raw nested matchup data containing matchup details by week
+        description: >
+          Raw nested matchup data, one entry per matchup period: matchup score/outcome/opponent plus
+          `lineups` — the roster captured per NFL week (a matchup period spans two NFL weeks in the
+          2018-2019 playoffs).
         data_type: >
           struct(
             week int,
-            lineup struct(
-              playerId varchar, 
-              lineupSlot varchar
-            )[], 
-            score_for double, 
-            outcome varchar, 
+            lineups struct(
+              week int,
+              players struct(
+                playerId varchar,
+                lineupSlot varchar
+              )[]
+            )[],
+            score_for double,
+            outcome varchar,
             opponent_team_id int
           )[]
         data_tests:

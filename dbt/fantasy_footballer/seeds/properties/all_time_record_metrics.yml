@@ -28,7 +28,7 @@ seeds:
           - not_null
           - accepted_values:
               arguments:
-                values: [ 'Scoring', 'Postseason', 'Matchups', 'Shotgun', 'Clutch', 'Transactions' ]
+                values: [ 'Scoring', 'Postseason', 'Matchups', 'Shotgun', 'Clutch', 'Transactions', 'Lineups' ]
       - name: category
         data_type: varchar
         data_tests:

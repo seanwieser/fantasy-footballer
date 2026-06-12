@@ -29,7 +29,7 @@ seeds:
           - not_null
           - accepted_values:
               arguments:
-                values: [ 'Record', 'Scoring', 'Postseason', 'Matchups', 'Shotgun', 'Clutch', 'Transactions' ]
+                values: [ 'Record', 'Scoring', 'Postseason', 'Matchups', 'Shotgun', 'Clutch', 'Transactions', 'Lineups' ]
       - name: metric_label
         data_type: varchar
         data_tests:

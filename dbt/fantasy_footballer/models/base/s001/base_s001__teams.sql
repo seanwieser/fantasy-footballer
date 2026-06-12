@@ -22,9 +22,12 @@ select
     final_standing::int as final_standing,
     schedule::struct(
         week int,
-        lineup struct(
-            playerId varchar,
-            lineupSlot varchar
+        lineups struct(
+            week int,
+            players struct(
+                playerId varchar,
+                lineupSlot varchar
+            )[]
         )[],
         score_for double,
         outcome varchar,

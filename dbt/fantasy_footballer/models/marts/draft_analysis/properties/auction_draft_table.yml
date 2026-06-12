@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: auction_draft_table
+    description: "Fact table containing draft pick details with owner and team information for each year"
+    columns:
+      - name: year
+        description: "The year of the draft"
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner
+        description: "Name of the team owner"
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: owner_id
+        description: "Owner identifier, hidden in the table and used to cross-link the row to the owner spotlight"
+        data_type: int
+        data_tests:
+          - not_null
+      - name: team
+        description: "Name of the fantasy team"
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: nominating_owner
+        description: "Name of the owner that nominated the player (for auction drafts)"
+        data_type: varchar
+      - name: player
+        description: "Name of the player drafted"
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: position
+        description: "Player's position slot designation"
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: round
+        description: "Draft round number"
+        data_type: int
+        data_tests:
+          - not_null
+      - name: round_pick
+        description: "Pick number within the round"
+        data_type: int
+        data_tests:
+          - not_null
+      - name: bid_amount
+        description: "Bid amount for the player (applicable for auction drafts)"
+        data_type: int
+      - name: keeper
+        description: "Indicates if the player was kept from a previous year"
+        data_type: varchar

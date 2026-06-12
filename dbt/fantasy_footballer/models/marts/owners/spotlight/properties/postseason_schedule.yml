@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: postseason_schedule
+    description: >
+      One row per meaningful postseason game an owner played (winners-bracket games, the 3rd-place
+      game, and the toilet-bowl final), ordered by round. Backs the owner-spotlight Postseason
+      Schedule tab; owners who missed the bracket that year simply have no rows (empty state).
+      Opponent score is the opponent's own row in [[int__postseason_team_weeks]] (same year+round).
+      Playoff scores are this league's ~2-week aggregates and are shown only as a schedule — never
+      mixed into comparison metrics (see CLAUDE.md).
+    columns:
+      - name: owner_id
+        description: Owner whose postseason game this is
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: team_week_id
+        description: team_id_year_week — the grain (one postseason game from this owner's perspective)
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        description: Fantasy scoring week of this postseason game (links to the Roster tab week select)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: round_num
+        description: Postseason week number within the bracket (1 = first postseason round)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: round_label
+        description: Display label for the round (Championship / 3rd Place Game / TB Round N / Round N)
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: opponent_owner_name
+        description: Opposing owner that game
+        data_type: varchar
+      - name: opponent_team_name
+        description: Opposing team's name that game
+        data_type: varchar
+      - name: outcome
+        description: W / L (T possible)
+        data_type: varchar
+      - name: score_for
+        description: This owner's score, rounded
+        data_type: double
+      - name: score_against
+        description: Opponent's score, rounded
+        data_type: double

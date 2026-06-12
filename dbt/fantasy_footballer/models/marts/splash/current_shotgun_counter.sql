@@ -1,6 +1,7 @@
 with shotgun_counter as (
     select
         owner_team_map.owner_name                                  as owner,
+        owner_team_map.owner_id,
         shotgun_counts.shotgun_count                               as count,
         list_aggr(shotgun_counts.shotgun_weeks, 'string_agg', ', ') as weeks
     from {{ ref("int__team_shotgun_counts") }} as shotgun_counts

@@ -45,8 +45,10 @@ src/fantasy_footballer/
     sources/<src>/transformers/ one file per source table; pydantic schema + Transformer
   frontend/
     utils.py                    common_header, table(...), query helpers, dropdown helpers
-    splash/home.py              "/"          (landing)
-    stats_center/home.py        "/stats_center" + one module per subpage
+    splash/home.py              "/" (the section-tile hub) + current_season.py for "/current_season"
+    league_highlights.py        "/league_highlights" (one flat module per stats page — no stats_center
+    h2h_dashboard.py            grouping; also player_data.py, strength_of_schedule.py, roster_production.py,
+    postseason_history.py       postseason_history.py, draft_analysis/draft_analysis.py)
     owner_history/home.py       "/owner_history" + spotlight.py for "/owner_history/{owner_id}/{year}"
     gallery/home.py             "/gallery"
     admin/home.py               "/admin" (ingest, transform, add user, shutdown)
@@ -85,7 +87,7 @@ columns, or upstream refs), update its entry in MODELS.md in the same change.**
 | `base/<src>/`  | `base`              | `base_<src>__<table>.sql`           | 1:1 with sources. Cast types, rename to snake_case, compute composite IDs (`team_year_id`, `player_year_id`, etc.), pass through `meta__*` columns. No joins to other refs. |
 | `staging/`     | `staging`           | `stg__<entity>.sql`                 | Unnest arrays/structs, flatten weekly grain, light enrichment via joins to other `base_*` or seeds. Flat tables, no business logic. |
 | `intermediate/`| `intermediate`      | `int__<concept>.sql`                | Reusable computations referenced by multiple marts (`int__owner_team_year_map`, `int__strength_of_schedule`, `int__current_season_year`, etc.). |
-| `marts/<page>/`| `marts`             | `<table>.sql` (no prefix)           | Page-specific final tables. Dir structure mirrors the frontend page that consumes it (e.g. `marts/stats_center/draft_analysis/snake_draft_table.sql` ↔ `frontend/stats_center/draft_analysis/snake_draft_table.py`). Do display formatting here (rounding, `owner_name` lookup, column renames) so the frontend stays thin. |
+| `marts/<page>/`| `marts`             | `<table>.sql` (no prefix)           | Page-specific final tables. Dir structure mirrors the frontend page that consumes it (e.g. `marts/draft_analysis/snake_draft_table.sql` ↔ `frontend/draft_analysis/snake_draft_table.py`). Do display formatting here (rounding, `owner_name` lookup, column renames) so the frontend stays thin. |
 | `seeds`        | `seed_data`         | CSV in `resources/sensitive_seeds/` (sensitive, gitignored) or `dbt/.../seeds/` (constants, git-tracked) | Sensitive: `owner_names`, `display_names`, `users` (auth). Constant/git-tracked: `all_time_record_metrics`, `season_highlight_metrics`. Both land in `main_seed_data`. `seed-paths` lists both dirs. |
 
 The double underscore (`__`) is intentional — it separates the layer-prefix from the
@@ -254,8 +256,8 @@ For pages with filters + table, the recurring pattern is:
 - `refresh_table(selection, field, value)` setter + refresh.
 - `<name>_table_and_dropdowns()` composes the above.
 
-See `frontend/stats_center/player_data.py` or
-`frontend/stats_center/strength_of_schedule.py` for the canonical version. Copy
+See `frontend/player_data.py` or
+`frontend/strength_of_schedule.py` for the canonical version. Copy
 that file rather than reinventing.
 
 ### Database access
@@ -343,6 +345,16 @@ The dbt `default` target uses path `../../resources/...` (run from `dbt/fantasy_
 while `app` target uses `./resources/...` (run from repo root by the Python app).
 That's why `make run-dbt` and `DbManager.run_dbt` use different `--target`s.
 
+### B2 actions are owner-operated (never scripted by an agent)
+
+**All Backblaze B2 actions — extraction (ESPN → B2) and ingestion (B2 → local DuckDB) — are run by
+the owner from the `/admin` page of the running app**, not via one-off scripts. Do not write
+throwaway re-extraction/ingestion scripts; if a change needs fresh source data, describe exactly
+what to re-pull on `/admin` and let the owner do it. The admin flow is: **Fetch data from source**
+(select the `source: table` + years → writes raw JSON to B2) → **Ingest raw data from cloud** (select
+the source → `CREATE OR REPLACE` the `main.<source>.<table>` tables from B2) → **Transform** (dbt
+build). After the owner ingests, you can `make run-dbt` + verify locally.
+
 ## Feature backlog (project management)
 
 Future work is tracked in [`docs/feature-backlog.md`](docs/feature-backlog.md) — a lightweight,
@@ -387,7 +399,7 @@ conventions:
 - `2018` data is special-cased in `MatchupTransformer` (uses `scoreboard` instead
   of `box_scores`). When working with matchup data, account for it.
 - **League Highlights and the H2H Dashboard should stay organized the same way.** The two
-  stats pages (`/stats_center/league_highlights` and `/stats_center/h2h_dashboard`) present the
+  stats pages (`/league_highlights` and `/h2h_dashboard`) present the
   *same* league analytics from different angles — all-owner records/leaderboards + per-season
   titles vs. pairwise comparison — so they should share the same **sections** (Scoring,
   Postseason, Matchups, Shotgun, Clutch, Transactions, …) and, for the most part, the same

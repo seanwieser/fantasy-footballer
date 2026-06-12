@@ -37,10 +37,15 @@ models:
         description: NFL team abbreviation
         data_type: varchar
       - name: total_points
-        description: Total regular-season fantasy points
+        description: Total fantasy points across all of the player's weeks (regular season + playoffs)
         data_type: double
         data_tests:
           - not_null
+      - name: reg_season_points
+        description: >
+          Fantasy points over the fantasy regular-season weeks only (excludes playoff weeks and any
+          NFL weeks past the fantasy season). Null if the player only scored in playoff/off weeks.
+        data_type: double
       - name: num_weeks
         description: Number of regular-season weeks played (week 0 excluded)
         data_type: int

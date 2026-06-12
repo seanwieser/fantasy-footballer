@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: int__owner_player_underutilization
+    description: >
+      One row per owner-season-player who left points on the bench: `points_left_on_bench` is the
+      regular-season points the player scored in weeks they belonged in the owner's optimal lineup but
+      were benched (is_optimal and not is_started), with `weeks_benched_deserving` counting those weeks.
+      The player-level decomposition of start/sit loss — feeds the underutilized-player highlight (the
+      best player most left on the bench). Built from [[int__optimal_lineup_players]] (regular season).
+    columns:
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: owner_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: owner_player_year_id
+        description: owner_year_id_playerid — the grain
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: team_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: player_year_id
+        description: playerid_year
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: player_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: position
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: weeks_benched_deserving
+        description: Regular-season weeks the player belonged in the optimal lineup but was benched
+        data_type: int
+        data_tests:
+          - not_null
+      - name: points_left_on_bench
+        description: Regular-season points the player scored in those benched-but-deserving weeks
+        data_type: double
+        data_tests:
+          - not_null

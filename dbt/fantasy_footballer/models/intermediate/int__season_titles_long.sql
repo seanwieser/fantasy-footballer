@@ -28,7 +28,11 @@ unnested as (
             {'metric_key': 'lucky_winner_title', 'amount': titles.lucky_wins::double, 'is_title_holder': titles.is_lucky_winner_title},  --noqa: LT05
             {'metric_key': 'unlucky_loser_title', 'amount': titles.unlucky_losses::double, 'is_title_holder': titles.is_unlucky_loser_title},  --noqa: LT05
             {'metric_key': 'shotgun_title', 'amount': titles.shotgun_count::double, 'is_title_holder': titles.is_shotgun_title},  --noqa: LT05
-            {'metric_key': 'no_shotgun_season', 'amount': titles.shotgun_count::double, 'is_title_holder': titles.is_no_shotgun_season}  --noqa: LT05
+            {'metric_key': 'no_shotgun_season', 'amount': titles.shotgun_count::double, 'is_title_holder': titles.is_no_shotgun_season},  --noqa: LT05
+            {'metric_key': 'best_lineup_title', 'amount': titles.points_left_on_table::double, 'is_title_holder': titles.is_best_lineup_title},  --noqa: LT05
+            {'metric_key': 'worst_lineup_title', 'amount': titles.points_left_on_table::double, 'is_title_holder': titles.is_worst_lineup_title},  --noqa: LT05
+            {'metric_key': 'most_efficient_lineup_title', 'amount': (titles.lineup_efficiency * 100)::double, 'is_title_holder': titles.is_most_efficient_lineup_title},  --noqa: LT05
+            {'metric_key': 'least_efficient_lineup_title', 'amount': (titles.lineup_efficiency * 100)::double, 'is_title_holder': titles.is_least_efficient_lineup_title}  --noqa: LT05
         ]
     ) as unnested (title)
 )

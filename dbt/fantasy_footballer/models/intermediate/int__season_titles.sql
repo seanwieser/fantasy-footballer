@@ -40,6 +40,8 @@ owner_seasons as (
         coalesce(luck_counts.lucky_wins, 0) as lucky_wins,
         coalesce(luck_counts.unlucky_losses, 0) as unlucky_losses,
         coalesce(shotgun_counts.shotgun_count, 0) as shotgun_count,
+        lineup.points_left_on_table,
+        lineup.lineup_efficiency,
         case
             when coalesce(clutch.clutch_wins, 0) + coalesce(clutch.clutch_losses, 0) > 0
                 then clutch.clutch_wins::double / (clutch.clutch_wins + clutch.clutch_losses)
@@ -49,6 +51,7 @@ owner_seasons as (
     left join clutch on scoring.team_year_id = clutch.team_year_id
     left join luck_counts on scoring.team_year_id = luck_counts.team_year_id
     left join shotgun_counts on scoring.team_year_id = shotgun_counts.team_year_id
+    left join {{ ref("int__owner_lineup_efficiency") }} as lineup on scoring.team_year_id = lineup.team_year_id
 ),
 
 -- Cross-team points comparison within a season: how many playoff teams each team outscored
@@ -80,7 +83,11 @@ ranked as (
         rank() over (partition by year order by clutch_losses desc, clutch_win_pct asc) as clutch_loss_rank,
         rank() over (partition by year order by lucky_wins desc) as lucky_rank,
         rank() over (partition by year order by unlucky_losses desc) as unlucky_rank,
-        rank() over (partition by year order by shotgun_count desc) as shotgun_rank
+        rank() over (partition by year order by shotgun_count desc) as shotgun_rank,
+        rank() over (partition by year order by points_left_on_table asc) as best_lineup_rank,
+        rank() over (partition by year order by points_left_on_table desc) as worst_lineup_rank,
+        rank() over (partition by year order by lineup_efficiency desc) as efficiency_rank,
+        rank() over (partition by year order by lineup_efficiency asc) as inefficiency_rank
     from owner_seasons
 )
 
@@ -100,6 +107,8 @@ select
     ranked.lucky_wins,
     ranked.unlucky_losses,
     ranked.shotgun_count,
+    ranked.points_left_on_table,
+    ranked.lineup_efficiency,
     points_vs_field.playoff_teams_outscored,
     points_vs_field.nonplayoff_teams_outscoring,
     ranked.scoring_rank = 1 as is_scoring_title,
@@ -118,6 +127,14 @@ select
     ranked.unlucky_rank = 1 and ranked.unlucky_losses > 0 as is_unlucky_loser_title,
     ranked.shotgun_rank = 1 and ranked.shotgun_count > 0 as is_shotgun_title,
     ranked.shotgun_count = 0 as is_no_shotgun_season,
+    -- Lineup-setter titles, two complementary angles (from int__owner_lineup_efficiency, depth-neutral):
+    -- absolute points left on the bench vs the optimal legal lineup, and the share of the optimal
+    -- captured (efficiency %). Points reward raw start/sit production; efficiency normalizes for how
+    -- much was even on the table, so a low-scoring team that set near-perfect lineups can still lead.
+    ranked.best_lineup_rank = 1 as is_best_lineup_title,
+    ranked.worst_lineup_rank = 1 as is_worst_lineup_title,
+    ranked.efficiency_rank = 1 as is_most_efficient_lineup_title,
+    ranked.inefficiency_rank = 1 as is_least_efficient_lineup_title,
     -- Occurrence flags (broader than the titles above): every snubbed / lucked-in team-season.
     not ranked.made_playoffs and points_vs_field.playoff_teams_outscored >= 1 as is_snubbed,
     ranked.made_playoffs and points_vs_field.nonplayoff_teams_outscoring >= 1 as is_lucked_in

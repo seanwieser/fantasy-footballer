@@ -73,6 +73,16 @@ models:
         data_type: int
         data_tests:
           - not_null
+      - name: points_left_on_table
+        description: Regular-season points left on the bench vs the optimal legal lineup (start/sit loss)
+        data_type: double
+        data_tests:
+          - not_null
+      - name: lineup_efficiency
+        description: actual / optimal lineup points across the regular season (0-1)
+        data_type: double
+        data_tests:
+          - not_null
       - name: playoff_teams_outscored
         description: Count of playoff teams this team outscored in points — gates + sizes the snub title
         data_type: int
@@ -140,6 +150,26 @@ models:
           - not_null
       - name: is_no_shotgun_season
         description: Zero shotguns that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_best_lineup_title
+        description: Fewest regular-season points left on the bench vs optimal that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_worst_lineup_title
+        description: Most regular-season points left on the bench vs optimal that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_most_efficient_lineup_title
+        description: Highest share of the optimal lineup captured that season (lineup_efficiency)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_least_efficient_lineup_title
+        description: Lowest share of the optimal lineup captured that season (lineup_efficiency)
         data_type: bool
         data_tests:
           - not_null

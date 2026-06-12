@@ -1,0 +1,41 @@
+version: 2
+
+models:
+  - name: int__optimal_lineups
+    description: >
+      One row per regular-season team-week: `actual_points` (what the owner actually started) vs
+      `optimal_points` (the best legal lineup they could have set from their own rostered players that
+      week, given the slots they fielded). The gap is avoidable start/sit loss — depth-neutral, since
+      the optimal already respects the slot cap. Rolled up to owner-season by
+      [[int__owner_lineup_efficiency]]. See [[stg__team_week_players]] (roster + slots) and
+      [[stg__player_weeks]] (weekly points).
+    columns:
+      - name: team_year_id
+        description: team_id_year
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: team_week_id
+        description: team_id_year_week — the grain
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: actual_points
+        description: Points the owner actually started this week
+        data_type: double
+        data_tests:
+          - not_null
+      - name: optimal_points
+        description: Best legal lineup points from the owner's rostered players this week (>= actual_points)
+        data_type: double
+        data_tests:
+          - not_null

@@ -1,42 +1,38 @@
-"""Home page for the marts."""
+"""Splash page — the site's section-tile hub (front door to every destination)."""
 
-from backend.db import DbManager
-from frontend.utils import common_header, table
+from frontend.utils import common_header, get_access_level, section_tile
 from nicegui import ui
 
-# def owner_card(role: str):
-#     """Elements to highlight key owners on the splash page."""
-#     with ui.card().tight().classes("no-shadow border-[1px]"):
-#         with ui.card_section().classes("mx-auto").classes("p-0"):
-#             ui.label(titleize(role)).classes("text-weight-bold underline text-xl")
-#         image_path = f"resources/media/owners/{CARD_INFOS[role]['owner_id']}.jpg"
-#         ui.image(image_path).props("fit=scale-down")
-#         with ui.card_section().classes("mx-auto p-0"):
-#             with ui.row().classes("place-content-center text-weight-bold underline text-base"):
-#                 owner_id = image_path_to_owner_id(image_path)
-#                 ui.link(owner_id, f"/owners/{owner_id}")
-#             with ui.row().classes("text-center italic"):
-#                 ui.label(CARD_INFOS[role]["statement"])
+# (label, material icon, Quasar color, route, min access level). The single source of the hub grid;
+# tiles above the user's access level are hidden. Ordered live -> people -> marquee stats ->
+# granular data -> extras. Every destination is a top-level route (no stats_center grouping).
+SECTION_TILES = [
+    ("Current Season", "leaderboard", "teal", "/current_season", 0),
+    ("Owner History", "groups", "purple", "/owner_history", 0),
+    ("League Highlights", "sym_s_star", "orange", "/league_highlights", 0),
+    ("H2H Dashboard", "sym_s_swords", "red", "/h2h_dashboard", 0),
+    ("Postseason History", "history", "yellow", "/postseason_history", 0),
+    ("Player Data", "sym_s_data_loss_prevention", "blue", "/player_data", 0),
+    ("Draft Analysis", "price_check", "green", "/draft_analysis", 0),
+    ("Strength of Schedule", "sym_s_calendar_month", "grey", "/strength_of_schedule", 0),
+    ("Roster Production", "inventory_2", "cyan", "/roster_production", 0),
+    ("Gallery", "photo_library", "pink", "/gallery", 1),
+    ("Admin", "settings", "blue-grey", "/admin", 2),
+]
+
+
+def tile_grid():
+    """The dense 4-column hub grid, gated to the current user's access level."""
+    access_level = get_access_level()
+    with ui.grid(columns=4).classes("max-w-5xl w-full gap-4"):
+        for label, icon, color, route, level in SECTION_TILES:
+            if level <= access_level:
+                section_tile(label=label, icon=icon, icon_color=color, route=route)
 
 
 @ui.page("/")
 def page():
-    """Home page."""
+    """Home page: the tile hub."""
     common_header()
-    with ui.grid(columns="1fr 1fr 1fr 1fr").classes("w-full gap-0"):
-
-        # Shotgun Counter
-        with ui.card().classes("no-shadow border-[1px] relative-top-left"):
-            with ui.card_section().classes("mx-auto").classes("p-0 pt-2"):
-                ui.label("Shotgun Counter").classes("text-weight-bold underline text-xl text-center")
-            sql = "select * from fantasy_footballer.main_marts.current_shotgun_counter"
-            standings_df = DbManager.query(sql)
-            table(standings_df, classes="no-shadow w-full", not_sortable="all")
-
-
-        # Current Standings
-        with ui.card().classes("no-shadow border-[1px] col-span-3"):
-            ui.label("Current Standings").classes("text-weight-bold underline text-xl text-center w-full")
-            sql = "select * from fantasy_footballer.main_marts.current_standings"
-            standings_df = DbManager.query(sql)
-            table(standings_df, classes="no-shadow border-[1px] w-full", not_sortable=["Name", "Owner"])
+    with ui.column().classes("w-full items-center px-4 py-6 no-shadow"):
+        tile_grid()

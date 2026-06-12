@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: owner_weekly_lineup
+    description: >
+      One row per owner-(NFL week)-player (regular season + meaningful postseason games): the player's
+      slot/points plus `is_started` (the owner started them) and `is_optimal` (they belong in the best
+      legal lineup), with `actual_slot` / `optimal_slot`, `matchup_week`, `week` (NFL week), and
+      `is_playoff`. Backs the owner-spotlight weekly Roster tab, keyed by `matchup_week` so a two-week
+      (2018-2019) playoff matchup renders both NFL-week lineups. Thin wrap of [[int__optimal_lineup_players]].
+    columns:
+      - name: owner_id
+        data_type: int
+        data_tests:
+          - not_null
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: matchup_week
+        description: Matchup (scoring-period) week the dropdown is keyed by — 1:1 with `week` except 2018-2019 playoffs
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: is_playoff
+        description: This week is a meaningful postseason game (shown in the Roster view, not in season metrics)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: player_week_id
+        description: playerid_year_week
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: player_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: position
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: points
+        data_type: double
+        data_tests:
+          - not_null
+      - name: is_started
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_optimal
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: actual_slot
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: optimal_slot
+        description: Slot in the optimal lineup (position or FLEX); null if not in the optimal lineup
+        data_type: varchar

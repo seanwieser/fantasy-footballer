@@ -62,11 +62,11 @@ models:
         data_type: int
         data_tests:
           - not_null
-      - name: lineup
+      - name: lineups
         description: >
-          Array of lineup slots containing player IDs and their assigned roster positions
-          for this team during this week
-        data_type: struct(playerId varchar, lineupSlot varchar)[]
+          Per-NFL-week rosters for this matchup period: one entry per NFL week (two in the 2018-2019
+          two-week playoff matchups), each a list of player IDs + assigned roster slots.
+        data_type: struct(week int, players struct(playerId varchar, lineupSlot varchar)[])[]
       - name: score_for
         description: Points scored by the team in this week
         data_type: double

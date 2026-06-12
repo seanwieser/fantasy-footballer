@@ -1,0 +1,73 @@
+version: 2
+
+models:
+  - name: int__owner_player_season
+    description: >
+      One row per owner-season-player: how each player a manager rostered produced *while on that
+      manager's roster*, regular season only. A player traded mid-season fans out to one row per
+      owner who held them, so weeks/points are attributed to the holder. Weeks held counts every
+      rostered week (bench/IR included); started variants count only active lineup slots. Backs the
+      owner-spotlight Roster Production card via [[owner_roster_production]]. See
+      [[stg__team_week_players]] (roster truth) and [[stg__player_weeks]] (weekly points).
+    columns:
+      - name: owner_id
+        description: Manager who rostered the player
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: owner_year_id
+        description: owner_id_year
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: player_year_id
+        description: playerid_year
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: owner_player_year_id
+        description: owner_id_playerid_year — the grain
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: player_name
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: position_slot
+        description: Player's position slot designation
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: nfl_team
+        description: NFL team abbreviation
+        data_type: varchar
+      - name: weeks_held
+        description: Regular-season weeks this owner rostered the player (bench/IR included)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: weeks_started
+        description: Of weeks_held, weeks the player occupied an active (non-bench/IR) lineup slot
+        data_type: int
+        data_tests:
+          - not_null
+      - name: points_held
+        description: Fantasy points the player scored while on this owner's roster (all held weeks)
+        data_type: double
+        data_tests:
+          - not_null
+      - name: points_started
+        description: Fantasy points the player scored in weeks this owner actually started them
+        data_type: double
+        data_tests:
+          - not_null

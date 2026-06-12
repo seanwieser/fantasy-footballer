@@ -14,6 +14,12 @@ with title_aggregates as (
         count_if(metric_key = 'unlucky_loser_title' and is_title_holder)::int as unlucky_loser_title_count,
         count_if(metric_key = 'shotgun_title' and is_title_holder)::int as shotgun_title_count,
         count_if(metric_key = 'no_shotgun_season' and is_title_holder)::int as no_shotgun_season_count,
+        count_if(metric_key = 'best_lineup_title' and is_title_holder)::int as best_lineup_title_count,
+        count_if(metric_key = 'worst_lineup_title' and is_title_holder)::int as worst_lineup_title_count,
+        count_if(metric_key = 'most_efficient_lineup_title' and is_title_holder)::int
+            as most_efficient_lineup_title_count,
+        count_if(metric_key = 'least_efficient_lineup_title' and is_title_holder)::int
+            as least_efficient_lineup_title_count,
         sum(case when metric_key = 'lucky_winner_title' then amount end)::double as lucky_wins_total,
         sum(case when metric_key = 'unlucky_loser_title' then amount end)::double as unlucky_losses_total,
         sum(case when metric_key = 'shotgun_title' then amount end)::double as shotgun_total,

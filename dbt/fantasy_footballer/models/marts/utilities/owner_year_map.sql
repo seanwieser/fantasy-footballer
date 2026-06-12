@@ -1,6 +1,14 @@
+-- Drives owner/year navigation (tabs, dropdowns), so it is scoped to seasons that have actually
+-- been played — the upcoming drafted-but-unplayed season has no owner-history to render.
+with played_seasons as (
+    select year
+    from {{ ref("int__weeks_played_by_year") }}
+)
+
 select distinct
-    owner_id,
-    owner_name,
-    year
-from {{ ref("int__owner_team_year_map") }}
-order by year, owner_id
+    owner_map.owner_id,
+    owner_map.owner_name,
+    owner_map.year
+from {{ ref("int__owner_team_year_map") }} as owner_map
+inner join played_seasons on owner_map.year = played_seasons.year
+order by owner_map.year, owner_map.owner_id

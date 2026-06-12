@@ -23,9 +23,9 @@ reference it in conversation, branches, and commits.
 | FF-003 | Ingest s002 (FantasyData) source | backend, dbt | Low | L | Doing |
 | FF-004 | One-command fly.io deploy | infra | Med | M | Idea |
 | FF-005 | Fix source-fetch memory crash | backend | Low | M | Idea |
-| FF-006 | Owner filter on Player Data table | frontend, dbt | Low | M | Idea |
+| FF-006 | Owner-attributed Roster Production (reframed) | frontend, dbt | Low | M | Done |
 | FF-007 | Gallery: video upload / display / metadata | frontend, backend | Low | L | Idea |
-| FF-008 | Refactor website navigation | frontend | Low | M | Idea |
+| FF-008 | Refactor website navigation | frontend | Low | M | Done |
 | FF-009 | Quantify luck via all-play / expected wins | dbt | Low | M | Idea |
 | FF-010 | Notification / events dashboard | dbt, backend, frontend | Low | L | Idea |
 | FF-011 | Unify "league single best/worst week" logic | dbt | Low | S | Done |
@@ -33,8 +33,9 @@ reference it in conversation, branches, and commits.
 | FF-013 | Shootout / Slugfest records in League Highlights | dbt | Low | S | Done |
 | FF-014 | Postseason history page | frontend, dbt | Med | M | Done |
 | FF-015 | iMessage group-chat data pipeline + analytics | backend, dbt | Low | L | Idea |
-| FF-016 | Revise pre-Claude-Code pages/dbt/backend | frontend, dbt, backend | Med | L | Idea |
+| FF-016 | Revise pre-Claude-Code pages/dbt/backend | frontend, dbt, backend | Med | L | Done |
 | FF-017 | Roster-picker value: acquisition cost vs utilized points | dbt, frontend | Med | L | Idea |
+| FF-018 | Player spotlight pages + player-centric highlights | frontend, dbt | Med | L | Idea |
 
 ---
 
@@ -155,22 +156,6 @@ _Source: GH #11 (bug)._
 
 ---
 
-## FF-006 — Owner filter on Player Data table
-
-**Area:** frontend, dbt · **Priority:** Low · **Effort:** M · **Status:** Idea
-
-**Done when:** the Player Data table can group players by owner, correctly handling mid-season
-ownership changes (only counting weeks the owner held the player, with effective weeks shown).
-
-**What:** add an owner filter to the player data table. Non-trivial because ownership can change
-within a year — only weeks where the owner actually held the player should count, and the number of
-effective weeks should be displayed. Stretch: option to count only weeks the player was started
-(not benched).
-
-_Source: GH #27._
-
----
-
 ## FF-007 — Gallery: video upload / display / metadata (Bunny Stream)
 
 **Area:** frontend, backend · **Priority:** Low · **Effort:** L · **Status:** Idea
@@ -188,32 +173,6 @@ by Bunny Stream. Sub-pieces (were separate GH issues):
   after upload. _GH #8._
 
 _Source: GH #7 (parent), #5, #6, #8._
-
----
-
-## FF-008 — Refactor website navigation
-
-**Area:** frontend · **Priority:** Low · **Effort:** M · **Status:** Idea
-
-**Done when:** every major section is reachable directly from the splash/landing page (not buried
-under Stats Center), and the current-season counters take a smaller footprint (compact, or behind a
-button) instead of dominating the landing screen.
-
-**What:** rework navigation so the splash page (`/`) is the real hub. Today most of the value lives
-under `/stats_center` (Player Data, Draft Analysis, Strength of Schedule, League Highlights, …),
-reached via header → Stats Center landing → card → subpage. The splash page itself only shows the
-current standings + shotgun-counter tables, which dominate the screen.
-
-**Pieces / ideas:**
-- Surface all sections from the splash page (a top-level tile/card grid, like the current Stats Center
-  landing but promoted to the front door).
-- Shrink the current-season counters (standings, shotgun counter) — compact widgets or tuck them
-  behind a button/expander so they don't own the landing page.
-- Reconsider whether "Stats Center" stays a separate hub or flattens into the splash nav.
-- Keep the header nav (`common_header`) consistent with the new structure.
-
-**Open questions:** flat nav vs keep section hubs; what belongs "above the fold" on the splash;
-whether the current counters live on the splash at all or move to their own page.
 
 ---
 
@@ -335,42 +294,6 @@ push *back* into the chat).
 
 ---
 
-## FF-016 — Revise pre-Claude-Code pages/dbt/backend
-
-**Area:** frontend, dbt, backend · **Priority:** Med · **Effort:** L · **Status:** Idea
-
-**Done when:** the pages (and their dbt models + any backend) built *before* the conventions in
-CLAUDE.md / MODELS.md / FRONTEND.md / BACKEND.md were established are brought up to current
-standards — matching the filter-page pattern, the seed-catalog/mart layering, contracts +
-properties coverage, cross-links between views, and the documentation maps — with no behavior
-regressions.
-
-**What:** the earliest features were built before Claude Code (and before the current documented
-patterns) and haven't been revisited since. They predate things the newer pages take for granted:
-the canonical `DropDownSelection` / `@ui.refreshable` filter-page pattern, mart-side display
-formatting (thin frontend), the seed-catalog metric machinery, liberal cross-linking between views,
-and the MODELS.md / FRONTEND.md / BACKEND.md upkeep. Audit each and bring it in line.
-
-**Pages to revise (non-exhaustive — confirm by walking the older `marts`/pages):**
-- **Player Data** (`/stats_center/player_data`) — it's cited as the *canonical* filter-page
-  example, but verify it still fully matches the pattern and the dbt behind it is clean (ties into
-  FF-006 owner filter).
-- **Draft Analysis** (`/stats_center/draft_analysis`) — review the snake-draft marts + page.
-- **Strength of Schedule** (`/stats_center/strength_of_schedule`).
-- …and any other early Stats Center / Owner History / Splash modules that predate the conventions.
-
-**How to approach:** treat it as a per-page sweep rather than one big rewrite — for each page,
-(1) check the page module against the FRONTEND.md filter-page pattern and push display logic into
-the mart, (2) check its dbt models against MODELS.md layering + contracts/properties coverage,
-(3) add sensible cross-links to owner spotlights / seasons / matchups, (4) update the doc maps.
-Likely splits into several small PRs, one per page/area.
-
-**Open questions:** which pages actually need work vs. already conform; whether to fold specific
-known asks (FF-006 owner filter on Player Data) into this sweep or keep them separate; how much to
-unify the older marts onto the seed-catalog pattern vs. leave page-specific.
-
----
-
 ## FF-017 — Roster-picker value: acquisition cost vs utilized points
 
 **Area:** dbt, frontend · **Priority:** Med · **Effort:** L · **Status:** Idea
@@ -405,6 +328,43 @@ FF-009 (value-over-replacement framing).
 **Why later:** depends on acquisition-cost data we haven't confirmed we have for waivers, and wants a
 cost→points baseline — more than a one-row-seed title. Captured now so the utilized-points side
 (shipped with FF-006) can be built on deliberately.
+
+---
+
+## FF-018 — Player spotlight pages + player-centric highlights
+
+**Area:** frontend, dbt · **Priority:** Med · **Effort:** L · **Status:** Idea
+
+**Done when:** every player surfaced in the app links to a dedicated **player spotlight** page that
+visualizes that player's career metrics over time, and the platform gains a set of **owner-agnostic,
+player-centric league highlights** — best players of a season, and best careers by both *prime/peak*
+and *total*.
+
+**What:** today players show up in tables (Player Data, the owner-spotlight Roster tab, draft tables)
+but aren't themselves a destination — there's no per-player view. Build a **player spotlight** that's
+the player analogue of the owner spotlight: a player's career arc visualized, cross-linked from
+everywhere a player name appears — **notably Player Data and the owner-spotlight Roster tab** (and the
+draft tables). Pair it with a player-centric highlight set that ranks *players*, not owners.
+
+**Pieces / ideas:**
+- **Player spotlight page** (`/player/{player_id}` or similar) — header (name, position, NFL-team
+  history) + visualizations of career metrics over time: fantasy points by season/week, position rank,
+  usage, prime vs decline. Reuse existing per-player data (`int__player_season_stats`,
+  `stg__player_weeks`).
+- **Cross-links** — make player names link to the spotlight from Player Data, the Roster tab, and draft
+  tables (same web-of-views ethos as the owner cross-links).
+- **Player-centric league highlights (owner-agnostic):** rank *players* — best player of each season
+  (highest / position-adjusted points), best careers by **prime** (peak N-season window) and by
+  **total** (career points), plus ideas like most consistent or biggest single-season spike. Likely its
+  own seed catalog (player metrics) mirroring the league-highlights machinery, surfaced on the spotlight
+  and/or a league-wide players view.
+
+**Open questions:** route shape (`/player/{id}` vs under an existing section); NiceGUI charting
+approach; "prime" definition (rolling best-N seasons vs peak single season); cross-position
+normalization for a fair "best player"; whether player highlights get their own page or live on the
+spotlights; historical depth (data is 2018+).
+
+_Source: discussed during the FF-016 nav PR._
 
 ---
 
@@ -531,3 +491,70 @@ bye slots and a bordered championship game), **Timeline** tab (newest-first seas
 **Future ideas:** SVG connector lines between bracket rounds; link a season's champion to its
 owner-spotlight; surface `best_finish` / playoff win% sortable. Pairs with FF-008 (nav refactor) as a
 new top-level destination.
+
+---
+
+## FF-008 — Refactor website navigation
+
+**Area:** frontend · **Priority:** Low · **Effort:** M · **Status:** Done
+
+**Done when:** every major section is reachable directly from the splash/landing page (not buried
+under Stats Center), and the current-season counters take a smaller footprint instead of dominating
+the landing screen.
+
+**What (shipped):** the splash (`/`) is now a pure **section-tile hub** (`section_tile` /
+`SECTION_TILES`, access-gated) — every destination is a top-level route; the `/stats_center` landing
+was removed and its header entry dropped (`common_header` updated to match). The current-season
+standings + shotgun counters **moved off the splash entirely to their own `/current_season` page**,
+resolving the open question — they no longer live on the landing at all.
+
+---
+
+## FF-016 — Revise pre-Claude-Code pages/dbt/backend
+
+**Area:** frontend, dbt, backend · **Priority:** Med · **Effort:** L · **Status:** Done
+
+**Done when:** the pages (and their dbt models + any backend) built *before* the conventions in
+CLAUDE.md / MODELS.md / FRONTEND.md / BACKEND.md were established are brought up to current standards —
+filter-page pattern, mart layering, contracts/properties, cross-links, doc maps — with no regressions.
+
+**What (shipped):** a broad sweep of the pre-Claude-Code surface onto current conventions:
+- **Player Data**, **Draft Analysis** (snake + auction), **Strength of Schedule**, **owner spotlight**,
+  and **splash** — filter-page pattern, **page-aligned mart + page folders** (dropped the `stats_center/`
+  grouping in both `marts/` and `frontend/`), contracts/properties coverage, and **cross-links to owner
+  spotlights** (`rowClick → /owner_history` on SoS + both draft tables; spotlight rows/cards clickable).
+- **Backend**: the `s001` teams extractor was reworked to capture rosters **per NFL week**, fixing the
+  2018-2019 two-week playoff lineups (feeds `int__optimal_lineup_players` / the Roster tab).
+- Doc maps (MODELS.md / FRONTEND.md / CLAUDE.md / BACKEND.md) kept current throughout.
+
+Also folded in during the PR: current-season = latest *drafted* season (+ standings-rank hardening);
+owner-spotlight navigation gated to **played** seasons + an empty-season guard; postseason round labels
+unified as `TB Round N` across the dropdown and the Postseason table.
+
+_Note: the item anticipated splitting into several small PRs; this single PR did the broad analytics sweep._
+
+---
+
+## FF-006 — Owner-attributed Roster Production (reframed)
+
+**Area:** frontend, dbt · **Priority:** Low · **Effort:** M · **Status:** Done
+
+**Done when (reframed):** each owner-season's rostered-player production is viewable, correctly handling
+mid-season ownership changes (only the weeks an owner held the player count, weeks-held shown), including
+started-only points. _(Original: "the Player Data table can group players by owner" — see Decision.)_
+
+**Decision (reframe):** the original ask — an *owner filter on the Player Data table* — was dropped. A
+player's fantasy points are intrinsic to the *player*, and Player Data is a player-performance reference;
+splitting a traded player into per-owner rows would distort that table. "What did the players *I* rostered
+produce" is an **owner-season** question, so it belongs where the grain is naturally one owner-season and
+mid-season trades render correctly. Player Data stays player-centric.
+
+**What (shipped):**
+- `int__owner_player_season` (owner-season-player grain) — `weeks_held`/`points_held` (every rostered
+  week, bench/IR included) + `weeks_started`/`points_started` (active lineup only); a mid-season trade
+  fans the player out to one row per holder. (Delivers the started-only stretch too.)
+- mart `owner_roster_production` — Rostered Pts / Started Pts / Total Pts / Capture % / Roster Util %.
+- the **`/roster_production`** page (filter pattern: year / owner / position, rows cross-linked to owner
+  spotlights) **and** the owner-spotlight Roster tab "All" view (`_season_roster`).
+
+_Source: GH #27 (reframed during the FF-016 nav PR)._

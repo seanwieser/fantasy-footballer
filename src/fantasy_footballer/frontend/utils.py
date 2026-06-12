@@ -61,6 +61,13 @@ def get_owner_names_by_year(year: int = None) -> list[str]:
         return sorted(list({row["owner_name"] for row in all_owners_by_year if row["year"] == int(year)}))
     return sorted(list({row["owner_name"] for row in all_owners_by_year}))
 
+def get_owners_by_year(year: int) -> list[dict]:
+    """Get owners (`owner_id`, `owner_name`) who fielded a team in a given year, sorted by name."""
+    owners = DbManager.query(
+        f"select owner_id, owner_name from main_marts.owner_year_map "
+        f"where year = {int(year)} order by owner_name", to_dict=True)
+    return owners
+
 def get_nfl_teams():
     """Get all NFL Teams."""
     all_nfl_teams = DbManager.query("select nfl_team from main_marts.nfl_teams", to_dict=True)

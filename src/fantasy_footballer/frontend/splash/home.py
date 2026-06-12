@@ -5,18 +5,17 @@ from nicegui import ui
 
 # (label, material icon, Quasar color, route, min access level). The single source of the hub grid;
 # tiles above the user's access level are hidden. Ordered live -> people -> marquee stats ->
-# granular data -> extras. Stats destinations keep their /stats_center/* routes even though the old
-# /stats_center landing is gone.
+# granular data -> extras. Every destination is a top-level route (no stats_center grouping).
 SECTION_TILES = [
     ("Current Season", "leaderboard", "teal", "/current_season", 0),
     ("Owner History", "groups", "purple", "/owner_history", 0),
-    ("League Highlights", "sym_s_star", "orange", "/stats_center/league_highlights", 0),
-    ("H2H Dashboard", "sym_s_swords", "red", "/stats_center/h2h_dashboard", 0),
-    ("Postseason History", "history", "yellow", "/stats_center/postseason_history", 0),
-    ("Player Data", "sym_s_data_loss_prevention", "blue", "/stats_center/player_data", 0),
-    ("Draft Analysis", "price_check", "green", "/stats_center/draft_analysis", 0),
-    ("Strength of Schedule", "sym_s_calendar_month", "grey", "/stats_center/strength_of_schedule", 0),
-    ("Roster Production", "inventory_2", "cyan", "/stats_center/roster_production", 0),
+    ("League Highlights", "sym_s_star", "orange", "/league_highlights", 0),
+    ("H2H Dashboard", "sym_s_swords", "red", "/h2h_dashboard", 0),
+    ("Postseason History", "history", "yellow", "/postseason_history", 0),
+    ("Player Data", "sym_s_data_loss_prevention", "blue", "/player_data", 0),
+    ("Draft Analysis", "price_check", "green", "/draft_analysis", 0),
+    ("Strength of Schedule", "sym_s_calendar_month", "grey", "/strength_of_schedule", 0),
+    ("Roster Production", "inventory_2", "cyan", "/roster_production", 0),
     ("Gallery", "photo_library", "pink", "/gallery", 1),
     ("Admin", "settings", "blue-grey", "/admin", 2),
 ]

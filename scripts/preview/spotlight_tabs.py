@@ -24,13 +24,13 @@ def preview():
             with ui.card().classes("no-shadow border-[0px] w-full"):
                 with ui.tabs().classes("w-full") as tabs:
                     regular_tab = ui.tab("Regular Season")
-                    roster_tab = ui.tab("Roster Production")
+                    roster_tab = ui.tab("Roster")
                     postseason_tab = ui.tab("Postseason")
                 with ui.tab_panels(tabs, value=roster_tab).classes("w-full").style("min-height: 620px"):
                     with ui.tab_panel(regular_tab):
                         sp.season_schedule_table(OWNER, YEAR)
                     with ui.tab_panel(roster_tab):
-                        sp.roster_production_table(OWNER, YEAR)
+                        sp.weekly_roster_view(OWNER, YEAR, "All")
                     with ui.tab_panel(postseason_tab):
                         sp.postseason_schedule_table(OWNER, YEAR)
 

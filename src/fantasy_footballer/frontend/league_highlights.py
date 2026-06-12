@@ -269,7 +269,7 @@ def season_tab(owners):
     season_select.on_value_change(lambda: [panel.refresh() for panel in panels])
 
 
-@ui.page("/stats_center/league_highlights")
+@ui.page("/league_highlights")
 def page():
     """League Highlights page."""
     common_header()

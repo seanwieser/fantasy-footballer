@@ -5,7 +5,7 @@ Renders the *real* filter UI + glossary + table from the roster-production modul
 already-built DuckDB on a spare port, so the new page can be screenshotted headless (see
 scripts/preview_run.py) without auth or a live boot. Not part of the app.
 """
-import frontend.stats_center.roster_production as rp
+import frontend.roster_production as rp
 from nicegui import app, ui
 
 PORT = 8099

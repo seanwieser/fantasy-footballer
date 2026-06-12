@@ -1,21 +1,21 @@
-"""Module for the Player Data page."""
+"""Module for the Strength of Schedule page."""
+
 from backend.db import DbManager
-from frontend.utils import (VALID_POSITIONS, common_header, format_field_name,
-                            get_current_year, get_nfl_teams,
-                            get_years_by_owner_id, table)
+from frontend.utils import (common_header, format_field_name, get_current_year,
+                            get_owner_names_by_year, get_years_by_owner_id,
+                            table)
 from nicegui import ui
 
 
-class DropDownSelection:
-    """Class for dropdown selection for Players table."""
+class SosDropDownSelection:
+    """Class for dropdown selection for strength of schedule table."""
 
     @classmethod
     def defaults(cls):
         """Default selections, resolved at call time so there is no DB access at import."""
         return {
             "year": get_current_year(),
-            "position": "ALL",
-            "nfl_team": "ALL",
+            "owner_name": "ALL",
         }
 
     def __init__(self):
@@ -26,7 +26,7 @@ class DropDownSelection:
         """Reset all instance attributes to their defaults."""
         for attribute, value in self.defaults().items():
             setattr(self, attribute, value)
-        player_data_table.refresh()
+        sos_data_table.refresh()
 
     def get_filter(self, field):
         """Return SQL boolean expression filtering 'field' parameter."""
@@ -35,7 +35,8 @@ class DropDownSelection:
         return f"{field}::varchar='{getattr(self, field)}'"
 
 
-def filter_dropdown_button(selection: DropDownSelection, field: str, field_options: list[str], extra_format_funcs=None):
+def filter_dropdown_button(selection: SosDropDownSelection, field: str, field_options: list[str],
+                           extra_format_funcs=None):
     """Generic dropdown button element with label above."""
     field_label = format_field_name(field, extra_format_funcs)
     with ui.column().classes("gap-1 mx-auto"):
@@ -47,60 +48,57 @@ def filter_dropdown_button(selection: DropDownSelection, field: str, field_optio
                         on_click=lambda field_option=field_option: refresh_table(selection, field, field_option))
 
 
-def filter_ui(selection: DropDownSelection):
+def filter_ui(selection: SosDropDownSelection):
     """UI Element containing all user input options."""
     with ui.card().classes("w-full my-auto mx-auto"):
         with ui.row().classes("w-full gap-4 my-auto mx-auto"):
-            filter_dropdown_button(selection,"year", [str(year) for year in get_years_by_owner_id()])
-            filter_dropdown_button(selection, "position", VALID_POSITIONS)
-            filter_dropdown_button(selection,
-                                   "nfl_team",
-                                   get_nfl_teams(),
-                                   [lambda s: f"{s.split(' ')[0].upper()} {s.split(' ')[1]}"]
-                                   )
+            filter_dropdown_button(selection, "year", [str(year) for year in get_years_by_owner_id()])
+            filter_dropdown_button(selection, "owner_name", get_owner_names_by_year())
             ui.button("Reset Filter", on_click=selection.reset)
 
 
 @ui.refreshable
-def player_data_table(selection):
-    """Data table displaying all player data."""
-    player_data_df = DbManager.query(f"""
-        select 
-            year            as Year, 
-            player_name     as "Player Name",
-            position        as Position, 
-            position_rank   as "Position Rank", 
-            nfl_team        as "NFL Team",
-            total_points    as "Total Points", 
-            avg_points      as "Average Points" 
-        from main_marts.player_data_table
-        where   
+def sos_data_table(selection):
+    """Data table displaying all sos data."""
+    sos_data_df = DbManager.query(f"""
+        select
+            year            as Year,
+            owner_name      as "Owner Name",
+            owner_id        as "Owner Id",
+            sos             as "Strength of Schedule",
+            sosr            as "Strength of Schedule Remaining"
+        from main_marts.strength_of_schedule
+        where
             {selection.get_filter('year')} and
-            {selection.get_filter('position')} and
-            {selection.get_filter('nfl_team')}
+            {selection.get_filter('owner_name')}
+        order by sos desc
     """)
 
-    table(player_data_df,
+    sos_table = table(sos_data_df,
           pagination=25,
-          classes="mx-auto w-full",
+          classes="mx-auto w-full cursor-pointer",
           format_field_names=False,
-          hidden_fields = [field for field, value in selection.__dict__.items() if value != "ALL"]
+          hidden_fields=[field for field, value in selection.__dict__.items() if value != "ALL"] + ["owner_id"],
     )
+    sos_table.on("rowClick",
+                 lambda event: ui.navigate.to(f"/owner_history/{event.args[1]['Owner Id']}/{event.args[1]['Year']}"))
+
 
 def refresh_table(selection, field, value):
     """Refresh table with new year and position."""
     setattr(selection, field, value)
-    player_data_table.refresh(selection)
+    sos_data_table.refresh(selection)
 
 
-def players_table_and_dropdowns():
+def sos_and_dropdowns():
     """Dropdowns and Table for Players page."""
-    selection = DropDownSelection()
+    selection = SosDropDownSelection()
     filter_ui(selection)
-    player_data_table(selection)
+    sos_data_table(selection)
 
-@ui.page("/stats_center/player_data")
+
+@ui.page("/strength_of_schedule")
 def page():
     """Players page."""
     common_header()
-    players_table_and_dropdowns()
+    sos_and_dropdowns()

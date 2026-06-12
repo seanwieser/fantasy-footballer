@@ -1,14 +1,14 @@
 """Module for the Draft Analysis page."""
 
-from frontend.stats_center.draft_analysis.auction_draft_table import \
+from frontend.draft_analysis.auction_draft_table import \
     auction_draft_table_and_dropdowns
-from frontend.stats_center.draft_analysis.snake_draft_table import \
+from frontend.draft_analysis.snake_draft_table import \
     snake_draft_table_and_dropdowns
 from frontend.utils import common_header
 from nicegui import ui
 
 
-@ui.page("/stats_center/draft_analysis")
+@ui.page("/draft_analysis")
 def page():
     """Players page."""
     common_header()

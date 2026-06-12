@@ -18,13 +18,19 @@ def preview():
     owner_id = db_mod.DbManager.query(
         "select owner_id from main_marts.owner_year_map where owner_name = 'Sean Wieser' limit 1",
         to_dict=True)[0]["owner_id"]
+    barrett_id = db_mod.DbManager.query(
+        "select owner_id from main_marts.owner_year_map where owner_name = 'Adam Barrett' limit 1",
+        to_dict=True)[0]["owner_id"]
     with ui.column().classes("w-full items-center px-8 py-6"):
         with ui.column().classes("max-w-3xl w-full gap-4"):
             ui.label("Roster tab — Week 1 (actual vs optimal)").classes("text-2xl font-semibold")
             sp.weekly_roster_view(owner_id, 2025, 1)
             ui.separator()
-            ui.label("Roster tab — Week 15 (postseason)").classes("text-2xl font-semibold")
+            ui.label("Roster tab — 2025 Week 15 (single-week postseason)").classes("text-2xl font-semibold")
             sp.weekly_roster_view(owner_id, 2025, 15)
+            ui.separator()
+            ui.label("Roster tab — 2018 matchup 14 (two-week postseason)").classes("text-2xl font-semibold")
+            sp.weekly_roster_view(barrett_id, 2018, 14)
             ui.separator()
             ui.label("Roster tab — All (season roster)").classes("text-2xl font-semibold")
             sp._season_roster(owner_id, 2025)  # pylint: disable=protected-access

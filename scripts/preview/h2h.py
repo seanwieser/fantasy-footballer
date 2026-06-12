@@ -7,7 +7,7 @@ scripts/preview_run.py) without auth or a live boot. Not part of the app.
 """
 import asyncio
 
-import frontend.stats_center.h2h_dashboard as h2h
+import frontend.h2h_dashboard as h2h
 from nicegui import app, ui
 
 PORT = 8099

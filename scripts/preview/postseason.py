@@ -5,7 +5,7 @@ Renders the *real* bracket / timeline / trophy-case sections from the page modul
 already-built DuckDB on a spare port, so styling can be screenshotted headless (see
 scripts/preview_run.py) without auth or a live boot. Not part of the app.
 """
-import frontend.stats_center.postseason_history as ph
+import frontend.postseason_history as ph
 from nicegui import app, ui
 
 PORT = 8099

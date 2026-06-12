@@ -3,9 +3,10 @@ version: 2
 models:
   - name: stg__team_week_players
     description: >
-      Player-level lineup data for each team by week. Unnests the lineup struct from team_weeks
-      to create one row per player per team per week. Excludes undecided matchups (outcome = 'U').
-      Standardizes lineup slot naming by converting 'RB/WR/TE' to 'FLEX' for consistency.
+      Player-level lineup data for each team by NFL week. Unnests the per-NFL-week `lineups` from
+      team_weeks to one row per player per team per NFL week, carrying both `matchup_week` (scoring
+      period) and `week` (the NFL week the slot belongs to). Excludes undecided matchups (outcome =
+      'U'). Standardizes lineup slot naming by converting 'RB/WR/TE' to 'FLEX' for consistency.
     columns:
       - name: team_id
         description: Unique identifier for the team
@@ -27,14 +28,10 @@ models:
         data_tests:
           - not_null
       - name: team_week_id
-        description: Composite key combining team_year_id and week (format 'team_year_id_week')
+        description: Composite key combining team_year_id and NFL week (format 'team_year_id_week')
         data_type: varchar
         data_tests:
           - not_null
-          - relationships:
-              arguments:
-                to: ref('stg__team_weeks')
-                field: team_week_id
       - name: opponent_team_id
         description: Unique identifier for the opposing team in this week's matchup
         data_type: int
@@ -77,8 +74,13 @@ models:
         data_type: int
         data_tests:
           - not_null
+      - name: matchup_week
+        description: Matchup (scoring-period) week — 1:1 with `week` except the 2018-2019 two-week playoffs
+        data_type: int
+        data_tests:
+          - not_null
       - name: week
-        description: Week number within the season
+        description: NFL scoring week the lineup slot (and its points) belong to
         data_type: int
         data_tests:
           - not_null

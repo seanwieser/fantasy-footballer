@@ -35,7 +35,8 @@ select
     case
         when with_opponent_score.is_championship_game then 'Championship'
         when with_opponent_score.is_third_place_game then '3rd Place Game'
-        when with_opponent_score.is_toilet_game then 'Toilet Bowl'
+        -- The Toilet Bowl spans multiple rounds, so carry the round number to disambiguate.
+        when with_opponent_score.is_toilet_game then 'TB Round ' || with_opponent_score.postseason_week_num::varchar
         else 'Round ' || with_opponent_score.postseason_week_num::varchar
     end as round_label,
     opponent_map.owner_name as opponent_owner_name,

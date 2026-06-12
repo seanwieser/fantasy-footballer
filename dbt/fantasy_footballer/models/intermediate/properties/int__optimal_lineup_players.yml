@@ -3,11 +3,14 @@ version: 2
 models:
   - name: int__optimal_lineup_players
     description: >
-      One row per team-week-player (regular season + meaningful postseason games): `is_started` (the
-      owner started them) and `is_optimal` (they belong in the best legal lineup that week), with
-      `actual_slot`, `optimal_slot`, and `is_playoff`. The building block for `int__optimal_lineups`
-      (team-week totals, regular season only) and the owner-spotlight weekly Roster view (actual vs
-      optimal, which also covers postseason weeks). See [[stg__team_week_players]].
+      One row per team-(NFL week)-player (regular season + meaningful postseason games): `is_started`
+      (the owner started them) and `is_optimal` (they belong in the best legal lineup that NFL week),
+      with `actual_slot`, `optimal_slot`, `matchup_week`, `week` (NFL scoring week), and `is_playoff`.
+      Rosters arrive per NFL week from [[stg__team_week_players]] (so the 2018-2019 two-week playoff
+      matchups carry both NFL-week lineups) and pair 1:1 with [[stg__player_weeks]] points on
+      `player_week_id`; `is_playoff` is resolved on the matchup week. The building block for
+      `int__optimal_lineups` (team-week totals, regular season only) and the owner-spotlight weekly
+      Roster view (actual vs optimal, which also covers postseason weeks).
     columns:
       - name: team_year_id
         data_type: varchar
@@ -35,7 +38,13 @@ models:
         data_type: int
         data_tests:
           - not_null
+      - name: matchup_week
+        description: Matchup (scoring-period) week the roster was set for — 1:1 with `week` except 2018-2019 playoffs
+        data_type: int
+        data_tests:
+          - not_null
       - name: week
+        description: NFL scoring week this row's points are from (a two-week matchup yields two rows per player)
         data_type: int
         data_tests:
           - not_null

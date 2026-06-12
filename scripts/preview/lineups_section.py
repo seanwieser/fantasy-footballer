@@ -4,8 +4,7 @@ Throwaway visual harness for the League Highlights Lineups section (split titles
 Renders the *real* all-time and by-season Lineups cards against the built DuckDB on a spare port so
 the new metric cards can be screenshotted headless. Not part of the app.
 """
-import backend.db as db_mod  # noqa: F401  (import side-effect: configures DbManager path)
-import frontend.stats_center.league_highlights as lh
+import frontend.league_highlights as lh
 from backend.db import DbManager
 from nicegui import app, ui
 

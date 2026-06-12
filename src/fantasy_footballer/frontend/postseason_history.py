@@ -289,7 +289,7 @@ def trophy_case_tab():
             _trophy_card(owner)
 
 
-@ui.page("/stats_center/postseason_history")
+@ui.page("/postseason_history")
 def page():
     """Postseason History page."""
     common_header()

@@ -5,7 +5,7 @@ Renders the *real* `render_season` from the league-highlights module against the
 on a spare port, so the best/worst lineup-setter title cards can be screenshotted headless (see
 scripts/preview_run.py) without auth or a live boot. Not part of the app.
 """
-import frontend.stats_center.league_highlights as lh
+import frontend.league_highlights as lh
 from nicegui import app, ui
 
 PORT = 8099

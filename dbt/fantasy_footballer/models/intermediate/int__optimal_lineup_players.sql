@@ -1,12 +1,26 @@
--- Per team-week-player (regular season + meaningful postseason games): whether the player was actually
--- started and whether they belong in the best legal lineup (the optimal), plus the slot each lineup
--- puts them in. The optimal greedily fills dedicated slots with the top scorers per position, then FLEX
--- with the best remaining RB/WR/TE. `is_playoff` marks postseason games — excluded from the season
--- aggregates (int__optimal_lineups) but surfaced per week by the owner-spotlight Roster view.
+-- Per team-(NFL week)-player (regular season + meaningful postseason games): whether the player was
+-- actually started and whether they belong in the best legal lineup that NFL week (the optimal), plus
+-- the slot each lineup puts them in. The optimal greedily fills dedicated slots with the top scorers
+-- per position, then FLEX with the best remaining RB/WR/TE.
+--
+-- Rosters arrive per NFL week from stg__team_week_players (the 2018-2019 two-week playoff matchups
+-- carry a lineup per NFL week), so points pair 1:1 with stg__player_weeks on player_week_id. is_playoff
+-- is resolved on the matchup week; those rows are excluded from the season aggregate (int__optimal_lineups)
+-- but surfaced per week by the owner-spotlight Roster view.
 with meaningful_postseason as (
-    select distinct team_week_id
+    select distinct
+        team_year_id,
+        week as matchup_week
     from {{ ref("int__postseason_team_weeks") }}
     where is_meaningful
+),
+
+matchup_playoff as (
+    select distinct
+        year,
+        matchup_week,
+        is_playoff
+    from {{ ref("int__matchup_week_playoff_map") }}
 ),
 
 roster_base as (
@@ -17,29 +31,33 @@ roster_base as (
         team_week_players.player_id,
         players.player_name,
         team_week_players.year,
+        team_week_players.matchup_week,
         team_week_players.week,
-        playoff_map.is_playoff,
+        matchup_playoff.is_playoff,
         team_week_players.lineup_slot,
         team_week_players.lineup_slot not in ('BE', 'IR') as is_started,
         players.position_slot as position,
         players.position_slot in ('RB', 'WR', 'TE') as flex_eligible,
         coalesce(player_weeks.points, 0) as points
     from {{ ref("stg__team_week_players") }} as team_week_players
-    inner join {{ ref("int__matchup_week_playoff_map") }} as playoff_map
+    inner join matchup_playoff
         on
-            team_week_players.year = playoff_map.year and
-            team_week_players.week = playoff_map.week
+            team_week_players.year = matchup_playoff.year and
+            team_week_players.matchup_week = matchup_playoff.matchup_week
     inner join {{ ref("base_s001__players") }} as players
         on team_week_players.player_year_id = players.player_year_id
     left join {{ ref("stg__player_weeks") }} as player_weeks
         on team_week_players.player_week_id = player_weeks.player_week_id
     left join meaningful_postseason
-        on team_week_players.team_week_id = meaningful_postseason.team_week_id
+        on
+            team_week_players.team_year_id = meaningful_postseason.team_year_id and
+            team_week_players.matchup_week = meaningful_postseason.matchup_week
     -- Regular-season weeks always; postseason weeks only for meaningful bracket games (an eliminated
     -- team's locked roster in the weeks after is dropped).
-    where not playoff_map.is_playoff or meaningful_postseason.team_week_id is not null
+    where not matchup_playoff.is_playoff or meaningful_postseason.matchup_week is not null
 ),
 
+-- Slot needs + optimal ranking are computed per NFL week (team_week_id is NFL-week-grained).
 slot_requirements as (
     select
         team_week_id,
@@ -113,6 +131,7 @@ flagged as (
         player_id,
         player_name,
         year,
+        matchup_week,
         week,
         is_playoff,
         position,
@@ -131,6 +150,7 @@ select
     player_id,
     player_name,
     year,
+    matchup_week,
     week,
     is_playoff,
     position,

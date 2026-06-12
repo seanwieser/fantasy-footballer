@@ -136,7 +136,7 @@ def roster_production_and_dropdowns():
     roster_production_table(selection)
 
 
-@ui.page("/stats_center/roster_production")
+@ui.page("/roster_production")
 def page():
     """Roster Production page."""
     common_header()

@@ -3,11 +3,13 @@ version: 2
 models:
   - name: int__current_season_year
     description: >
-      Single-row reference table containing the most recent season year available in the data.
-      Used as a lookup for filtering and reporting on current season data across the warehouse.
+      Single-row reference: the most recent season that has been **drafted** (max year present in
+      draft picks). The fantasy year starts at the draft, so this is the pivot every "current" mart
+      cross-joins — it advances to the new season the moment that league drafts, and ignores the
+      all-zero offseason shell ESPN exposes for an undrafted upcoming year.
     columns:
       - name: current_season_year
-        description: The maximum (most recent) season year present in the owner_team_year_map
+        description: The most recent season year that has been drafted
         data_type: int
         data_tests:
           - not_null

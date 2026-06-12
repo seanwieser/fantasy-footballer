@@ -1,11 +1,11 @@
 """
 Orchestrate a headless screenshot of the League Highlights preview harness.
 
-Starts scripts/preview_highlights.py as a child, waits for it to serve, screenshots it
-with headless Chrome, then tears it down via its /quit route. Self-contained: only ever
+Starts a preview harness (scripts/preview/*.py) as a child, waits for it to serve, screenshots
+it with headless Chrome, then tears it down via its /quit route. Self-contained: only ever
 manages its own child process (never the live app or the DuckDB file).
 
-Usage:  PYTHONPATH=src/fantasy_footballer poetry run python3 scripts/preview_run.py [harness.py] [out.png]
+Usage:  PYTHONPATH=src/fantasy_footballer poetry run python3 scripts/preview/run.py [harness.py] [out.png]
 Output: /tmp/highlights_preview.png (default)
 """
 import os
@@ -14,7 +14,7 @@ import sys
 import time
 import urllib.request
 
-HARNESS = sys.argv[1] if len(sys.argv) > 1 else "scripts/preview_highlights.py"
+HARNESS = sys.argv[1] if len(sys.argv) > 1 else "scripts/preview/highlights.py"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "/tmp/highlights_preview.png"
 PORT = 8099
 BASE = f"http://127.0.0.1:{PORT}"

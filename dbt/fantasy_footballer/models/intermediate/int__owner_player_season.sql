@@ -5,18 +5,28 @@ with roster_weeks as (
         player_week_id,
         lineup_slot,
         year,
-        week
+        matchup_week
     from {{ ref("stg__team_week_players") }}
+),
+
+-- is_playoff is a property of the matchup week, so resolve it on matchup_week (not NFL week) to avoid
+-- conflating the two for the 2018-2019 two-week playoff matchups.
+matchup_playoff as (
+    select distinct
+        year,
+        matchup_week,
+        is_playoff
+    from {{ ref("int__matchup_week_playoff_map") }}
 ),
 
 regular_season_weeks as (
     select roster_weeks.*
     from roster_weeks
-    left join {{ ref("int__matchup_week_playoff_map") }} as playoff_map
+    inner join matchup_playoff
         on
-            roster_weeks.year = playoff_map.year and
-            roster_weeks.week = playoff_map.week
-    where not coalesce(playoff_map.is_playoff, false)
+            roster_weeks.year = matchup_playoff.year and
+            roster_weeks.matchup_week = matchup_playoff.matchup_week
+    where not matchup_playoff.is_playoff
 ),
 
 roster_week_points as (

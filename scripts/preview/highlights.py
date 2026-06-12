@@ -7,7 +7,7 @@ data on a spare port, so card styling can be screenshotted headless (see
 """
 import asyncio
 
-import frontend.stats_center.league_highlights as lh
+import frontend.league_highlights as lh
 from nicegui import app, ui
 
 PORT = 8099

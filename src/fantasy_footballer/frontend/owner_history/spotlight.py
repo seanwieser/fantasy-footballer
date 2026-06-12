@@ -1,7 +1,7 @@
 """Spotlight page for each owner."""
 from backend.db import DbManager
 from frontend.utils import (SECTION_COLORS, common_header, format_field_name,
-                            get_years_by_owner_id, medal,
+                            get_owners_by_year, get_years_by_owner_id, medal,
                             owner_id_to_owner_name, table)
 from nicegui import ui
 
@@ -160,30 +160,13 @@ def _season_roster(owner_id, year):
           not_sortable=["Player", "Pos"])
 
 
-@ui.refreshable
-def weekly_roster_view(owner_id, year, week):
-    """Your actual starting lineup vs the optimal legal lineup for the week (or All = season roster)."""
-    if week == "All":
-        _season_roster(owner_id, year)
-        return
-
-    rows = DbManager.query(f"""
-        select player_name, points, is_started, is_optimal, actual_slot, optimal_slot, is_playoff
-        from main_marts.owner_weekly_lineup
-        where owner_id={owner_id} and year={str(year)} and week={week} and (is_started or is_optimal)
-    """, to_dict=True)
-
-    if not rows:
-        ui.label("No lineup set this week").classes("mx-auto text-gray-500 p-4")
-        return
-
+def _week_lineup_block(week, rows, is_playoff):
+    """One NFL week's actual lineup vs the optimal, with that week's points left on the bench."""
     actual = [row for row in rows if row["is_started"]]
     optimal = [row for row in rows if row["is_optimal"]]
     points_left = sum(row["points"] for row in optimal) - sum(row["points"] for row in actual)
-
     with ui.row().classes("w-full items-center justify-between px-1"):
-        week_label = f"Week {week}" + (" · Postseason" if rows[0]["is_playoff"] else "")
-        ui.label(week_label).classes("text-lg text-weight-bold")
+        ui.label(f"Week {week}" + (" · Postseason" if is_playoff else "")).classes("text-lg text-weight-bold")
         left_color = "amber" if points_left > 0.05 else "green"
         ui.label(f"{points_left:.1f} pts left on the bench").classes(f"text-{left_color}-8 font-medium")
     with ui.row().classes("w-full gap-6 no-wrap"):
@@ -191,11 +174,53 @@ def weekly_roster_view(owner_id, year, week):
         _lineup_column("Optimal lineup", optimal, "optimal_slot", lambda r: not r["is_started"], "green")
 
 
-def postseason_schedule_table(owner_id, year, on_week_click=None):
+@ui.refreshable
+def weekly_roster_view(owner_id, year, matchup_week):
+    """
+    Show the actual vs optimal lineup for a matchup (or All = season roster).
+
+    A matchup is normally one NFL week, but the 2018-2019 playoffs were two-week matchups — those
+    render both NFL-week lineups stacked, with a combined points-left banner above them.
+    """
+    if matchup_week == "All":
+        _season_roster(owner_id, year)
+        return
+
+    rows = DbManager.query(f"""
+        select week, player_name, points, is_started, is_optimal, actual_slot, optimal_slot, is_playoff
+        from main_marts.owner_weekly_lineup
+        where owner_id={owner_id} and year={str(year)} and matchup_week={matchup_week}
+              and (is_started or is_optimal)
+        order by week
+    """, to_dict=True)
+
+    if not rows:
+        ui.label("No lineup set this week").classes("mx-auto text-gray-500 p-4")
+        return
+
+    weeks = sorted({row["week"] for row in rows})
+    is_playoff = rows[0]["is_playoff"]
+    if len(weeks) > 1:
+        # Two-week playoff matchup: a combined banner over the per-week blocks.
+        total_left = (sum(row["points"] for row in rows if row["is_optimal"])
+                      - sum(row["points"] for row in rows if row["is_started"]))
+        with ui.row().classes("w-full items-center justify-between px-1 mb-1"):
+            ui.label(f"Postseason matchup · Weeks {weeks[0]}–{weeks[-1]}").classes("text-lg text-weight-bold")
+            color = "amber" if total_left > 0.05 else "green"
+            ui.label(f"{total_left:.1f} pts left across both weeks").classes(f"text-{color}-8 font-medium")
+    for week in weeks:
+        if len(weeks) > 1:
+            ui.separator().classes("opacity-40 my-1")
+        _week_lineup_block(week, [row for row in rows if row["week"] == week], is_playoff)
+
+
+def postseason_schedule_table(owner_id, year, on_week_click=None, roster_weeks=None):
     """
     That owner-season's postseason games, or an empty state if they missed the bracket.
 
-    When `on_week_click` is given, clicking a row jumps the Roster tab to that postseason week.
+    When `on_week_click` is given, clicking a row jumps the Roster tab to that matchup (a two-week
+    2018-2019 playoff matchup opens both NFL-week lineups), gated to matchups that have a roster
+    (`roster_weeks`, keyed by matchup_week).
     """
     postseason_df = DbManager.query(f"""
         select
@@ -215,26 +240,35 @@ def postseason_schedule_table(owner_id, year, on_week_click=None):
         ui.label("Missed the postseason this year").classes("mx-auto text-gray-500 p-4")
         return
 
+    roster_weeks = roster_weeks or set()
+    linkable = on_week_click is not None and bool(set(postseason_df["Week"]) & roster_weeks)
     postseason_table = table(postseason_df,
-                             classes="no-shadow border-[0px] w-full" + (" cursor-pointer" if on_week_click else ""),
+                             classes="no-shadow border-[0px] w-full" + (" cursor-pointer" if linkable else ""),
                              props="dense",
                              not_sortable=["Round", "Team Name", "Opponent", "Outcome"],
                              hidden_fields=["Week"])
-    if on_week_click is not None:
-        postseason_table.on("rowClick", lambda event: on_week_click(int(event.args[1]["Week"])))
+    if linkable:
+        postseason_table.on(
+            "rowClick",
+            lambda event: on_week_click(int(event.args[1]["Week"]))
+            if int(event.args[1]["Week"]) in roster_weeks else None)
 
 
 @ui.page("/owner_history/{owner_id}/{year}")
 def page(owner_id: str, year: int):  # pylint:disable=too-many-statements,too-many-locals
     """Owner page for each owner/year combination."""
     common_header()
-    with ui.grid(columns="1fr 1fr").classes("w-full"):
-        owner_name = owner_id_to_owner_name(owner_id)
-        ui.label(owner_name).classes("text-weight-bold underline text-4xl w-full text-right")
-        fantasy_years = get_years_by_owner_id(owner_id)
-        with ui.dropdown_button(str(year)).classes("w-1/6"):
-            for fantasy_year in fantasy_years:
-                ui.item(fantasy_year,
+    owner_name = owner_id_to_owner_name(owner_id)
+    with ui.row().classes("w-full items-center gap-3 q-px-sm"):
+        # Owner switcher — styled as the page title, jumps to another owner for the same year.
+        with ui.dropdown_button(owner_name).props("color=primary no-caps size=xl").classes("text-weight-bold"):
+            for owner in get_owners_by_year(year):
+                ui.item(owner["owner_name"],
+                        on_click=lambda oid=owner["owner_id"]: ui.navigate.to(f"/owner_history/{oid}/{year}"))
+        # Year switcher — same owner, different season; sits beside the owner switcher.
+        with ui.dropdown_button(str(year)).props("outline no-caps size=xl").classes("text-weight-bold"):
+            for fantasy_year in get_years_by_owner_id(owner_id):
+                ui.item(str(fantasy_year),
                         on_click=lambda fy=fantasy_year: ui.navigate.to(f"/owner_history/{owner_id}/{fy}"))
 
     with ui.grid(columns="1fr 1fr 2fr").classes("w-full gap-1"):
@@ -244,7 +278,11 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements,too-ma
 
         # Regular Season Overview
         season_overview_sql = f"select * from main_marts.season_overview where owner_id={owner_id} and year={str(year)}"
-        season_overview_data = DbManager.query(season_overview_sql, to_dict=True)[0]
+        season_overview_rows = DbManager.query(season_overview_sql, to_dict=True)
+        if not season_overview_rows:
+            ui.label(f"No season data for {year} yet.").classes("col-span-2 text-gray-500 text-xl p-4")
+            return
+        season_overview_data = season_overview_rows[0]
         with ui.card().classes("no-shadow border-[0px] col-span-2"):
             with ui.card_section().classes("w-full").classes("p-0"):
                 ui.label("Regular Season Overview").classes("text-weight-bold underline text-3xl text-center")
@@ -298,12 +336,23 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements,too-ma
                 # Roster panel is built first so the schedule's row-click can target its week select.
                 with ui.tab_panel(roster_tab):
                     week_rows = DbManager.query(
-                        f"select distinct week, is_playoff from main_marts.owner_weekly_lineup "
-                        f"where owner_id={owner_id} and year={str(year)} order by week", to_dict=True)
-                    # Dict options keep numeric week values while labeling postseason weeks distinctly.
+                        f"select matchup_week, is_playoff from main_marts.owner_weekly_lineup "
+                        f"where owner_id={owner_id} and year={str(year)} "
+                        f"group by matchup_week, is_playoff order by matchup_week", to_dict=True)
+                    # Playoff weeks borrow the Postseason tab's round label (keyed by matchup_week) so
+                    # the two selectors read identically; regular weeks are just "Week N".
+                    postseason_labels = {
+                        row["week"]: row["round_label"]
+                        for row in DbManager.query(
+                            f"select week, round_label from main_marts.postseason_schedule "
+                            f"where owner_id={owner_id} and year={str(year)}", to_dict=True)}
                     week_options = {"All": "All"}
                     for row in week_rows:
-                        week_options[row["week"]] = f"Week {row['week']}" + (" · PO" if row["is_playoff"] else "")
+                        if row["is_playoff"]:
+                            label = postseason_labels.get(row["matchup_week"], f"Week {row['matchup_week']} · PO")
+                        else:
+                            label = f"Week {row['matchup_week']}"
+                        week_options[row["matchup_week"]] = label
                     week_select = ui.select(week_options, value="All", label="Week") \
                         .props("outlined dense").classes("w-40")
                     week_select.on_value_change(
@@ -317,4 +366,5 @@ def page(owner_id: str, year: int):  # pylint:disable=too-many-statements,too-ma
                 with ui.tab_panel(regular_tab):
                     season_schedule_table(owner_id, year, on_week_click=goto_week)
                 with ui.tab_panel(postseason_tab):
-                    postseason_schedule_table(owner_id, year, on_week_click=goto_week)
+                    roster_weeks = {row["matchup_week"] for row in week_rows}
+                    postseason_schedule_table(owner_id, year, on_week_click=goto_week, roster_weeks=roster_weeks)

@@ -229,7 +229,7 @@ def render_comparison(owner_ids, names, retired):
                 metric_row(metric, owner_ids)
 
 
-@ui.page("/stats_center/h2h_dashboard")
+@ui.page("/h2h_dashboard")
 def page():
     """H2H Dashboard page."""
     common_header()

@@ -1,6 +1,7 @@
 select
     owner_map.owner_id,
     lineup.year,
+    lineup.matchup_week,
     lineup.week,
     lineup.is_playoff,
     lineup.player_week_id,

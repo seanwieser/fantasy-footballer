@@ -6,15 +6,15 @@ import argparse
 import os
 
 from backend.db import DbManager
+from frontend import (h2h_dashboard, league_highlights, player_data,
+                      postseason_history, roster_production,
+                      strength_of_schedule)
 from frontend.admin import home
+from frontend.draft_analysis import draft_analysis
 from frontend.gallery import home
 from frontend.login.home import AuthMiddleware
 from frontend.owner_history import home, spotlight
 from frontend.splash import current_season, home
-from frontend.stats_center import (h2h_dashboard, league_highlights,
-                                   player_data, postseason_history,
-                                   roster_production, strength_of_schedule)
-from frontend.stats_center.draft_analysis import draft_analysis
 from nicegui import app, ui
 
 if __name__ in {"__main__", "__mp_main__"}:

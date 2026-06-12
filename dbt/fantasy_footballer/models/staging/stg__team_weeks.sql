@@ -29,7 +29,7 @@ team_weeks_enriched as (
         opponent_team_id || '_' || year || '_' || week as opponent_team_week_id,
         year,
         week,
-        lineup,
+        lineups,
         score_for,
         outcome
     from team_weeks_expanded

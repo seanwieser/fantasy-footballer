@@ -6,7 +6,8 @@ styling can be screenshotted headless (see scripts/preview/run.py). Not part of 
 """
 import asyncio
 
-from frontend.utils import get_owners_by_year, get_years_by_owner_id, owner_id_to_owner_name
+from frontend.utils import (get_owners_by_year, get_years_by_owner_id,
+                            owner_id_to_owner_name)
 from nicegui import app, ui
 
 PORT = 8099

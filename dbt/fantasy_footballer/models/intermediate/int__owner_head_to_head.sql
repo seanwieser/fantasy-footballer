@@ -24,7 +24,7 @@ with results as (
         round(twr.score_for - twr.score_against, 1)::varchar || ') (' ||
         twr.year::varchar || ' W' || twr.week::varchar || ')' as game_label
     from {{ ref("int__team_week_results") }} as twr
-    left join {{ ref("int__lucky_records") }} as luck
+    left join {{ ref("int__all_play_records") }} as luck
         on twr.team_week_id = luck.team_week_id
     left join {{ ref("int__postseason_team_weeks") }} as ptw
         on twr.team_week_id = ptw.team_week_id

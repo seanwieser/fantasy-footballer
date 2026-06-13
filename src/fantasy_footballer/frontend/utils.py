@@ -13,7 +13,9 @@ VALID_POSITIONS = ["QB", "RB", "WR", "TE", "D/ST", "K"]
 # Highlights page and the owner-spotlight Highlights card so the visual language stays in sync.
 SECTION_COLORS = {"Scoring": "blue", "Clutch": "red", "Matchups": "orange", "Shotgun": "green",
                   "Record": "purple", "Postseason": "teal", "Head to Head": "cyan", "The Rivalry": "pink",
-                  "Transactions": "indigo", "Lineups": "amber"}
+                  "Transactions": "indigo", "Lineups": "amber", "Luck": "yellow",
+                  # Glossary-only categories (don't co-occur with the highlight sections above).
+                  "General": "blue-grey", "Roster": "cyan", "Draft": "purple", "Schedule": "grey"}
 MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
 
 def medal(rank):
@@ -116,6 +118,19 @@ def common_header() -> None:
         if get_access_level() >= 2:
             ui.button(on_click=app.shutdown, icon="power_settings_new").props("square color=negative")
         ui.button(on_click=logout, icon="logout").props("square color=primary")
+
+def glossary_link(slug: str, icon: str = "menu_book", size: str = "1rem", classes: str = "") -> None:
+    """
+    Render a small clickable icon that deep-links to a term's glossary entry (/glossary#<slug>).
+
+    Used wherever a metric/term wants to point at its canonical definition. No-op when slug is falsy,
+    so callers can pass a nullable glossary_slug straight through.
+    """
+    if not slug:
+        return
+    icon_el = ui.icon(icon, size=size).classes(f"cursor-pointer opacity-40 hover:opacity-90 {classes}")
+    icon_el.on("click", lambda: ui.navigate.to(f"/glossary#{slug}"))
+    icon_el.tooltip("Open in glossary")
 
 def section_tile(label: str, icon: str, icon_color: str, route: str) -> None:
     """Clickable navigation tile (icon + label) linking to a section route. The splash hub's tile."""

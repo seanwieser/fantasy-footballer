@@ -1,26 +1,28 @@
-metric_key,category,section,metric_label,sort_sign,value_format,display_order,description,empty_label
-scoring_title,Season,Scoring,Scoring title,1,points,1,"Most regular-season points in the league this season.",
-non_scoring_title,Season,Scoring,Bottom-scorer title,-1,points,2,"Fewest regular-season points in the league this season.",
-matchup_title,Matchup,Scoring,Best-week title,1,points,3,"Single highest weekly score in the league this season.",
-bad_matchup_title,Matchup,Scoring,Worst-week title,-1,points,4,"Single lowest weekly score in the league this season.",
-non_playoff_scoring_title,Playoff,Postseason,Snub title,1,points,21,"The season's biggest snub — the top scorer to miss the playoffs while still outscoring a team that got in.","No snub — the playoff teams were the top scorers"
-playoff_non_scoring_title,Playoff,Postseason,Lucky-in title,-1,points,22,"The season's luckiest-in — the lowest scorer to make the playoffs while a higher scorer missed.","No lucky-in — the playoff teams were the top scorers"
-lucky_winner_title,Luck,Matchups,Lucky-winner title,1,int,7,"Most lucky wins this season — won a week while scoring below the league median.","Nobody got lucky this season"
-unlucky_loser_title,Luck,Matchups,Unlucky-loser title,1,int,8,"Most unlucky losses this season — lost a week while scoring above the league median.","Nobody got unlucky this season"
-shotgun_title,Shotgun,Shotgun,Shotgun title,1,int,9,"Most shotguns this season — weeks scoring under 100 points or the week's league low.","Nobody shotgunned this season"
-no_shotgun_season,Shotgun,Shotgun,Sober season,1,int,10,"Finished the season with zero shotguns — never scored under 100 or the week's league low.","Everyone shotgunned this season"
-clutch_winning_title,Clutch,Clutch,Clutch-winning title,1,int,11,"Most clutch wins this season — games decided by under 10 points.","No clutch wins this season"
-clutch_losing_title,Clutch,Clutch,Clutch-losing title,1,int,12,"Most clutch losses this season — games decided by under 10 points.","No clutch losses this season"
-tightest_matchups,Margins,Matchups,Tightest game,-1,points,13,"Closest game this season — the smallest regular-season margin of victory.",
-biggest_blowouts,Margins,Matchups,Biggest blowout,1,points,14,"The largest regular-season margin of victory this season.",
-most_acquisitions_season,Roster,Transactions,Most acquisitions,1,int,15,"Most roster acquisitions this season — waiver and free-agent adds.","No acquisitions this season"
-most_trades_season,Roster,Transactions,Most trades,1,int,16,"Most trades completed this season.","No trades this season"
-highest_shootouts,Combined,Matchups,Shootout,1,points,17,"Highest combined score in a regular-season game this season — both teams added together.",
-lowest_slugfests,Combined,Matchups,Slugfest,-1,points,18,"Lowest combined score in a regular-season game this season — both teams added together.",
-champion,Results,Postseason,Champion,1,seed,19,"Won the league championship this season (shown with their regular-season seed).",
-toilet_bowl_loser,Results,Postseason,Toilet Bowl Loser,1,seed,20,"Finished dead last — the toilet bowl winner — this season (shown with their regular-season seed).",
-best_lineup_title,Lineups,Lineups,Fewest points left,-1,points,23,"Fewest regular-season points left on the bench versus the optimal lineup this season.",
-worst_lineup_title,Lineups,Lineups,Most points left,1,points,24,"Most regular-season points left on the bench versus the optimal lineup this season.",
-most_efficient_lineup_title,Lineups,Lineups,Most efficient lineup,1,pct,25,"Highest share of the optimal lineup captured this season — actual points as a percent of the best legal lineup.",
-least_efficient_lineup_title,Lineups,Lineups,Least efficient lineup,-1,pct,26,"Lowest share of the optimal lineup captured this season — actual points as a percent of the best legal lineup.",
-underutilized_player,Lineups,Lineups,Most underutilized player,1,points,27,"The best player most left on the bench — most regular-season points one player scored in weeks they belonged in the owner's optimal lineup but were benched.","Everyone started their best players"
+metric_key,category,section,metric_label,sort_sign,value_format,display_order,description,empty_label,glossary_slug
+scoring_title,Season,Scoring,Scoring title,1,points,1,"Most regular-season points in the league this season.",,points-for
+non_scoring_title,Season,Scoring,Bottom-scorer title,-1,points,2,"Fewest regular-season points in the league this season.",,points-for
+matchup_title,Matchup,Scoring,Best-week title,1,points,3,"Single highest weekly score in the league this season.",,points-for
+bad_matchup_title,Matchup,Scoring,Worst-week title,-1,points,4,"Single lowest weekly score in the league this season.",,points-for
+non_playoff_scoring_title,Playoff Luck,Luck,Snub title,1,points,36,"The season's biggest snub.","No snub — the playoff teams were the top scorers",snub
+playoff_non_scoring_title,Playoff Luck,Luck,Lucky-in title,-1,points,37,"The season's luckiest-in.","No lucky-in — the playoff teams were the top scorers",lucky-in
+shotgun_title,Shotgun,Shotgun,Shotgun title,1,int,9,"Most shotguns this season.","Nobody shotgunned this season",shotgun
+no_shotgun_season,Shotgun,Shotgun,Sober season,1,int,10,"Finished the season with zero shotguns.","Everyone shotgunned this season",shotgun
+clutch_winning_title,Clutch,Clutch,Clutch-winning title,1,int,11,"Most clutch wins this season.","No clutch wins this season",clutch-game
+clutch_losing_title,Clutch,Clutch,Clutch-losing title,1,int,12,"Most clutch losses this season.","No clutch losses this season",clutch-game
+tightest_matchups,Margins,Matchups,Tightest game,-1,points,13,"Closest game this season — the smallest regular-season margin of victory.",,tightest-game
+biggest_blowouts,Margins,Matchups,Biggest blowout,1,points,14,"The largest regular-season margin of victory this season.",,blowout
+most_acquisitions_season,Roster,Transactions,Most acquisitions,1,int,15,"Most roster acquisitions this season.","No acquisitions this season",acquisition
+most_trades_season,Roster,Transactions,Most trades,1,int,16,"Most trades completed this season.","No trades this season",trade
+highest_shootouts,Combined,Matchups,Shootout,1,points,17,"Highest combined score in a regular-season game this season.",,shootout
+lowest_slugfests,Combined,Matchups,Slugfest,-1,points,18,"Lowest combined score in a regular-season game this season.",,slugfest
+champion,Results,Postseason,Champion,1,seed,19,"Won the league championship this season (shown with their regular-season seed).",,champion
+toilet_bowl_loser,Results,Postseason,Toilet Bowl Loser,1,seed,20,"Finished dead last this season (shown with their regular-season seed).",,last-place
+best_lineup_title,Lineups,Lineups,Fewest points left,-1,points,23,"Fewest regular-season points left on the bench this season.",,points-left
+worst_lineup_title,Lineups,Lineups,Most points left,1,points,24,"Most regular-season points left on the bench this season.",,points-left
+most_efficient_lineup_title,Lineups,Lineups,Most efficient lineup,1,pct,25,"Highest lineup efficiency this season.",,lineup-efficiency
+least_efficient_lineup_title,Lineups,Lineups,Least efficient lineup,-1,pct,26,"Lowest lineup efficiency this season.",,lineup-efficiency
+underutilized_player,Lineups,Lineups,Most underutilized player,1,points,27,"The best player most left on the bench this season.","Everyone started their best players",underutilized-player
+lucky_schedule_title,Schedule Luck,Luck,Luckiest schedule,1,wins,30,"Most wins above a schedule-neutral expectation this season.","Nobody beat their expected wins this season",schedule-luck
+unlucky_schedule_title,Schedule Luck,Luck,Most robbed,-1,wins,31,"Most wins below a schedule-neutral expectation this season.","Nobody fell short of their expected wins this season",schedule-luck
+all_play_snub_title,Schedule Luck,Luck,All-play snub,1,pct,32,"The season's biggest merit-based snub.","No all-play snub — the playoff teams had the best all-play records",all-play-snub
+all_play_luck_in_title,Schedule Luck,Luck,All-play lucky-in,-1,pct,33,"The season's biggest merit-based lucky-in.","No all-play lucky-in — the playoff teams had the best all-play records",all-play-lucky-in

@@ -1,0 +1,57 @@
+version: 2
+
+seeds:
+  - name: glossary_terms
+    description: >
+      The platform's concept dimension (one row per term). Git-tracked constant seed that is the
+      single source of truth for terminology — what shotgun, schedule luck, optimal lineup, the toilet
+      bowl, etc. mean. The metric-catalog seeds reference a term via `glossary_slug`, and the
+      `/glossary` page renders it. Define a concept here once; don't re-explain it in each metric
+      description.
+    data_tests:
+      - assert_model_has_rows
+    columns:
+      - name: slug
+        description: "Stable kebab-case identifier; the anchor on /glossary#<slug> and the FK target for glossary_slug."
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: term
+        description: "Display name of the concept."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: category
+        description: "Grouping the term clusters under on the glossary page (must match the page's CATEGORY_ORDER / SECTION_COLORS)."
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - General
+                  - Scoring
+                  - Matchups
+                  - Luck
+                  - Shotgun
+                  - Clutch
+                  - Lineups
+                  - Roster
+                  - Postseason
+                  - Draft
+                  - Transactions
+                  - Schedule
+      - name: short_def
+        description: "One-line definition, concise enough to use as a tooltip."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: full_def
+        description: "The fuller explanation shown on the glossary page."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: related
+        description: "Comma-separated slugs of related terms (rendered as cross-link chips). May be blank."
+        data_type: varchar

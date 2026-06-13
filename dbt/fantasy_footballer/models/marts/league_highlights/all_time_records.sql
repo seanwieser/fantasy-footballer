@@ -67,22 +67,23 @@ title_count_candidates as (
             playoff_non_scoring_title_count,
             clutch_winning_title_count,
             clutch_losing_title_count,
-            lucky_winner_title_count,
-            unlucky_loser_title_count,
             shotgun_title_count,
             no_shotgun_season_count,
             best_lineup_title_count,
             worst_lineup_title_count,
             most_efficient_lineup_title_count,
-            least_efficient_lineup_title_count
+            least_efficient_lineup_title_count,
+            all_play_snub_title_count,
+            all_play_luck_in_title_count
         from career
     )
     on  --noqa: LT02
         scoring_title_count, non_scoring_title_count, matchup_title_count, bad_matchup_title_count,  --noqa: LT02
         non_playoff_scoring_title_count, playoff_non_scoring_title_count, clutch_winning_title_count,  --noqa: LT02
-        clutch_losing_title_count, lucky_winner_title_count, unlucky_loser_title_count,  --noqa: LT02
+        clutch_losing_title_count,  --noqa: LT02
         shotgun_title_count, no_shotgun_season_count, best_lineup_title_count, worst_lineup_title_count,  --noqa: LT02
-        most_efficient_lineup_title_count, least_efficient_lineup_title_count  --noqa: LT02
+        most_efficient_lineup_title_count, least_efficient_lineup_title_count,  --noqa: LT02
+        all_play_snub_title_count, all_play_luck_in_title_count  --noqa: LT02
     into name metric_key value metric_value
 ),
 
@@ -277,6 +278,36 @@ snub_records as (
     where titles.is_lucked_in
 ),
 
+-- Single-season schedule luck: most wins above (luckiest) / below (most robbed) a schedule-neutral
+-- expectation, with the expected-vs-actual wins as context.
+schedule_luck_season_records as (
+    select
+        all_play.owner_id,
+        all_play.owner_name,
+        directions.metric_key,
+        all_play.schedule_luck as metric_value,
+        0::double as tiebreak,
+        all_play.year::varchar as season_or_week,
+        round(all_play.expected_wins, 1)::varchar || ' exp · ' || all_play.actual_wins::varchar
+        || ' actual W' as detail
+    from {{ ref("int__owner_season_all_play") }} as all_play
+    cross join (values ('luckiest_schedule_season'), ('unluckiest_schedule_season')) as directions (metric_key)
+),
+
+-- Career schedule luck: cumulative wins above / below a schedule-neutral expectation across seasons.
+schedule_luck_career_records as (
+    select
+        career.owner_id,
+        career.owner_name,
+        directions.metric_key,
+        career.schedule_luck_total as metric_value,
+        0::double as tiebreak,
+        null::varchar as season_or_week,
+        null::varchar as detail
+    from career
+    cross join (values ('most_career_schedule_luck'), ('least_career_schedule_luck')) as directions (metric_key)
+),
+
 clutch_season_records as (
     select
         titles.owner_id,
@@ -369,7 +400,7 @@ matchup_week_records as (
         0::double as tiebreak,
         lucky.year::varchar || ' W' || lucky.week::varchar as season_or_week,
         null::varchar as detail
-    from {{ ref("int__lucky_records") }} as lucky
+    from {{ ref("int__all_play_records") }} as lucky
     inner join {{ ref("int__owner_team_year_map") }} as owner_map on lucky.team_year_id = owner_map.team_year_id
     cross join (values ('best_matchup_amount'), ('worst_matchup_amount')) as directions (metric_key)
 ),
@@ -504,6 +535,10 @@ candidates as (
     union all
     select * from snub_records
     union all
+    select * from schedule_luck_season_records
+    union all
+    select * from schedule_luck_career_records
+    union all
     select * from clutch_season_records
     union all
     select * from shotgun_season_records
@@ -537,6 +572,7 @@ ranked as (
         meta.display_order,
         meta.value_format,
         meta.result_n,
+        meta.glossary_slug,
         candidates.owner_id,
         candidates.owner_name,
         candidates.metric_value,
@@ -564,6 +600,7 @@ select
     description,
     subtitle_kind::varchar as subtitle_kind,
     years_won::varchar as years_won,
+    glossary_slug,
     display_order::int as display_order,
     owner_id,
     owner_name,

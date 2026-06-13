@@ -1,14 +1,14 @@
 """Module for the H2H Dashboard page."""
 
 from backend.db import DbManager
-from frontend.utils import SECTION_COLORS, common_header
+from frontend.utils import SECTION_COLORS, common_header, glossary_link
 from nicegui import ui
 
 # Section order + icons for the comparison grid. The two pairwise rivalry sections lead (the page's
 # namesake, only shown for exactly two owners), then the career metric sections in seed display_order.
 # Colors come from the shared SECTION_COLORS catalog.
 SECTION_ORDER = [
-    "The Rivalry", "Head to Head", "Record", "Scoring", "Postseason", "Matchups", "Lineups", "Shotgun",
+    "The Rivalry", "Head to Head", "Record", "Scoring", "Postseason", "Matchups", "Luck", "Lineups", "Shotgun",
     "Clutch", "Transactions",
 ]
 SECTION_ICONS = {
@@ -18,6 +18,7 @@ SECTION_ICONS = {
     "Scoring": "sports_football",
     "Postseason": "emoji_events",
     "Matchups": "sports_kabaddi",
+    "Luck": "casino",
     "Shotgun": "sports_bar",
     "Clutch": "bolt",
     "Lineups": "fact_check",
@@ -51,7 +52,7 @@ def _headshot(owner_id, px=48, ring=None):
 def _metric_rows(owner_ids):
     """Comparison metrics grouped by section: {section: [ {label, description, color, cells{}} ]}."""
     rows = DbManager.query(f"""
-        select section, metric_key, metric_label, description, sort_sign,
+        select section, metric_key, metric_label, description, sort_sign, glossary_slug,
                owner_id, metric_value, display_value
         from main_marts.h2h_owner_metrics
         where owner_id in ({", ".join(str(oid) for oid in owner_ids)})
@@ -62,7 +63,8 @@ def _metric_rows(owner_ids):
     for row in rows:
         metric = by_metric.setdefault(row["metric_key"], {
             "section": row["section"], "label": row["metric_label"],
-            "description": row["description"], "sort_sign": row["sort_sign"], "cells": {},
+            "description": row["description"], "sort_sign": row["sort_sign"],
+            "glossary_slug": row["glossary_slug"], "cells": {},
         })
         metric["cells"][row["owner_id"]] = {"display": row["display_value"], "value": row["metric_value"]}
 
@@ -125,6 +127,7 @@ def metric_row(metric, owner_ids):
         ui.icon("info", size="0.9rem").classes("opacity-30 shrink-0")
         if metric["description"]:
             ui.tooltip(metric["description"]).classes("text-sm max-w-xs")
+        glossary_link(metric.get("glossary_slug"), size="0.9rem", classes="shrink-0")
     for oid in owner_ids:
         cell = metric["cells"].get(oid, {})
         lead = oid in leaders

@@ -1,48 +1,51 @@
-metric_key,section,metric_label,value_format,sort_sign,display_order,tier,description
-career_record,Record,Career record,record,1,1,core,"All-time regular-season record (wins-losses-ties). Leader has the best win percentage."
-career_win_pct,Record,Career win %,pct,1,2,core,"All-time regular-season win percentage."
-career_point_differential,Record,Career point differential,points,1,3,detail,"Career regular-season points for minus points against."
-seasons_played,Record,Seasons played,int,1,4,core,"Number of seasons the owner has fielded a team."
-career_points,Scoring,Career points,points,1,5,core,"Total regular-season points scored across every season."
-career_points_against,Scoring,Career points against,points,1,6,detail,"Total regular-season points scored against the owner — pure schedule luck."
-career_ppg,Scoring,Career PPG,points,1,7,core,"Regular-season points per game across every season."
-highest_scoring_season,Scoring,Highest-scoring season,points,1,8,detail,"Most regular-season points scored in a single season."
-best_week_ever,Scoring,Best week ever,points,1,9,detail,"Highest single-week score the owner has ever posted."
-worst_week_ever,Scoring,Worst week ever,points,-1,10,detail,"Lowest single-week score the owner has ever posted."
-scoring_titles,Scoring,Scoring titles,int,1,11,core,"Seasons finishing #1 in total regular-season points."
-bottom_scorer_titles,Scoring,Bottom-scorer titles,int,1,12,detail,"Seasons finishing last in total regular-season points."
-best_week_titles,Scoring,Best-week titles,int,1,13,detail,"Seasons posting the league's single highest weekly score."
-worst_week_titles,Scoring,Worst-week titles,int,1,14,detail,"Seasons posting the league's single lowest weekly score."
-championships,Postseason,Championships,int,1,15,core,"Seasons won the league championship."
-runner_ups,Postseason,Runner-up finishes,int,1,16,detail,"Seasons lost in the championship game."
-title_game_appearances,Postseason,Title-game appearances,int,1,17,detail,"Seasons reaching the championship game (won or lost)."
-third_place_finishes,Postseason,Third-place finishes,int,1,18,detail,"Seasons finishing third."
-playoff_appearances,Postseason,Playoff appearances,int,1,19,core,"Seasons reaching the winners (championship) bracket."
-playoff_game_record,Postseason,Playoff game record,record,1,20,detail,"Win-loss record in the championship (winners) bracket only — toilet-bowl games are counted separately. Leader has the best win percentage."
-best_finish,Postseason,Best finish,ordinal,-1,21,core,"Best (lowest) final standing the owner ever achieved."
-snub_total,Postseason,Career snubs,int,1,22,detail,"Seasons missing the playoffs despite outscoring a team that made it."
-snub_titles,Postseason,Snub titles,int,1,23,detail,"Seasons you were the league's biggest snub — top scorer to miss the playoffs while outscoring a team that got in."
-luck_in_total,Postseason,Career lucky-ins,int,1,24,detail,"Seasons sneaking into the playoffs while a higher-scoring team missed."
-lucky_in_titles,Postseason,Lucky-in titles,int,1,25,detail,"Seasons you were the league's luckiest-in — lowest scorer to make the playoffs while a higher scorer missed."
-toilet_bowl_appearances,Postseason,Toilet bowl appearances,int,1,26,core,"Seasons finishing in the bottom-4 toilet bowl bracket."
-toilet_bowl_record,Postseason,Toilet bowl record,record,1,27,detail,"Win-loss record in the toilet-bowl bracket (kept separate from the playoff record). Leader has the best win percentage."
-second_to_last_finishes,Postseason,Second-to-last finishes,int,1,28,detail,"Seasons finishing second-to-last (11th)."
-last_place_finishes,Postseason,Last-place finishes,int,1,29,core,"Seasons finishing dead last — the toilet bowl winner."
-lucky_wins_total,Matchups,Lucky wins,int,1,30,detail,"Career weeks won while scoring below the league median."
-unlucky_losses_total,Matchups,Unlucky losses,int,1,31,detail,"Career weeks lost while scoring above the league median."
-lucky_winner_titles,Matchups,Lucky-winner titles,int,1,32,detail,"Seasons with the most lucky wins — won a week while scoring below the league median."
-unlucky_loser_titles,Matchups,Unlucky-loser titles,int,1,33,detail,"Seasons with the most unlucky losses — lost a week while scoring above the league median."
-biggest_blowout,Matchups,Biggest blowout,points,1,34,detail,"Largest regular-season margin of victory."
-shotgun_total,Shotgun,Career shotguns,int,1,35,core,"Career weeks scoring under 100 points or the week's league low."
-shotgun_titles,Shotgun,Shotgun titles,int,1,36,detail,"Seasons with the most shotguns — weeks scoring under 100 points or the week's league low."
-sober_seasons,Shotgun,Sober seasons,int,1,37,detail,"Seasons with zero shotguns — never scored under 100 points or the week's league low."
-clutch_record,Clutch,Clutch record,record,1,38,detail,"Career record in games decided by under 10 points. Leader has the best win percentage."
-clutch_win_pct,Clutch,Clutch win %,pct,1,39,core,"Career win rate in games decided by under 10 points."
-clutch_winning_titles,Clutch,Clutch-winning titles,int,1,40,detail,"Seasons with the most clutch wins — games decided by under 10 points."
-clutch_losing_titles,Clutch,Clutch-losing titles,int,1,41,detail,"Seasons with the most clutch losses — games decided by under 10 points."
-career_acquisitions,Transactions,Career acquisitions,int,1,42,detail,"Total roster acquisitions (waiver / free-agent adds) across every season."
-career_trades,Transactions,Career trades,int,1,43,detail,"Total trades completed across every season."
-best_lineup_titles,Lineups,Fewest-points-left titles,int,1,44,detail,"Seasons finishing with the fewest regular-season points left on the bench versus the optimal lineup."
-worst_lineup_titles,Lineups,Most-points-left titles,int,1,45,detail,"Seasons finishing with the most regular-season points left on the bench versus the optimal lineup."
-most_efficient_lineup_titles,Lineups,Most-efficient-lineup titles,int,1,46,detail,"Seasons finishing with the highest share of the optimal lineup captured (efficiency)."
-least_efficient_lineup_titles,Lineups,Least-efficient-lineup titles,int,1,47,detail,"Seasons finishing with the lowest share of the optimal lineup captured (efficiency)."
+metric_key,section,metric_label,value_format,sort_sign,display_order,tier,description,glossary_slug
+career_record,Record,Career record,record,1,1,core,"All-time regular-season record (wins-losses-ties). Leader has the best win percentage.",record
+career_win_pct,Record,Career win %,pct,1,2,core,"All-time regular-season win percentage.",win-pct
+career_point_differential,Record,Career point differential,points,1,3,detail,"Career regular-season points for minus points against.",points-for
+seasons_played,Record,Seasons played,int,1,4,core,"Number of seasons the owner has fielded a team.",owner
+career_points,Scoring,Career points,points,1,5,core,"Total regular-season points scored across every season.",points-for
+career_points_against,Scoring,Career points against,points,1,6,detail,"Total regular-season points scored against the owner.",points-against
+career_ppg,Scoring,Career PPG,points,1,7,core,"Regular-season points per game across every season.",points-per-game
+highest_scoring_season,Scoring,Highest-scoring season,points,1,8,detail,"Most regular-season points scored in a single season.",points-for
+best_week_ever,Scoring,Best week ever,points,1,9,detail,"Highest single-week score the owner has ever posted.",points-for
+worst_week_ever,Scoring,Worst week ever,points,-1,10,detail,"Lowest single-week score the owner has ever posted.",points-for
+scoring_titles,Scoring,Scoring titles,int,1,11,core,"Seasons finishing #1 in total regular-season points.",points-for
+bottom_scorer_titles,Scoring,Bottom-scorer titles,int,1,12,detail,"Seasons finishing last in total regular-season points.",points-for
+best_week_titles,Scoring,Best-week titles,int,1,13,detail,"Seasons posting the league's single highest weekly score.",points-for
+worst_week_titles,Scoring,Worst-week titles,int,1,14,detail,"Seasons posting the league's single lowest weekly score.",points-for
+championships,Postseason,Championships,int,1,15,core,"Seasons won the league championship.",champion
+runner_ups,Postseason,Runner-up finishes,int,1,16,detail,"Seasons lost in the championship game.",runner-up
+title_game_appearances,Postseason,Title-game appearances,int,1,17,detail,"Seasons reaching the championship game (won or lost).",champion
+third_place_finishes,Postseason,Third-place finishes,int,1,18,detail,"Seasons finishing third.",winners-bracket
+playoff_appearances,Postseason,Playoff appearances,int,1,19,core,"Seasons reaching the winners (championship) bracket.",winners-bracket
+playoff_game_record,Postseason,Playoff game record,record,1,20,detail,"Win-loss record in the championship (winners) bracket only — toilet-bowl games are counted separately. Leader has the best win percentage.",playoff-record
+best_finish,Postseason,Best finish,ordinal,-1,21,core,"Best (lowest) final standing the owner ever achieved.",best-finish
+snub_total,Luck,Career snubs,int,1,59,detail,"Seasons you were snubbed.",snub
+snub_titles,Luck,Snub titles,int,1,60,detail,"Seasons you were the league's biggest snub.",snub
+luck_in_total,Luck,Career lucky-ins,int,1,61,detail,"Seasons you were lucked-in.",lucky-in
+lucky_in_titles,Luck,Lucky-in titles,int,1,62,detail,"Seasons you were the league's luckiest-in.",lucky-in
+toilet_bowl_appearances,Postseason,Toilet bowl appearances,int,1,26,core,"Seasons finishing in the bottom-4 toilet bowl bracket.",toilet-bowl
+toilet_bowl_record,Postseason,Toilet bowl record,record,1,27,detail,"Win-loss record in the toilet-bowl bracket (kept separate from the playoff record). Leader has the best win percentage.",toilet-bowl
+second_to_last_finishes,Postseason,Second-to-last finishes,int,1,28,detail,"Seasons finishing second-to-last (11th).",toilet-bowl
+last_place_finishes,Postseason,Last-place finishes,int,1,29,core,"Seasons finishing dead last.",last-place
+lucky_wins_total,Luck,Lucky-win weeks,int,1,55,detail,"Career lucky-win weeks.",lucky-win
+unlucky_losses_total,Luck,Unlucky-loss weeks,int,1,56,detail,"Career unlucky-loss weeks.",unlucky-loss
+biggest_blowout,Matchups,Biggest blowout,points,1,34,detail,"Largest regular-season margin of victory.",blowout
+shotgun_total,Shotgun,Career shotguns,int,1,35,core,"Career shotguns.",shotgun
+shotgun_titles,Shotgun,Shotgun titles,int,1,36,detail,"Seasons with the most shotguns.",shotgun
+sober_seasons,Shotgun,Sober seasons,int,1,37,detail,"Seasons with zero shotguns.",shotgun
+clutch_record,Clutch,Clutch record,record,1,38,detail,"Career record in clutch games. Leader has the best win percentage.",clutch-game
+clutch_win_pct,Clutch,Clutch win %,pct,1,39,core,"Career win rate in clutch games.",clutch-game
+clutch_winning_titles,Clutch,Clutch-winning titles,int,1,40,detail,"Seasons with the most clutch wins.",clutch-game
+clutch_losing_titles,Clutch,Clutch-losing titles,int,1,41,detail,"Seasons with the most clutch losses.",clutch-game
+career_acquisitions,Transactions,Career acquisitions,int,1,42,detail,"Total roster acquisitions across every season.",acquisition
+career_trades,Transactions,Career trades,int,1,43,detail,"Total trades completed across every season.",trade
+best_lineup_titles,Lineups,Fewest-points-left titles,int,1,44,detail,"Seasons finishing with the fewest regular-season points left on the bench.",points-left
+worst_lineup_titles,Lineups,Most-points-left titles,int,1,45,detail,"Seasons finishing with the most regular-season points left on the bench.",points-left
+most_efficient_lineup_titles,Lineups,Most-efficient-lineup titles,int,1,46,detail,"Seasons finishing with the highest lineup efficiency.",lineup-efficiency
+least_efficient_lineup_titles,Lineups,Least-efficient-lineup titles,int,1,47,detail,"Seasons finishing with the lowest lineup efficiency.",lineup-efficiency
+all_play_win_pct,Luck,All-play win %,pct,1,50,core,"Career all-play win %.",all-play-win-pct
+schedule_luck,Luck,Schedule luck,wins,1,51,core,"Career wins above or below a schedule-neutral expectation.",schedule-luck
+expected_wins,Luck,Expected wins,wins,1,52,detail,"Career schedule-neutral expected wins.",expected-wins
+all_play_snub_titles,Luck,All-play snub titles,int,1,53,detail,"Seasons you were the league's biggest merit-based snub.",all-play-snub
+all_play_luck_in_titles,Luck,All-play lucky-in titles,int,1,54,detail,"Seasons you were the league's biggest merit-based lucky-in.",all-play-lucky-in

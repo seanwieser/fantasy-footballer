@@ -43,3 +43,11 @@ seeds:
         data_type: varchar
         data_tests:
           - not_null
+      - name: glossary_slug
+        description: "FK to glossary_terms.slug — the concept this row is an instance of. Blank when no single concept applies."
+        data_type: varchar
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('glossary_terms')
+                field: slug

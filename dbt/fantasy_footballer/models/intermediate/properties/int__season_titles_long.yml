@@ -4,7 +4,7 @@ models:
   - name: int__season_titles_long
     description: >
       One row per owner-season x title metric — the tidy/unpivoted form of int__season_titles.
-      Every owner-season produces one row for each of the 12 title metrics, carrying the metric's
+      Every owner-season produces one row for each title metric, carrying the metric's
       defining amount that season and whether the owner held the title. The single place the
       title -> amount -> holder mapping is defined; the league-highlights marts and
       int__owner_career_summary all read from here. See [[int__season_titles]].

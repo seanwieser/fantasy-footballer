@@ -13,7 +13,7 @@ with results as (
         coalesce(luck.is_lucky_win, false) as is_lucky_win,
         coalesce(luck.is_unlucky_loss, false) as is_unlucky_loss
     from {{ ref("int__team_week_results") }} as twr
-    left join {{ ref("int__lucky_records") }} as luck
+    left join {{ ref("int__all_play_records") }} as luck
         on twr.team_week_id = luck.team_week_id
     where not twr.is_playoff
 ),

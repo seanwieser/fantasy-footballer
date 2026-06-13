@@ -26,7 +26,7 @@ seeds:
           - not_null
           - accepted_values:
               arguments:
-                values: [ 'Scoring', 'Postseason', 'Matchups', 'Shotgun', 'Clutch', 'Transactions', 'Lineups' ]
+                values: [ 'Scoring', 'Postseason', 'Matchups', 'Shotgun', 'Clutch', 'Transactions', 'Lineups', 'Luck' ]
       - name: metric_label
         data_type: varchar
         data_tests:
@@ -40,7 +40,7 @@ seeds:
               arguments:
                 values: [ 1, -1 ]
       - name: value_format
-        description: "int, points, or pct — drives display formatting."
+        description: "int, points, pct, or wins — drives display formatting."
         data_type: varchar
         data_tests:
           - not_null
@@ -58,3 +58,11 @@ seeds:
       - name: empty_label
         description: "Message shown on the placeholder card when no owner earned this title in a season (e.g. 'Everyone shotgunned this season'). Null for titles that always have a holder (scoring and margin titles)."
         data_type: varchar
+      - name: glossary_slug
+        description: "FK to glossary_terms.slug — the concept this title is an instance of."
+        data_type: varchar
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('glossary_terms')
+                field: slug

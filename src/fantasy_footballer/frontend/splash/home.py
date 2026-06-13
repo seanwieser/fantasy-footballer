@@ -16,6 +16,7 @@ SECTION_TILES = [
     ("Draft Analysis", "price_check", "green", "/draft_analysis", 0),
     ("Strength of Schedule", "sym_s_calendar_month", "grey", "/strength_of_schedule", 0),
     ("Roster Production", "inventory_2", "cyan", "/roster_production", 0),
+    ("Glossary", "menu_book", "blue-grey", "/glossary", 0),
     ("Gallery", "photo_library", "pink", "/gallery", 1),
     ("Admin", "settings", "blue-grey", "/admin", 2),
 ]

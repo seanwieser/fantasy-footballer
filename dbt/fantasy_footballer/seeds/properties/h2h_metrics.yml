@@ -23,19 +23,19 @@ seeds:
                 to: ref('h2h_owner_metrics')
                 field: metric_key
       - name: section
-        description: "Top-level grouping (Record, Scoring, Postseason, Matchups, Shotgun, Clutch, Transactions) the comparison rows cluster under — must match the frontend's SECTION_COLORS keys, else the section renders with no color/icon."
+        description: "Top-level grouping (Record, Scoring, Postseason, Matchups, Luck, Shotgun, Clutch, Transactions) the comparison rows cluster under — must match the frontend's SECTION_COLORS keys, else the section renders with no color/icon."
         data_type: varchar
         data_tests:
           - not_null
           - accepted_values:
               arguments:
-                values: [ 'Record', 'Scoring', 'Postseason', 'Matchups', 'Shotgun', 'Clutch', 'Transactions', 'Lineups' ]
+                values: [ 'Record', 'Scoring', 'Postseason', 'Matchups', 'Shotgun', 'Clutch', 'Transactions', 'Lineups', 'Luck' ]
       - name: metric_label
         data_type: varchar
         data_tests:
           - not_null
       - name: value_format
-        description: "int, points, pct, record, or ordinal — drives display formatting."
+        description: "int, points, pct, wins, record, or ordinal — drives display formatting."
         data_type: varchar
         data_tests:
           - not_null
@@ -59,7 +59,15 @@ seeds:
         data_tests:
           - not_null
       - name: description
-        description: "Tooltip text shown on the metric row."
+        description: "Tooltip text shown on the metric row (metric-specific; the underlying concept lives in the glossary)."
         data_type: varchar
         data_tests:
           - not_null
+      - name: glossary_slug
+        description: "FK to glossary_terms.slug — the concept this metric is an instance of."
+        data_type: varchar
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('glossary_terms')
+                field: slug

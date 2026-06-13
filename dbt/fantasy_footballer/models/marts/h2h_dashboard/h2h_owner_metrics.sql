@@ -205,22 +205,6 @@ candidates as (
     select
         owner_id,
         owner_name,
-        'lucky_winner_titles' as metric_key,
-        lucky_winner_title_count::double as metric_value,
-        null::varchar as override_display
-    from career
-    union all
-    select
-        owner_id,
-        owner_name,
-        'unlucky_loser_titles' as metric_key,
-        unlucky_loser_title_count::double as metric_value,
-        null::varchar as override_display
-    from career
-    union all
-    select
-        owner_id,
-        owner_name,
         'shotgun_total' as metric_key,
         shotgun_total as metric_value,
         null::varchar as override_display
@@ -463,6 +447,46 @@ candidates as (
         least_efficient_lineup_title_count::double as metric_value,
         null::varchar as override_display
     from career
+    union all
+    select
+        owner_id,
+        owner_name,
+        'all_play_win_pct' as metric_key,
+        all_play_win_pct * 100 as metric_value,
+        null::varchar as override_display
+    from career
+    union all
+    select
+        owner_id,
+        owner_name,
+        'schedule_luck' as metric_key,
+        schedule_luck_total as metric_value,
+        null::varchar as override_display
+    from career
+    union all
+    select
+        owner_id,
+        owner_name,
+        'expected_wins' as metric_key,
+        expected_wins_total as metric_value,
+        null::varchar as override_display
+    from career
+    union all
+    select
+        owner_id,
+        owner_name,
+        'all_play_snub_titles' as metric_key,
+        all_play_snub_title_count::double as metric_value,
+        null::varchar as override_display
+    from career
+    union all
+    select
+        owner_id,
+        owner_name,
+        'all_play_luck_in_titles' as metric_key,
+        all_play_luck_in_title_count::double as metric_value,
+        null::varchar as override_display
+    from career
 ),
 
 joined as (
@@ -475,6 +499,7 @@ joined as (
         meta.description,
         meta.display_order,
         meta.tier,
+        meta.glossary_slug,
         candidates.owner_id,
         candidates.owner_name,
         candidates.metric_value,
@@ -492,6 +517,7 @@ select
     description,
     display_order::int as display_order,
     tier,
+    glossary_slug,
     owner_id,
     owner_name,
     metric_value::double as metric_value,

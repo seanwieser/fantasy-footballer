@@ -50,14 +50,6 @@ models:
         data_type: int
         data_tests:
           - not_null
-      - name: lucky_winner_title_count
-        data_type: int
-        data_tests:
-          - not_null
-      - name: unlucky_loser_title_count
-        data_type: int
-        data_tests:
-          - not_null
       - name: shotgun_title_count
         data_type: int
         data_tests:
@@ -86,6 +78,26 @@ models:
         data_type: int
         data_tests:
           - not_null
+      - name: lucky_schedule_title_count
+        description: Seasons leading the league in wins above a schedule-neutral expectation
+        data_type: int
+        data_tests:
+          - not_null
+      - name: unlucky_schedule_title_count
+        description: Seasons leading the league in wins below a schedule-neutral expectation (most robbed)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_snub_title_count
+        description: Seasons that were the league's biggest merit-based (all-play) snub
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_luck_in_title_count
+        description: Seasons that were the league's biggest merit-based (all-play) lucky-in
+        data_type: int
+        data_tests:
+          - not_null
       - name: seasons_played
         description: Number of regular seasons the owner fielded a team
         data_type: int
@@ -101,13 +113,43 @@ models:
         data_type: int
         data_tests:
           - not_null
+      - name: all_play_snub_total
+        description: Career count of merit-based snub seasons (missed playoffs but out-played a team that made it)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_luck_in_total
+        description: Career count of merit-based lucked-in seasons (made playoffs but out-played by a team that missed)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: expected_wins_total
+        description: Career schedule-neutral expected wins (sum of season expected_wins)
+        data_type: double
+        data_tests:
+          - not_null
+      - name: actual_wins_total
+        description: Career actual regular-season wins (sum of season actual_wins)
+        data_type: double
+        data_tests:
+          - not_null
+      - name: schedule_luck_total
+        description: Career schedule luck (actual_wins_total - expected_wins_total); + lucky, - robbed
+        data_type: double
+        data_tests:
+          - not_null
+      - name: all_play_win_pct
+        description: Career all-play win% across every regular-season week
+        data_type: double
+        data_tests:
+          - not_null
       - name: lucky_wins_total
-        description: Career cumulative lucky wins
+        description: Career lucky-win weeks (won with a below-.500 all-play standing), from int__owner_season_all_play
         data_type: double
         data_tests:
           - not_null
       - name: unlucky_losses_total
-        description: Career cumulative unlucky losses
+        description: Career unlucky-loss weeks (lost with an above-.500 all-play standing), from int__owner_season_all_play
         data_type: double
         data_tests:
           - not_null

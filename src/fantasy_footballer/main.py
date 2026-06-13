@@ -6,7 +6,7 @@ import argparse
 import os
 
 from backend.db import DbManager
-from frontend import (h2h_dashboard, league_highlights, player_data,
+from frontend import (glossary, h2h_dashboard, league_highlights, player_data,
                       postseason_history, roster_production,
                       strength_of_schedule)
 from frontend.admin import home

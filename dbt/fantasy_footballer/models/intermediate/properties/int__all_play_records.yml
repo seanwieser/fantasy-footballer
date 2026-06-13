@@ -1,0 +1,80 @@
+version: 2
+
+models:
+  - name: int__all_play_records
+    description: >
+      One row per team-week (regular season). Each team's all-play record that week: how it would
+      have fared against the entire league rather than just its scheduled opponent. The single source
+      of luck: the continuous all_play_win_pct feeds expected wins / schedule luck in
+      [[int__owner_season_all_play]], and the discrete is_lucky_win / is_unlucky_loss chips are just a
+      threshold on that same standing (powering the spotlight schedule chips + career week counts).
+    columns:
+      - name: team_week_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: team_year_id
+        data_type: varchar
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: score_for
+        data_type: double
+        data_tests:
+          - not_null
+      - name: outcome
+        description: Head-to-head result that week (W/L/T)
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: all_play_wins
+        description: Other teams this team outscored that week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_losses
+        description: Other teams that outscored this team that week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_ties
+        description: Other teams that scored exactly the same that week
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_games
+        description: Other teams played that week (wins + losses + ties)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_win_pct
+        description: (all_play_wins + 0.5 * all_play_ties) / all_play_games — share of the league outscored that week
+        data_type: double
+        data_tests:
+          - not_null
+          - test_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+      - name: is_lucky_win
+        description: Won a week with a below-.500 all-play standing (would have lost to most of the league)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_unlucky_loss
+        description: Lost a week with an above-.500 all-play standing (would have beaten most of the league)
+        data_type: bool
+        data_tests:
+          - not_null

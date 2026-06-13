@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: glossary
+    description: >
+      One row per glossary term — the read model for the `/glossary` page. Thin pass-through of the
+      `glossary_terms` seed (the concept dimension). The page groups by `category` and deep-links to
+      each `slug`.
+    columns:
+      - name: slug
+        description: Stable kebab-case identifier; the /glossary#<slug> anchor.
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: term
+        description: Display name of the concept.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: category
+        description: Grouping the term clusters under on the page.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: short_def
+        description: One-line definition (tooltip-ready).
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: full_def
+        description: The fuller explanation shown on the page.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: related
+        description: Comma-separated slugs of related terms (may be blank).
+        data_type: varchar

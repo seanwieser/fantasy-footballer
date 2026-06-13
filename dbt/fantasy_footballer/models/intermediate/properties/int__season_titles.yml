@@ -61,14 +61,6 @@ models:
         data_type: int
         data_tests:
           - not_null
-      - name: lucky_wins
-        data_type: int
-        data_tests:
-          - not_null
-      - name: unlucky_losses
-        data_type: int
-        data_tests:
-          - not_null
       - name: shotgun_count
         data_type: int
         data_tests:
@@ -90,6 +82,31 @@ models:
           - not_null
       - name: nonplayoff_teams_outscoring
         description: Count of non-playoff teams that outscored this team — gates + sizes the lucky-in title
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_win_pct
+        description: Season all-play win% (schedule-neutral) from int__owner_season_all_play
+        data_type: double
+        data_tests:
+          - not_null
+      - name: expected_wins
+        description: Schedule-neutral expected wins (all_play_win_pct x games) from int__owner_season_all_play
+        data_type: double
+        data_tests:
+          - not_null
+      - name: schedule_luck
+        description: actual_wins - expected_wins; gates + sizes the schedule-luck titles
+        data_type: double
+        data_tests:
+          - not_null
+      - name: all_play_playoff_teams_outranked
+        description: Count of playoff teams this team out-played (higher all-play win%) — gates the all-play snub
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_nonplayoff_teams_outranking
+        description: Count of non-playoff teams that out-played this team — gates the all-play lucky-in
         data_type: int
         data_tests:
           - not_null
@@ -133,16 +150,6 @@ models:
         data_type: bool
         data_tests:
           - not_null
-      - name: is_lucky_winner_title
-        description: Most lucky wins that season
-        data_type: bool
-        data_tests:
-          - not_null
-      - name: is_unlucky_loser_title
-        description: Most unlucky losses that season
-        data_type: bool
-        data_tests:
-          - not_null
       - name: is_shotgun_title
         description: Most shotguns that season
         data_type: bool
@@ -180,6 +187,36 @@ models:
           - not_null
       - name: is_lucked_in
         description: Made the playoffs but was outscored by >= 1 missing team (lucky-in occurrence; title is the worst such)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_lucky_schedule_title
+        description: Most wins above a schedule-neutral expectation that season (highest positive schedule_luck)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_unlucky_schedule_title
+        description: Most wins below a schedule-neutral expectation that season (lowest negative schedule_luck; most robbed)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_all_play_snub_title
+        description: Missed the playoffs with the best all-play win% AND out-played >= 1 playoff team (merit-based snub)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_all_play_luck_in_title
+        description: Made the playoffs with the worst all-play win% AND was out-played by >= 1 missing team (merit-based lucky-in)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_all_play_snubbed
+        description: Missed the playoffs but out-played >= 1 playoff team by all-play win% (occurrence)
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: is_all_play_lucked_in
+        description: Made the playoffs but was out-played by >= 1 missing team by all-play win% (occurrence)
         data_type: bool
         data_tests:
           - not_null

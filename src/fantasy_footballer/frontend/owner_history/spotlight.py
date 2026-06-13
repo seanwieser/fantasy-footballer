@@ -1,8 +1,9 @@
 """Spotlight page for each owner."""
 from backend.db import DbManager
 from frontend.utils import (SECTION_COLORS, common_header, format_field_name,
-                            get_owners_by_year, get_years_by_owner_id, medal,
-                            owner_id_to_owner_name, table)
+                            get_owners_by_year, get_years_by_owner_id,
+                            glossary_link, medal, owner_id_to_owner_name,
+                            table)
 from nicegui import ui
 
 # Week-grain schedule events -> (material icon, standardized highlight section, tooltip). The
@@ -12,8 +13,8 @@ from nicegui import ui
 SCHEDULE_FLAGS = {
     "is_best_week": ("trending_up", "Scoring", "Best-week title — league's single highest score this season"),
     "is_worst_week": ("trending_down", "Scoring", "Worst-week title — league's single lowest score this season"),
-    "is_lucky_win": ("sentiment_very_satisfied", "Matchups", "Lucky win — won while scoring below the league median"),
-    "is_unlucky_loss": ("heart_broken", "Matchups", "Unlucky loss — lost while scoring above the league median"),
+    "is_lucky_win": ("sentiment_very_satisfied", "Luck", "Lucky win — won despite a below-.500 all-play week"),
+    "is_unlucky_loss": ("heart_broken", "Luck", "Unlucky loss — lost despite an above-.500 all-play week"),
     "is_shotgun": ("sports_bar", "Shotgun", "Shotgun — scored under 100 or the week's league low"),
     "is_clutch_win": ("bolt", "Clutch", "Clutch win — won a game decided by under 10 points"),
     "is_clutch_loss": ("flash_off", "Clutch", "Clutch loss — lost a game decided by under 10 points"),
@@ -36,7 +37,7 @@ def highlights_card(owner_id, year):
     """League-highlight podium finishes (gold/silver/bronze) this owner earned that season."""
     rows = DbManager.query(
         f"""
-        select section, metric_label, display_value, detail, rank
+        select section, metric_label, display_value, detail, rank, glossary_slug
         from main_marts.season_highlights
         where owner_id={owner_id} and year={str(year)}
         order by display_order, rank
@@ -58,6 +59,7 @@ def highlights_card(owner_id, year):
                         if row["detail"]:
                             ui.label(row["detail"]).classes("text-xs opacity-60 truncate")
                     ui.label(row["display_value"]).classes(f"text-sm font-semibold text-{color}-7 ml-auto shrink-0")
+                    glossary_link(row.get("glossary_slug"), size="0.9rem", classes="shrink-0")
 
 
 def _highlights_slot():

@@ -148,17 +148,6 @@ shotgun_weeks as (
     group by team_year_id
 ),
 
-luck_weeks as (
-    select
-        team_year_id,
-        if(count(*) filter (where is_lucky_win) = 1, 'Wk ', 'Wks ') ||
-        string_agg(week::varchar, ', ' order by week) filter (where is_lucky_win) as lucky_label,
-        if(count(*) filter (where is_unlucky_loss) = 1, 'Wk ', 'Wks ') ||
-        string_agg(week::varchar, ', ' order by week) filter (where is_unlucky_loss) as unlucky_label
-    from {{ ref("int__lucky_records") }}
-    group by team_year_id
-),
-
 -- One row per team-season of subtitle context: reg-season seed, clutch record, key weeks.
 title_context as (
     select
@@ -167,10 +156,10 @@ title_context as (
         extreme_weeks.best_week,
         extreme_weeks.worst_week,
         shotgun_weeks.label as shotgun_label,
-        luck_weeks.lucky_label,
-        luck_weeks.unlucky_label,
         season_titles.playoff_teams_outscored,
         season_titles.nonplayoff_teams_outscoring,
+        season_titles.expected_wins,
+        season_titles.all_play_win_pct,
         lineup.lineup_efficiency,
         lineup.points_left_on_table,
         -- Ordinal of the end-of-regular-season standing, e.g. "7th seed".
@@ -187,7 +176,6 @@ title_context as (
     left join {{ ref("int__owner_lineup_efficiency") }} as lineup on teams.team_year_id = lineup.team_year_id
     left join extreme_weeks on teams.team_year_id = extreme_weeks.team_year_id
     left join shotgun_weeks on teams.team_year_id = shotgun_weeks.team_year_id
-    left join luck_weeks on teams.team_year_id = luck_weeks.team_year_id
 ),
 
 ranked as (
@@ -198,6 +186,7 @@ ranked as (
         meta.description,
         meta.display_order,
         meta.value_format,
+        meta.glossary_slug,
         candidates.year,
         candidates.owner_id,
         candidates.owner_name,
@@ -215,12 +204,19 @@ ranked as (
             when 'matchup_title' then 'Wk ' || ctx.best_week::varchar
             when 'bad_matchup_title' then 'Wk ' || ctx.worst_week::varchar
             when 'shotgun_title' then ctx.shotgun_label
-            when 'lucky_winner_title' then ctx.lucky_label
-            when 'unlucky_loser_title' then ctx.unlucky_label
             when 'best_lineup_title' then round(ctx.lineup_efficiency * 100, 1)::varchar || '% of optimal'
             when 'worst_lineup_title' then round(ctx.lineup_efficiency * 100, 1)::varchar || '% of optimal'
             when 'most_efficient_lineup_title' then round(ctx.points_left_on_table, 1)::varchar || ' pts left'
             when 'least_efficient_lineup_title' then round(ctx.points_left_on_table, 1)::varchar || ' pts left'
+            when 'lucky_schedule_title' then round(ctx.expected_wins, 1)::varchar || ' expected wins'
+            when 'unlucky_schedule_title' then round(ctx.expected_wins, 1)::varchar || ' expected wins'
+            when 'all_play_snub_title'
+                then
+                    ctx.seed_label || ' · ' || round(ctx.all_play_win_pct * 100, 1)::varchar ||
+                    '% all-play'
+            when 'all_play_luck_in_title' then
+                ctx.seed_label || ' · ' || round(ctx.all_play_win_pct * 100, 1)::varchar ||
+                '% all-play'
         end) as detail,
         rank() over (
             partition by candidates.year, candidates.metric_key
@@ -236,6 +232,7 @@ select
     metric_key,
     metric_label,
     description,
+    glossary_slug,
     display_order::int as display_order,
     year,
     owner_id,

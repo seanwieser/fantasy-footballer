@@ -1,59 +1,63 @@
-metric_key,section,category,metric_label,metric_type,sort_sign,result_n,value_format,subtitle_kind,display_order,description
-best_matchup_amount,Scoring,Matchup,Highest single-week score,record,1,3,points,context,1,"Highest single-week score ever recorded."
-worst_matchup_amount,Scoring,Matchup,Lowest single-week score,record,-1,3,points,context,2,"Lowest single-week score ever recorded."
-matchup_title_count,Scoring,Matchup,Best-week titles,count,1,3,int,years,3,"Seasons in which you posted the league's single highest weekly score."
-bad_matchup_title_count,Scoring,Matchup,Worst-week titles,count,1,3,int,years,4,"Seasons in which you posted the league's single lowest weekly score."
-highest_scoring_season,Scoring,Season,Highest-scoring season,record,1,3,points,context,5,"Most regular-season points scored in a single season."
-lowest_scoring_season,Scoring,Season,Lowest-scoring season,record,-1,3,points,context,6,"Fewest regular-season points scored in a single season."
-highest_scoring_season_ppg,Scoring,Season,Highest-scoring season (PPG),record,1,3,points,context,7,"Highest points per game in a single season."
-lowest_scoring_season_ppg,Scoring,Season,Lowest-scoring season (PPG),record,-1,3,points,context,8,"Lowest points per game in a single season."
-most_points_ppg,Scoring,Season,Highest career scoring (PPG),total,1,3,points,tenure,9,"Highest career regular-season points per game."
-least_points_ppg,Scoring,Season,Lowest career scoring (PPG),total,-1,3,points,tenure,10,"Lowest career regular-season points per game."
-most_points_total,Scoring,Season,Most career points,total,1,3,points,tenure,11,"Total regular-season points scored across every season."
-scoring_title_count,Scoring,Season,Scoring titles,count,1,3,int,years,12,"Seasons finishing #1 in total regular-season points."
-non_scoring_title_count,Scoring,Season,Bottom-scorer titles,count,1,3,int,years,13,"Seasons finishing last in total regular-season points."
-biggest_snub,Postseason,Playoff,Biggest snub,record,1,3,int,context,48,"The most playoff teams a snubbed owner outscored in one season — the league's most egregious snub."
-best_non_playoff_scoring_amount,Postseason,Playoff,Highest playoff miss,record,1,3,points,context,49,"Most points scored in a season that still missed the playoffs."
-non_playoff_scoring_title_count,Postseason,Playoff,Snub titles,count,1,3,int,years,50,"Seasons you were the league's biggest snub — the top scorer to miss the playoffs while still outscoring a team that got in."
-snub_total_count,Postseason,Playoff,Most career snubs,count,1,3,int,years,51,"Every season you were snubbed — missed the playoffs despite outscoring a team that made it (not just the years you led the snubs)."
-biggest_luck_in,Postseason,Playoff,Biggest lucky-in,record,1,3,int,context,52,"The most teams a lucked-in owner was outscored by while still making the playoffs."
-worst_playoff_non_scoring_amount,Postseason,Playoff,Lowest playoff team,record,-1,3,points,context,53,"Fewest points scored in a season that still made the playoffs."
-playoff_non_scoring_title_count,Postseason,Playoff,Lucky-in titles,count,1,3,int,years,54,"Seasons you were the league's luckiest-in — the lowest scorer to make the playoffs while a higher scorer missed."
-luck_in_total_count,Postseason,Playoff,Most career lucky-ins,count,1,3,int,years,55,"Every season you snuck into the playoffs while a higher-scoring team missed (not just the years you were the luckiest)."
-biggest_blowouts,Matchups,Margins,Biggest blowouts,record,1,3,points,context,22,"Largest regular-season margins of victory."
-tightest_matchups,Matchups,Margins,Tightest games,record,-1,3,points,context,23,"Closest games ever — smallest regular-season margins of victory."
-lucky_wins_total_count,Matchups,Luck,Most career lucky wins,count,1,3,int,tenure,24,"Career lucky wins — weeks won while scoring below the league median."
-unlucky_losses_total_count,Matchups,Luck,Most career unlucky losses,count,1,3,int,tenure,25,"Career unlucky losses — weeks lost while scoring above the league median."
-lucky_winner_title_count,Matchups,Luck,Lucky-winner titles,count,1,3,int,years,26,"Seasons with the most lucky wins — won a week while scoring below the league median."
-unlucky_loser_title_count,Matchups,Luck,Unlucky-loser titles,count,1,3,int,years,27,"Seasons with the most unlucky losses — lost a week while scoring above the league median."
-highest_shotgun_season_record,Shotgun,Shotgun,Most shotguns in a season,record,1,3,int,context,28,"Most shotguns in a single season — weeks scoring under 100 points or the week's league low."
-most_shotgun_total_count,Shotgun,Shotgun,Most career shotguns,count,1,3,int,tenure,29,"Career total shotguns — weeks scoring under 100 points or the week's league low."
-shotgun_title_count,Shotgun,Shotgun,Shotgun titles,count,1,3,int,years,30,"Seasons with the most shotguns — weeks scoring under 100 points or the week's league low."
-least_shotgun_per_season,Shotgun,Shotgun,Fewest shotguns per season,total,-1,3,points,tenure,31,"Fewest shotguns per season — weeks scoring under 100 points or the week's league low, averaged over seasons played."
-no_shotgun_season_count,Shotgun,Shotgun,Sober seasons,count,1,3,int,years,32,"Seasons with zero shotguns — never scored under 100 points or the week's league low."
-clutchest_season,Clutch,Clutch,Clutchest season,record,1,3,int,context,33,"Best single-season clutch record — wins in games decided by under 10 points."
-unclutchest_season,Clutch,Clutch,Least clutch season,record,1,3,int,context,34,"Worst single-season clutch record — losses in games decided by under 10 points."
-best_clutch_pct,Clutch,Clutch,Best career clutch win %,total,1,3,pct,context,35,"Career win rate in clutch games — regular-season games decided by under 10 points."
-worst_clutch_pct,Clutch,Clutch,Worst career clutch win %,total,-1,3,pct,context,36,"Career win rate in clutch games — regular-season games decided by under 10 points."
-clutch_winning_title_count,Clutch,Clutch,Clutch-winning titles,count,1,3,int,years,37,"Seasons with the most clutch wins — regular-season games decided by under 10 points."
-clutch_losing_title_count,Clutch,Clutch,Clutch-losing titles,count,1,3,int,years,38,"Seasons with the most clutch losses — regular-season games decided by under 10 points."
-most_acquisitions_career,Transactions,Roster,Most career acquisitions,count,1,3,int,tenure,39,"Most career roster acquisitions — waiver and free-agent adds across every season."
-most_trades_career,Transactions,Roster,Most career trades,count,1,3,int,tenure,40,"Most career trades completed across every season."
-highest_shootouts,Matchups,Combined,Shootouts,record,1,3,points,context,41,"Highest combined score in a regular-season game — both teams added together."
-lowest_slugfests,Matchups,Combined,Slugfests,record,-1,3,points,context,42,"Lowest combined score in a regular-season game — both teams added together."
-most_championships,Postseason,Results,Most championships,count,1,3,int,years,43,"Most league championships won."
-most_last_place_finishes,Postseason,Results,Most last-place finishes,count,1,3,int,tenure,44,"Most seasons finishing dead last — the toilet bowl winner."
-most_runner_ups,Postseason,Results,Most runner-up finishes,count,1,3,int,tenure,45,"Most times finishing as the championship runner-up."
-most_playoff_appearances,Postseason,Results,Most playoff appearances,count,1,3,int,tenure,46,"Most seasons reaching the winners (championship) bracket."
-most_toilet_bowls,Postseason,Results,Most toilet bowls,count,1,3,int,tenure,47,"Most seasons finishing in the bottom-four toilet bowl bracket."
-career_playoff_record,Postseason,Results,Playoff record,total,1,3,int,context,56,"Best career championship-bracket records, ranked by total playoff wins (win % breaks ties). Card shows W-L and win %."
-career_toilet_bowl_record,Postseason,Results,Toilet bowl record,total,1,3,int,context,57,"Best career toilet-bowl records, ranked by total toilet-bowl wins (win % breaks ties). Card shows W-L and win %."
-best_lineup_title_count,Lineups,Lineups,Best lineup-setter titles,count,1,3,int,years,58,"Seasons finishing with the fewest regular-season points left on the bench versus the optimal lineup."
-worst_lineup_title_count,Lineups,Lineups,Worst lineup-setter titles,count,1,3,int,years,59,"Seasons finishing with the most regular-season points left on the bench versus the optimal lineup."
-most_points_left_season,Lineups,Lineups,Most points left in a season,record,1,3,points,context,60,"Most regular-season points left on the bench versus the optimal lineup in a single season."
-fewest_points_left_season,Lineups,Lineups,Fewest points left in a season,record,-1,3,points,context,61,"Fewest regular-season points left on the bench versus the optimal lineup in a single season."
-most_efficient_lineup_title_count,Lineups,Lineups,Most-efficient-lineup titles,count,1,3,int,years,62,"Seasons finishing with the highest share of the optimal lineup captured (efficiency)."
-least_efficient_lineup_title_count,Lineups,Lineups,Least-efficient-lineup titles,count,1,3,int,years,63,"Seasons finishing with the lowest share of the optimal lineup captured (efficiency)."
-highest_lineup_efficiency_season,Lineups,Lineups,Most efficient season,record,1,3,pct,context,64,"Highest single-season lineup efficiency — actual points as a percent of the optimal legal lineup."
-lowest_lineup_efficiency_season,Lineups,Lineups,Least efficient season,record,-1,3,pct,context,65,"Lowest single-season lineup efficiency — actual points as a percent of the optimal legal lineup."
-most_underutilized_player,Lineups,Lineups,Most underutilized player,record,1,3,points,context,66,"The best players most left on the bench — most regular-season points one player scored in weeks they belonged in the optimal lineup but were benched."
+metric_key,section,category,metric_label,metric_type,sort_sign,result_n,value_format,subtitle_kind,display_order,description,glossary_slug
+best_matchup_amount,Scoring,Matchup,Highest single-week score,record,1,3,points,context,1,"Highest single-week score ever recorded.",points-for
+worst_matchup_amount,Scoring,Matchup,Lowest single-week score,record,-1,3,points,context,2,"Lowest single-week score ever recorded.",points-for
+matchup_title_count,Scoring,Matchup,Best-week titles,count,1,3,int,years,3,"Seasons in which you posted the league's single highest weekly score.",points-for
+bad_matchup_title_count,Scoring,Matchup,Worst-week titles,count,1,3,int,years,4,"Seasons in which you posted the league's single lowest weekly score.",points-for
+highest_scoring_season,Scoring,Season,Highest-scoring season,record,1,3,points,context,5,"Most regular-season points scored in a single season.",points-for
+lowest_scoring_season,Scoring,Season,Lowest-scoring season,record,-1,3,points,context,6,"Fewest regular-season points scored in a single season.",points-for
+highest_scoring_season_ppg,Scoring,Season,Highest-scoring season (PPG),record,1,3,points,context,7,"Highest points per game in a single season.",points-per-game
+lowest_scoring_season_ppg,Scoring,Season,Lowest-scoring season (PPG),record,-1,3,points,context,8,"Lowest points per game in a single season.",points-per-game
+most_points_ppg,Scoring,Season,Highest career scoring (PPG),total,1,3,points,tenure,9,"Highest career regular-season points per game.",points-per-game
+least_points_ppg,Scoring,Season,Lowest career scoring (PPG),total,-1,3,points,tenure,10,"Lowest career regular-season points per game.",points-per-game
+most_points_total,Scoring,Season,Most career points,total,1,3,points,tenure,11,"Total regular-season points scored across every season.",points-for
+scoring_title_count,Scoring,Season,Scoring titles,count,1,3,int,years,12,"Seasons finishing #1 in total regular-season points.",points-for
+non_scoring_title_count,Scoring,Season,Bottom-scorer titles,count,1,3,int,years,13,"Seasons finishing last in total regular-season points.",points-for
+biggest_snub,Luck,Playoff Luck,Biggest snub,record,1,3,int,context,80,"The most playoff teams a snubbed owner outscored in one season — the league's most egregious snub.",snub
+best_non_playoff_scoring_amount,Luck,Playoff Luck,Highest playoff miss,record,1,3,points,context,81,"Most points scored in a season that still missed the playoffs.",snub
+non_playoff_scoring_title_count,Luck,Playoff Luck,Snub titles,count,1,3,int,years,82,"Seasons you were the league's biggest snub.",snub
+snub_total_count,Luck,Playoff Luck,Most career snubs,count,1,3,int,years,83,"Every season you were snubbed, not just the years you led the snubs.",snub
+biggest_luck_in,Luck,Playoff Luck,Biggest lucky-in,record,1,3,int,context,84,"The most teams a lucked-in owner was outscored by while still making the playoffs.",lucky-in
+worst_playoff_non_scoring_amount,Luck,Playoff Luck,Lowest playoff team,record,-1,3,points,context,85,"Fewest points scored in a season that still made the playoffs.",lucky-in
+playoff_non_scoring_title_count,Luck,Playoff Luck,Lucky-in titles,count,1,3,int,years,86,"Seasons you were the league's luckiest-in.",lucky-in
+luck_in_total_count,Luck,Playoff Luck,Most career lucky-ins,count,1,3,int,years,87,"Every season you snuck into the playoffs, not just the years you were the luckiest.",lucky-in
+biggest_blowouts,Matchups,Margins,Biggest blowouts,record,1,3,points,context,22,"Largest regular-season margins of victory.",blowout
+tightest_matchups,Matchups,Margins,Tightest games,record,-1,3,points,context,23,"Closest games ever — smallest regular-season margins of victory.",tightest-game
+lucky_wins_total_count,Luck,Matchup Luck,Most lucky-win weeks,count,1,3,int,tenure,76,"Career lucky-win weeks.",lucky-win
+unlucky_losses_total_count,Luck,Matchup Luck,Most unlucky-loss weeks,count,1,3,int,tenure,77,"Career unlucky-loss weeks.",unlucky-loss
+highest_shotgun_season_record,Shotgun,Shotgun,Most shotguns in a season,record,1,3,int,context,28,"Most shotguns in a single season.",shotgun
+most_shotgun_total_count,Shotgun,Shotgun,Most career shotguns,count,1,3,int,tenure,29,"Career total shotguns.",shotgun
+shotgun_title_count,Shotgun,Shotgun,Shotgun titles,count,1,3,int,years,30,"Seasons with the most shotguns.",shotgun
+least_shotgun_per_season,Shotgun,Shotgun,Fewest shotguns per season,total,-1,3,points,tenure,31,"Fewest shotguns per season, averaged over seasons played.",shotgun
+no_shotgun_season_count,Shotgun,Shotgun,Sober seasons,count,1,3,int,years,32,"Seasons with zero shotguns.",shotgun
+clutchest_season,Clutch,Clutch,Clutchest season,record,1,3,int,context,33,"Best single-season clutch record (most clutch wins).",clutch-game
+unclutchest_season,Clutch,Clutch,Least clutch season,record,1,3,int,context,34,"Worst single-season clutch record (most clutch losses).",clutch-game
+best_clutch_pct,Clutch,Clutch,Best career clutch win %,total,1,3,pct,context,35,"Best career win rate in clutch games.",clutch-game
+worst_clutch_pct,Clutch,Clutch,Worst career clutch win %,total,-1,3,pct,context,36,"Worst career win rate in clutch games.",clutch-game
+clutch_winning_title_count,Clutch,Clutch,Clutch-winning titles,count,1,3,int,years,37,"Seasons with the most clutch wins.",clutch-game
+clutch_losing_title_count,Clutch,Clutch,Clutch-losing titles,count,1,3,int,years,38,"Seasons with the most clutch losses.",clutch-game
+most_acquisitions_career,Transactions,Roster,Most career acquisitions,count,1,3,int,tenure,39,"Most career roster acquisitions across every season.",acquisition
+most_trades_career,Transactions,Roster,Most career trades,count,1,3,int,tenure,40,"Most career trades completed across every season.",trade
+highest_shootouts,Matchups,Combined,Shootouts,record,1,3,points,context,41,"Highest combined score in a regular-season game.",shootout
+lowest_slugfests,Matchups,Combined,Slugfests,record,-1,3,points,context,42,"Lowest combined score in a regular-season game.",slugfest
+most_championships,Postseason,Results,Most championships,count,1,3,int,years,43,"Most league championships won.",champion
+most_last_place_finishes,Postseason,Results,Most last-place finishes,count,1,3,int,tenure,44,"Most seasons finishing dead last.",last-place
+most_runner_ups,Postseason,Results,Most runner-up finishes,count,1,3,int,tenure,45,"Most times finishing as the championship runner-up.",runner-up
+most_playoff_appearances,Postseason,Results,Most playoff appearances,count,1,3,int,tenure,46,"Most seasons reaching the winners (championship) bracket.",winners-bracket
+most_toilet_bowls,Postseason,Results,Most toilet bowls,count,1,3,int,tenure,47,"Most seasons finishing in the bottom-four toilet bowl bracket.",toilet-bowl
+career_playoff_record,Postseason,Results,Playoff record,total,1,3,int,context,56,"Best career championship-bracket records, ranked by total playoff wins (win % breaks ties). Card shows W-L and win %.",playoff-record
+career_toilet_bowl_record,Postseason,Results,Toilet bowl record,total,1,3,int,context,57,"Best career toilet-bowl records, ranked by total toilet-bowl wins (win % breaks ties). Card shows W-L and win %.",toilet-bowl
+best_lineup_title_count,Lineups,Lineups,Best lineup-setter titles,count,1,3,int,years,58,"Seasons finishing with the fewest regular-season points left on the bench.",points-left
+worst_lineup_title_count,Lineups,Lineups,Worst lineup-setter titles,count,1,3,int,years,59,"Seasons finishing with the most regular-season points left on the bench.",points-left
+most_points_left_season,Lineups,Lineups,Most points left in a season,record,1,3,points,context,60,"Most regular-season points left on the bench in a single season.",points-left
+fewest_points_left_season,Lineups,Lineups,Fewest points left in a season,record,-1,3,points,context,61,"Fewest regular-season points left on the bench in a single season.",points-left
+most_efficient_lineup_title_count,Lineups,Lineups,Most-efficient-lineup titles,count,1,3,int,years,62,"Seasons finishing with the highest lineup efficiency.",lineup-efficiency
+least_efficient_lineup_title_count,Lineups,Lineups,Least-efficient-lineup titles,count,1,3,int,years,63,"Seasons finishing with the lowest lineup efficiency.",lineup-efficiency
+highest_lineup_efficiency_season,Lineups,Lineups,Most efficient season,record,1,3,pct,context,64,"Highest single-season lineup efficiency.",lineup-efficiency
+lowest_lineup_efficiency_season,Lineups,Lineups,Least efficient season,record,-1,3,pct,context,65,"Lowest single-season lineup efficiency.",lineup-efficiency
+most_underutilized_player,Lineups,Lineups,Most underutilized player,record,1,3,points,context,66,"The best players most left on the bench in a single season.",underutilized-player
+luckiest_schedule_season,Luck,Schedule Luck,Luckiest schedule (season),record,1,3,wins,context,70,"Most wins above a schedule-neutral expectation in a single season.",schedule-luck
+unluckiest_schedule_season,Luck,Schedule Luck,Most robbed season,record,-1,3,wins,context,71,"Most wins below a schedule-neutral expectation in a single season.",schedule-luck
+most_career_schedule_luck,Luck,Schedule Luck,Luckiest schedule (career),total,1,3,wins,tenure,72,"Most career wins above a schedule-neutral expectation.",schedule-luck
+least_career_schedule_luck,Luck,Schedule Luck,Most robbed career,total,-1,3,wins,tenure,73,"Most career wins below a schedule-neutral expectation.",schedule-luck
+all_play_snub_title_count,Luck,Schedule Luck,All-play snub titles,count,1,3,int,years,74,"Seasons you were the league's biggest merit-based snub.",all-play-snub
+all_play_luck_in_title_count,Luck,Schedule Luck,All-play lucky-in titles,count,1,3,int,years,75,"Seasons you were the league's biggest merit-based lucky-in.",all-play-lucky-in

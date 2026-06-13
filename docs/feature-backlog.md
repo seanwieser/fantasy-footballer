@@ -26,7 +26,7 @@ reference it in conversation, branches, and commits.
 | FF-006 | Owner-attributed Roster Production (reframed) | frontend, dbt | Low | M | Done |
 | FF-007 | Gallery: video upload / display / metadata | frontend, backend | Low | L | Idea |
 | FF-008 | Refactor website navigation | frontend | Low | M | Done |
-| FF-009 | Quantify luck via all-play / expected wins | dbt | Low | M | Idea |
+| FF-009 | Quantify luck via all-play / expected wins | dbt, frontend | Low | L | Done |
 | FF-010 | Notification / events dashboard | dbt, backend, frontend | Low | L | Idea |
 | FF-011 | Unify "league single best/worst week" logic | dbt | Low | S | Done |
 | FF-012 | H2H Dashboard | dbt, frontend | Med | M | Done |
@@ -36,6 +36,7 @@ reference it in conversation, branches, and commits.
 | FF-016 | Revise pre-Claude-Code pages/dbt/backend | frontend, dbt, backend | Med | L | Done |
 | FF-017 | Roster-picker value: acquisition cost vs utilized points | dbt, frontend | Med | L | Idea |
 | FF-018 | Player spotlight pages + player-centric highlights | frontend, dbt | Med | L | Idea |
+| FF-019 | Glossary page + glossary as the relational concept dimension | frontend, dbt | Med | M | Done |
 
 ---
 
@@ -173,37 +174,6 @@ by Bunny Stream. Sub-pieces (were separate GH issues):
   after upload. _GH #8._
 
 _Source: GH #7 (parent), #5, #6, #8._
-
----
-
-## FF-009 — Quantify luck via all-play / expected wins (deep dive)
-
-**Area:** dbt · **Priority:** Low · **Effort:** M · **Status:** Idea
-
-**Done when:** there's an `int__` model exposing each owner-season's all-play record / expected
-wins, and the snub + luck metrics can optionally use it as a more rigorous "you were robbed by
-the schedule" measure than today's points-based gate.
-
-**What:** a proper deep dive into quantifying *schedule luck*. Today luck lives in deliberately
-small snapshots — median-based `lucky_wins` / `unlucky_losses` (`int__lucky_records`) and the
-points-based **Snub / Lucky-in** definition (you missed the playoffs despite outscoring a team
-that made it; mirror for lucky-in). Those are intentionally lightweight and we like them for now.
-
-The richer model is **all-play / expected wins**: each week, score every team against the *entire*
-league (an all-play record), so a team's expected win% reflects how it would have done versus a
-neutral schedule. Then:
-- **Expected vs actual wins** = the cleanest "robbed by schedule" measure.
-- A more rigorous **snub** = missed the playoffs despite a top-N all-play record (deserved a spot
-  on merit, not just on raw points); **lucky-in** = made it despite a poor all-play record.
-- Could power a standalone "luck" view, not just the highlight titles.
-
-**Why later:** it's a different stat than points (new intermediate, a different mental model) and
-the current snapshots are good enough. This is the "(d)" option from the snub-definition discussion
-— captured here so the points-based gate (shipped) can be upgraded deliberately, not rushed.
-
-**Pieces it will need:** an `int__all_play_records` (team-week vs the whole league → weekly all-play
-W-L) rolled up to owner-season expected wins; optional wiring into `int__season_titles` to offer an
-all-play variant of the snub/luck flags; maybe a dedicated luck mart/page.
 
 ---
 
@@ -558,3 +528,63 @@ mid-season trades render correctly. Player Data stays player-centric.
   spotlights) **and** the owner-spotlight Roster tab "All" view (`_season_roster`).
 
 _Source: GH #27 (reframed during the FF-016 nav PR)._
+
+---
+
+## FF-009 — Quantify luck via all-play / expected wins
+
+**Area:** dbt, frontend · **Priority:** Low · **Effort:** L · **Status:** Done
+
+**Done when:** there's an `int__` model exposing each owner-season's all-play record / expected
+wins, and the snub + luck metrics use it as a more rigorous "you were robbed by the schedule"
+measure than the points-based gate.
+
+**What (shipped):** the schedule-neutral **all-play / expected wins** layer plus a full surfacing.
+- `int__all_play_records` (team-week: a self-join within year+week → all-play W-L-T) rolled up by
+  `int__owner_season_all_play` to `all_play_win_pct`, `expected_wins` (win% × games), `actual_wins`,
+  and **`schedule_luck` = actual − expected** (+ lucky, − robbed). Sanity-tested: all-play win%
+  averages 0.5; a singular test (`assert_all_play_expected_equals_actual`) pins league totals to
+  expected=actual / luck≈0 each season (zero-sum).
+- `int__season_titles` gains an **all-play (merit-based) snub/lucky-in** variant alongside the
+  existing points-based one (`all_play_vs_field` self-join on all-play win%), plus **schedule-luck
+  titles** (luckiest / most-robbed), fanned out in `_long` and rolled up in `int__owner_career_summary`.
+- A new top-level **Luck** section across **both** League Highlights and the H2H Dashboard
+  (categories: Schedule Luck / Matchup Luck / Playoff Luck) consolidates every luck metric, moved out
+  of Matchups/Postseason. Driven entirely by the three seed catalogs.
+- **Single definition of luck:** the per-week all-play standing is the one source. `int__lucky_records`
+  (the old median-based model) was deleted; the discrete lucky-win / unlucky-loss chips + career counts
+  are now a *threshold* on the same all-play standing (won/lost a week you'd have lost/beaten most of
+  the league), and the continuous `schedule_luck` is the season measure. The redundant median-based
+  *season titles* were retired — all-play owns the season luck crown; the quantized view survives only
+  as career week-counts + the spotlight chips.
+
+_Built on FF-016's analytics conventions; deliberately kept the existing lightweight luck snapshots
+(median-based + points-based) alongside the new measure rather than replacing them._
+
+---
+
+## FF-019 — Glossary page + glossary as the relational concept dimension
+
+**Area:** frontend, dbt · **Priority:** Med · **Effort:** M · **Status:** Done
+
+**Done when:** there's a `/glossary` page defining the platform's terms in one place, and the metric
+catalogs reference those definitions relationally instead of each re-explaining concepts.
+
+**What (shipped):**
+- New **`glossary_terms`** seed — the concept dimension (~55 terms: `slug`/`term`/`category`/
+  `short_def`/`full_def`/`related`), the single source of truth for terminology. Thin `glossary` mart
+  backs the page.
+- **Relational normalization:** each metric catalog (`all_time_record_metrics`,
+  `season_highlight_metrics`, `h2h_metrics`, `h2h_rivalry_metrics`) gained a nullable `glossary_slug`
+  FK (dbt `relationships` test) to its concept, and the **duplicated concept text was trimmed out of
+  per-metric descriptions** — the concept lives once in the glossary. The metric marts surface
+  `glossary_slug` so cards can deep-link.
+- **`/glossary` page** — searchable, category-grouped (`CATEGORY_ORDER` + `SECTION_COLORS`), each term
+  anchored at `#slug` for deep-linking, with related-term cross-link chips. Splash tile + a reusable
+  `glossary_link()` helper.
+- **Wired** the metric-card info icon → `/glossary#<slug>` on League Highlights (All-Time + By-Season),
+  the H2H Dashboard rows, and the owner-spotlight Highlights card. Remaining surfaces can adopt the
+  helper incrementally.
+
+_The redundancy-reduction framing (glossary as the relational table the seeds reference) came from the
+FF-009 luck-labeling discussion._

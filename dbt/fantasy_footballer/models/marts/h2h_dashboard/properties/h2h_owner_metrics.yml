@@ -47,6 +47,9 @@ models:
         data_type: varchar
         data_tests:
           - not_null
+      - name: glossary_slug
+        description: "The metric's concept slug (from the seed) — lets the row deep-link to /glossary#<slug>."
+        data_type: varchar
       - name: owner_id
         data_type: int
         data_tests:

@@ -6,15 +6,6 @@ with shotgun_counts as (
     group by team_year_id
 ),
 
-luck_counts as (
-    select
-        team_year_id,
-        count_if(is_lucky_win)::int as lucky_wins,
-        count_if(is_unlucky_loss)::int as unlucky_losses
-    from {{ ref("int__lucky_records") }}
-    group by team_year_id
-),
-
 clutch as (
     select
         team_year_id,
@@ -37,11 +28,12 @@ owner_seasons as (
         scoring.made_playoffs,
         coalesce(clutch.clutch_wins, 0) as clutch_wins,
         coalesce(clutch.clutch_losses, 0) as clutch_losses,
-        coalesce(luck_counts.lucky_wins, 0) as lucky_wins,
-        coalesce(luck_counts.unlucky_losses, 0) as unlucky_losses,
         coalesce(shotgun_counts.shotgun_count, 0) as shotgun_count,
         lineup.points_left_on_table,
         lineup.lineup_efficiency,
+        all_play.all_play_win_pct,
+        all_play.expected_wins,
+        all_play.schedule_luck,
         case
             when coalesce(clutch.clutch_wins, 0) + coalesce(clutch.clutch_losses, 0) > 0
                 then clutch.clutch_wins::double / (clutch.clutch_wins + clutch.clutch_losses)
@@ -49,9 +41,9 @@ owner_seasons as (
         end as clutch_win_pct
     from {{ ref("int__owner_season_scoring") }} as scoring
     left join clutch on scoring.team_year_id = clutch.team_year_id
-    left join luck_counts on scoring.team_year_id = luck_counts.team_year_id
     left join shotgun_counts on scoring.team_year_id = shotgun_counts.team_year_id
     left join {{ ref("int__owner_lineup_efficiency") }} as lineup on scoring.team_year_id = lineup.team_year_id
+    left join {{ ref("int__owner_season_all_play") }} as all_play on scoring.team_year_id = all_play.team_year_id
 ),
 
 -- Cross-team points comparison within a season: how many playoff teams each team outscored
@@ -72,6 +64,23 @@ points_vs_field as (
     group by team.team_year_id
 ),
 
+-- All-play analogue of points_vs_field: a more rigorous snub gate ranks on schedule-neutral merit
+-- (all-play win%) instead of raw points. A snub out-played (not just outscored) a team that got in.
+all_play_vs_field as (
+    select
+        team.team_year_id,
+        count(*) filter (
+            where other.made_playoffs and other.all_play_win_pct < team.all_play_win_pct
+        )::int as all_play_playoff_teams_outranked,
+        count(*) filter (
+            where not other.made_playoffs and other.all_play_win_pct > team.all_play_win_pct
+        )::int as all_play_nonplayoff_teams_outranking
+    from owner_seasons as team
+    inner join owner_seasons as other
+        on team.year = other.year and team.team_year_id != other.team_year_id
+    group by team.team_year_id
+),
+
 ranked as (
     select
         *,
@@ -79,10 +88,12 @@ ranked as (
         rank() over (partition by year order by reg_points_total asc) as non_scoring_rank,
         rank() over (partition by year, made_playoffs order by reg_points_total desc) as snub_rank,
         rank() over (partition by year, made_playoffs order by reg_points_total asc) as luck_in_rank,
+        rank() over (partition by year, made_playoffs order by all_play_win_pct desc) as all_play_snub_rank,
+        rank() over (partition by year, made_playoffs order by all_play_win_pct asc) as all_play_luck_in_rank,
+        rank() over (partition by year order by schedule_luck desc) as lucky_schedule_rank,
+        rank() over (partition by year order by schedule_luck asc) as unlucky_schedule_rank,
         rank() over (partition by year order by clutch_wins desc, clutch_win_pct desc) as clutch_win_rank,
         rank() over (partition by year order by clutch_losses desc, clutch_win_pct asc) as clutch_loss_rank,
-        rank() over (partition by year order by lucky_wins desc) as lucky_rank,
-        rank() over (partition by year order by unlucky_losses desc) as unlucky_rank,
         rank() over (partition by year order by shotgun_count desc) as shotgun_rank,
         rank() over (partition by year order by points_left_on_table asc) as best_lineup_rank,
         rank() over (partition by year order by points_left_on_table desc) as worst_lineup_rank,
@@ -104,13 +115,16 @@ select
     ranked.made_playoffs,
     ranked.clutch_wins,
     ranked.clutch_losses,
-    ranked.lucky_wins,
-    ranked.unlucky_losses,
     ranked.shotgun_count,
     ranked.points_left_on_table,
     ranked.lineup_efficiency,
+    ranked.all_play_win_pct,
+    ranked.expected_wins,
+    ranked.schedule_luck,
     points_vs_field.playoff_teams_outscored,
     points_vs_field.nonplayoff_teams_outscoring,
+    all_play_vs_field.all_play_playoff_teams_outranked,
+    all_play_vs_field.all_play_nonplayoff_teams_outranking,
     ranked.scoring_rank = 1 as is_scoring_title,
     ranked.non_scoring_rank = 1 as is_non_scoring_title,
     -- Matchup titles derive from the shared league single-week extreme so they can never drift from
@@ -123,8 +137,6 @@ select
         as is_playoff_non_scoring_title,
     ranked.clutch_win_rank = 1 and ranked.clutch_wins > 0 as is_clutch_winning_title,
     ranked.clutch_loss_rank = 1 and ranked.clutch_losses > 0 as is_clutch_losing_title,
-    ranked.lucky_rank = 1 and ranked.lucky_wins > 0 as is_lucky_winner_title,
-    ranked.unlucky_rank = 1 and ranked.unlucky_losses > 0 as is_unlucky_loser_title,
     ranked.shotgun_rank = 1 and ranked.shotgun_count > 0 as is_shotgun_title,
     ranked.shotgun_count = 0 as is_no_shotgun_season,
     -- Lineup-setter titles, two complementary angles (from int__owner_lineup_efficiency, depth-neutral):
@@ -137,7 +149,21 @@ select
     ranked.inefficiency_rank = 1 as is_least_efficient_lineup_title,
     -- Occurrence flags (broader than the titles above): every snubbed / lucked-in team-season.
     not ranked.made_playoffs and points_vs_field.playoff_teams_outscored >= 1 as is_snubbed,
-    ranked.made_playoffs and points_vs_field.nonplayoff_teams_outscoring >= 1 as is_lucked_in
+    ranked.made_playoffs and points_vs_field.nonplayoff_teams_outscoring >= 1 as is_lucked_in,
+    -- Schedule-luck titles: most/least wins relative to a schedule-neutral expectation (all-play).
+    ranked.lucky_schedule_rank = 1 and ranked.schedule_luck > 0 as is_lucky_schedule_title,
+    ranked.unlucky_schedule_rank = 1 and ranked.schedule_luck < 0 as is_unlucky_schedule_title,
+    -- All-play snub/lucky-in: the merit-based analogue of the points-based snub above. A snub
+    -- out-played (higher all-play win%) a team that made the playoffs; lucked-in is the mirror.
+    not ranked.made_playoffs and ranked.all_play_snub_rank = 1 and
+    all_play_vs_field.all_play_playoff_teams_outranked >= 1 as is_all_play_snub_title,
+    ranked.made_playoffs and ranked.all_play_luck_in_rank = 1 and
+    all_play_vs_field.all_play_nonplayoff_teams_outranking >= 1 as is_all_play_luck_in_title,
+    not ranked.made_playoffs and all_play_vs_field.all_play_playoff_teams_outranked >= 1
+        as is_all_play_snubbed,
+    ranked.made_playoffs and all_play_vs_field.all_play_nonplayoff_teams_outranking >= 1
+        as is_all_play_lucked_in
 from ranked
 inner join points_vs_field on ranked.team_year_id = points_vs_field.team_year_id
+inner join all_play_vs_field on ranked.team_year_id = all_play_vs_field.team_year_id
 inner join {{ ref("int__league_season_week_extremes") }} as extremes on ranked.year = extremes.year

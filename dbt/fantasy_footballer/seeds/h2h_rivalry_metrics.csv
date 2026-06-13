@@ -1,18 +1,18 @@
-metric_key,section,label,display_order,kind,description
-rivalry_record,The Rivalry,Series record,1,symmetric,"All-time regular-season record (this owner's wins first) with win %."
-rivalry_playoff_record,The Rivalry,Playoff record,2,symmetric,"Postseason series record (this owner's wins first); 'None' if they've never met in the playoffs."
-rivalry_toilet_record,The Rivalry,Toilet bowl record,3,symmetric,"Toilet-bowl series record (this owner's wins first); 'None' if they've never met in the toilet bowl."
-rivalry_points,The Rivalry,Points (H2H),4,symmetric,"Total points each owner has scored across every meeting, with the running differential."
-rivalry_avg_margin,The Rivalry,Avg margin,5,symmetric,"Average margin per meeting; the arrow points to who's ahead on average."
-rivalry_streak,The Rivalry,Current streak,6,symmetric,"Who is currently on a winning streak against the other, and how long."
-rivalry_last_meeting,The Rivalry,Last meeting,7,symmetric,"Their most recent meeting — score, margin, and when."
-rivalry_clutch,The Rivalry,Clutch meetings,8,symmetric,"Record in meetings decided by under 10 points; the arrow points to who's ahead."
-closest_game,The Rivalry,Closest game,9,symmetric,"Their smallest-margin meeting; the arrow points to who won it."
-highest_shootout,The Rivalry,Highest shootout,10,symmetric,"Their highest combined-score meeting; the arrow points to who won it."
-lowest_slugfest,The Rivalry,Lowest slugfest,11,symmetric,"Their lowest combined-score meeting; the arrow points to who won it."
-avg_points,Head to Head,Avg score,12,per_owner,"Average points this owner has scored per meeting with the other."
-longest_win_streak,Head to Head,Longest win streak,13,per_owner,"The longest run of consecutive wins this owner has had over the other."
-biggest_win,Head to Head,Biggest win,14,per_owner,"This owner's largest margin of victory over the other — score, margin, and when."
-held_under_100,Head to Head,Held under 100,15,per_owner,"Number of meetings in which this owner held the other under 100 points."
-lucky_wins,Head to Head,Lucky wins,16,per_owner,"Wins over the other while scoring below that week's league median — you stole one."
-unlucky_losses,Head to Head,Unlucky losses,17,per_owner,"Losses to the other while you scored above that week's league median — they handed you a bad beat."
+metric_key,section,label,display_order,kind,description,glossary_slug
+rivalry_record,The Rivalry,Series record,1,symmetric,"All-time regular-season record (this owner's wins first) with win %.",record
+rivalry_playoff_record,The Rivalry,Playoff record,2,symmetric,"Postseason series record (this owner's wins first); 'None' if they've never met in the playoffs.",playoff-record
+rivalry_toilet_record,The Rivalry,Toilet bowl record,3,symmetric,"Toilet-bowl series record (this owner's wins first); 'None' if they've never met in the toilet bowl.",toilet-bowl
+rivalry_points,The Rivalry,Points (H2H),4,symmetric,"Total points each owner has scored across every meeting, with the running differential.",points-for
+rivalry_avg_margin,The Rivalry,Avg margin,5,symmetric,"Average margin per meeting; the arrow points to who's ahead on average.",margin
+rivalry_streak,The Rivalry,Current streak,6,symmetric,"Who is currently on a winning streak against the other, and how long.",streak
+rivalry_last_meeting,The Rivalry,Last meeting,7,symmetric,"Their most recent meeting — score, margin, and when.",
+rivalry_clutch,The Rivalry,Clutch meetings,8,symmetric,"Record in meetings decided by under 10 points; the arrow points to who's ahead.",clutch-game
+closest_game,The Rivalry,Closest game,9,symmetric,"Their smallest-margin meeting; the arrow points to who won it.",tightest-game
+highest_shootout,The Rivalry,Highest shootout,10,symmetric,"Their highest combined-score meeting; the arrow points to who won it.",shootout
+lowest_slugfest,The Rivalry,Lowest slugfest,11,symmetric,"Their lowest combined-score meeting; the arrow points to who won it.",slugfest
+avg_points,Head to Head,Avg score,12,per_owner,"Average points this owner has scored per meeting with the other.",points-per-game
+longest_win_streak,Head to Head,Longest win streak,13,per_owner,"The longest run of consecutive wins this owner has had over the other.",streak
+biggest_win,Head to Head,Biggest win,14,per_owner,"This owner's largest margin of victory over the other — score, margin, and when.",blowout
+held_under_100,Head to Head,Held under 100,15,per_owner,"Number of meetings in which this owner held the other under 100 points.",shotgun
+lucky_wins,Head to Head,Lucky wins,16,per_owner,"Wins over the other in a week you'd have lost to most of the league (below-.500 all-play) — you stole one.",lucky-win
+unlucky_losses,Head to Head,Unlucky losses,17,per_owner,"Losses to the other in a week you'd have beaten most of the league (above-.500 all-play) — a bad beat.",unlucky-loss

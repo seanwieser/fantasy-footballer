@@ -29,6 +29,9 @@ models:
         data_type: varchar
         data_tests:
           - not_null
+      - name: glossary_slug
+        description: The metric's concept slug (from the seed) — lets the card deep-link to /glossary#<slug>.
+        data_type: varchar
       - name: display_order
         description: Reading order of the title cards within a section
         data_type: int

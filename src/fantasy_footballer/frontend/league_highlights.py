@@ -5,12 +5,12 @@ from contextlib import contextmanager
 
 from backend.db import DbManager
 from frontend.utils import (SECTION_COLORS, common_header, get_current_year,
-                            medal)
+                            glossary_link, medal)
 from nicegui import ui
 
-SECTIONS = ["Scoring", "Postseason", "Matchups", "Lineups", "Shotgun", "Clutch", "Transactions"]
+SECTIONS = ["Scoring", "Postseason", "Matchups", "Luck", "Lineups", "Shotgun", "Clutch", "Transactions"]
 SECTION_ICONS = {"Scoring": "sports_football", "Clutch": "bolt", "Matchups": "sports_kabaddi", "Shotgun": "sports_bar",
-                 "Transactions": "swap_horiz", "Postseason": "emoji_events", "Lineups": "fact_check"}
+                 "Transactions": "swap_horiz", "Postseason": "emoji_events", "Lineups": "fact_check", "Luck": "casino"}
 
 # Within a section, cards cluster by `category` for scannability (order comes from the seed's
 # display_order); these are the friendly sub-cluster headers.
@@ -100,11 +100,14 @@ def _name(row, owners, classes):
             ui.label("(retired)").classes("text-xs opacity-50 shrink-0")
 
 
-def _card_header(label, color):
-    """Card eyebrow: uppercase metric label + an info (tooltip) hint."""
+def _card_header(label, color, glossary_slug=None):
+    """Card eyebrow: uppercase metric label + an icon — a glossary deep-link when the metric has a concept."""
     with ui.row().classes("w-full items-center justify-between no-wrap gap-2"):
         ui.label(label).classes(f"text-xs font-semibold uppercase tracking-wide text-{color}-7 truncate")
-        ui.icon("info", size="1rem").classes("opacity-30 shrink-0")
+        if glossary_slug:
+            glossary_link(glossary_slug, classes="shrink-0")
+        else:
+            ui.icon("info", size="1rem").classes("opacity-30 shrink-0")
 
 
 def podium_card(rows, color, owners):
@@ -118,7 +121,7 @@ def podium_card(rows, color, owners):
     """
     head = rows[0]
     with metric_card(head["description"]):
-        _card_header(head["metric_label"], color)
+        _card_header(head["metric_label"], color, head.get("glossary_slug"))
         with ui.column().classes("w-full gap-2"):
             divided = False
             for row in rows:
@@ -198,10 +201,10 @@ def all_time_tab(owners):
     _section_subtabs(lambda section: all_time_section(section, owners))
 
 
-def empty_card(label, description, color, message):
+def empty_card(label, description, color, message, glossary_slug=None):
     """Placeholder for a title nobody earned this season — keeps each section's grid consistent."""
     with metric_card(description):
-        _card_header(label, color)
+        _card_header(label, color, glossary_slug)
         with ui.column().classes("w-full grow items-center justify-center py-2"):
             ui.label(message or "Not awarded this season").classes("text-sm opacity-50 italic text-center")
 
@@ -230,7 +233,8 @@ def render_season_section(section, metrics, year, owners):
             if group:
                 podium_card(group, color, owners)
             else:
-                empty_card(meta["metric_label"], meta["description"], color, meta["empty_label"])
+                empty_card(meta["metric_label"], meta["description"], color, meta["empty_label"],
+                           meta.get("glossary_slug"))
 
 
 def season_tab(owners):
@@ -242,7 +246,7 @@ def season_tab(owners):
         default = years[0]
     # Catalog drives the grid (placeholder cards for unheld titles); read once, grouped by section.
     catalog = DbManager.query("""
-        select metric_key, section, metric_label, description, empty_label
+        select metric_key, section, metric_label, description, empty_label, glossary_slug
         from main_seed_data.season_highlight_metrics
         order by display_order
     """, to_dict=True)

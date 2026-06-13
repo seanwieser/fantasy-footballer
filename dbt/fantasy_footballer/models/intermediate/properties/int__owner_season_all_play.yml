@@ -1,0 +1,117 @@
+version: 2
+
+models:
+  - name: int__owner_season_all_play
+    description: >
+      One row per owner-season (regular season). Rolls [[int__all_play_records]] up to a season
+      all-play record and turns it into expected wins (all-play win% x games played) versus actual
+      wins. schedule_luck = actual - expected is the league's schedule-neutral "robbed / carried"
+      measure: positive means you won more than your scoring earned, negative means you were robbed.
+    columns:
+      - name: owner_id
+        description: Unique identifier for the owner
+        data_type: int
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: owner_id
+      - name: owner_name
+        description: Canonical name of the owner
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: owner_year_id
+        description: Composite key combining owner_id and year (format 'owner_id_year'). Grain of this model.
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: team_year_id
+        description: Composite key combining team_id and year (format 'team_id_year')
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('int__owner_team_year_map')
+                field: team_year_id
+      - name: year
+        description: Season year
+        data_type: int
+        data_tests:
+          - not_null
+      - name: games_played
+        description: Count of regular-season games played (the owner's actual schedule length)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: made_playoffs
+        description: True if the team appears in any playoff matchup that season
+        data_type: bool
+        data_tests:
+          - not_null
+      - name: all_play_wins
+        description: Season total of weekly all-play wins (teams outscored across all weeks)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_losses
+        description: Season total of weekly all-play losses (teams that outscored this team)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_ties
+        description: Season total of weekly all-play ties (equal scores)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_games
+        description: Season total of all-play games (all_play_wins + losses + ties)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: lucky_win_weeks
+        description: Weeks won with a below-.500 all-play standing (the quantized lucky-win count)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: unlucky_loss_weeks
+        description: Weeks lost with an above-.500 all-play standing (the quantized unlucky-loss count)
+        data_type: int
+        data_tests:
+          - not_null
+      - name: actual_wins
+        description: Actual regular-season head-to-head wins
+        data_type: int
+        data_tests:
+          - not_null
+      - name: actual_losses
+        description: Actual regular-season head-to-head losses
+        data_type: int
+        data_tests:
+          - not_null
+      - name: all_play_win_pct
+        description: (all_play_wins + 0.5 * all_play_ties) / all_play_games; league-wide this averages 0.5
+        data_type: double
+        data_tests:
+          - not_null
+          - test_range:
+              arguments:
+                min_value: 0
+                max_value: 1
+          - test_average_equals:
+              arguments:
+                value: 0.5
+      - name: expected_wins
+        description: all_play_win_pct * games_played — wins a schedule-neutral team would expect
+        data_type: double
+        data_tests:
+          - not_null
+      - name: schedule_luck
+        description: actual_wins - expected_wins; positive = lucky schedule, negative = robbed
+        data_type: double
+        data_tests:
+          - not_null

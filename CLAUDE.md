@@ -381,6 +381,27 @@ conventions:
   preserve the finding (and any league fact it surfaced) so it isn't re-derived from scratch.
 - **Branch/commit convention:** branch `FF-00X-short-name`; reference the id in commit messages.
 
+### Scoping a new PR from the backlog
+
+The recurring way work starts here: on `main`, the owner asks to "assess the backlog" / "what's
+available to work on" / pick the next PR's scope. Run this consistently so the output shape is the
+same every time:
+
+1. Read `docs/feature-backlog.md` and list every **non-Done** item (`Idea`/`Ready`/`Doing`) — never
+   `Done` ones.
+2. Present them in a stable format: group by Status (`Doing` first, then `Ready`/`Idea`), and within a
+   group sort by Priority (High→Low) then Effort (S→L). Each line: `FF-XXX — Title · Area · Priority ·
+   Effort · Status` plus a one-line hook.
+3. Give a clear **recommendation** for the next PR's scope (favor Med priority + smaller effort, and
+   items unblocked by missing data/decisions), with a one-line why — don't just dump the list.
+4. **Ask the owner to confirm the scope before acting**, then start the work. The owner handles all
+   git themselves (commits referencing the FF id(s)) — don't create the branch, and don't *volunteer*
+   git commands. **Exception:** once the owner decides what to work on they will explicitly ask for the
+   branch command — when asked, generate the `git checkout -b FF-00X-short-name` line (derive a short
+   kebab-case name from the chosen item) for them to run.
+
+Bundle related backfills/refactors into the chosen PR rather than splitting (early-dev, single-PR norm).
+
 ## Gotchas / don'ts
 
 - **Sensitive seed CSVs hold real owner data + auth hashes** (`resources/sensitive_seeds/*.csv`).
@@ -406,6 +427,12 @@ conventions:
   **metrics**. When you add or move a metric/section in one, mirror it in the other unless there's
   a clear reason not to. The alignment lives in the three seed catalogs (`all_time_record_metrics`,
   `season_highlight_metrics`, `h2h_metrics`) — keep their `section`/metric sets in sync.
+- **Define a concept once — in `glossary_terms` — and reference it by `glossary_slug`.** The
+  `glossary_terms` seed is the single source of truth for terminology (shotgun, schedule luck, optimal
+  lineup, the toilet bowl, …), surfaced on `/glossary`. Every metric catalog carries a nullable
+  `glossary_slug` FK to its concept. **Don't re-explain a concept in each metric `description`** — keep
+  the description metric-specific and let the glossary (linked from the card via `glossary_link()`)
+  carry the definition. New concept → add a `glossary_terms` row and point metrics at its slug.
 - **Regular-season and playoff metrics are kept completely separate.** This league's
   playoff matchups are ~2-week aggregates, so a playoff "week" carries a score on a
   different scale (often ~2× a regular-season week). **Never mix playoff games into any

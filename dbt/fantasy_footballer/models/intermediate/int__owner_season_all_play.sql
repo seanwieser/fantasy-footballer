@@ -39,13 +39,13 @@ owner_season_all_play as (
         all_play_season.unlucky_loss_weeks,
         actual_record.actual_wins,
         actual_record.actual_losses,
-        (all_play_season.all_play_wins + 0.5 * all_play_season.all_play_ties)
-        / all_play_season.all_play_games as all_play_win_pct,
-        (all_play_season.all_play_wins + 0.5 * all_play_season.all_play_ties)
-        / all_play_season.all_play_games * scoring.games_played as expected_wins,
-        actual_record.actual_wins
-        - (all_play_season.all_play_wins + 0.5 * all_play_season.all_play_ties)
-        / all_play_season.all_play_games * scoring.games_played as schedule_luck
+        (all_play_season.all_play_wins + 0.5 * all_play_season.all_play_ties) /
+        all_play_season.all_play_games as all_play_win_pct,
+        (all_play_season.all_play_wins + 0.5 * all_play_season.all_play_ties) /
+        all_play_season.all_play_games * scoring.games_played as expected_wins,
+        actual_record.actual_wins -
+        (all_play_season.all_play_wins + 0.5 * all_play_season.all_play_ties) /
+        all_play_season.all_play_games * scoring.games_played as schedule_luck
     from {{ ref("int__owner_season_scoring") }} as scoring
     inner join all_play_season on scoring.team_year_id = all_play_season.team_year_id
     inner join actual_record on scoring.team_year_id = actual_record.team_year_id

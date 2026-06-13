@@ -39,8 +39,8 @@ scored as (
     select
         *,
         all_play_wins + all_play_losses + all_play_ties as all_play_games,
-        (all_play_wins + 0.5 * all_play_ties)
-        / nullif(all_play_wins + all_play_losses + all_play_ties, 0) as all_play_win_pct
+        (all_play_wins + 0.5 * all_play_ties) /
+        nullif(all_play_wins + all_play_losses + all_play_ties, 0) as all_play_win_pct
     from all_play
 )
 

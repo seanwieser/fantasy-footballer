@@ -37,9 +37,20 @@ purge-imessage:
 	PYTHONPATH=src/fantasy_footballer:scripts poetry run python3 -m imessage --purge
 
 # Upload local sensitive seeds (resources/sensitive_seeds/*.csv) to B2 under today's date partition.
-# Run from repo root so the relative resources/ path resolves; needs B2 creds (.envrc) loaded.
+# Run from repo root so the relative resources/ path resolves; needs B2 creds + SEED_ENCRYPTION_KEY
+# (.envrc) loaded. Seeds are encrypted at rest in B2 (decrypted at boot by fetch_resources).
 push-sensitive-seeds:
 	PYTHONPATH=src/fantasy_footballer poetry run python3 -c "from backend.utils import write_sensitive_seeds; write_sensitive_seeds()"
+
+# Rotate the app-managed secrets (STORAGE_SECRET, SEED_ENCRYPTION_KEY), rewrite the local env files,
+# and re-encrypt + push the sensitive seeds to B2. Owner-operated. Pass flags via ARGS, e.g.
+# `make rotate-secrets ARGS=--dry-run` or `ARGS="--keys seed --no-push"`.
+rotate-secrets:
+	PYTHONPATH=src/fantasy_footballer poetry run python3 scripts/rotate_secrets.py $(ARGS)
+
+# Scan the full git history for committed secrets (public-repo insurance). Allowlist in .gitleaksignore.
+scan-secrets:
+	gitleaks detect --source . --redact --no-banner
 
 query:
 	poetry run python3 scripts/query_db.py --format $(FORMAT) "$(SQL)"

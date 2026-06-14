@@ -19,7 +19,7 @@ reference it in conversation, branches, and commits.
 | ID | Title | Area | Priority | Effort | Status |
 |----|-------|------|----------|--------|--------|
 | FF-001 | Owner-uploaded headshots | frontend, backend | Low | M | Idea |
-| FF-002 | Revise sensitive-seed security | security, infra | Low | S–M | Idea |
+| FF-002 | Revise sensitive-seed security | security, infra | Low | S–M | Done |
 | FF-003 | Ingest s002 (FantasyData) source | backend, dbt | Low | L | Doing |
 | FF-004 | One-command fly.io deploy | infra | Med | M | Idea |
 | FF-005 | Fix source-fetch memory crash | backend | Low | M | Idea |
@@ -70,46 +70,6 @@ make the gallery/owner pages feel personal without a maintainer round-trip.
 
 **Open questions:** who can change whose image (self-only vs admin override); keep a default
 fallback image for owners who never upload; whether to version/overwrite.
-
----
-
-## FF-002 — Revise sensitive-seed storage security
-
-**Area:** security, infra · **Priority:** Low · **Effort:** S–M · **Status:** Idea
-
-**Done when:** B2-stored seeds are protected beyond bcrypt (least-privilege bucket keys, Fly
-secrets, strong `STORAGE_SECRET`, git-history scan) and we've made a deliberate call on
-at-rest encryption. (The `STORAGE_SECRET` swap is effectively High priority but trivial — do
-it standalone, don't wait on this item.)
-
-**What:** harden how sensitive seeds (`resources/sensitive_seeds/*.csv` — auth password hashes +
-owner PII) are stored, especially the copies pushed to B2. Today they're bcrypt-hashed (good) but
-stored plaintext-at-rest in B2 under date-partitioned keys.
-
-**Threat model:** a 15-person hobby app — optimize for blast-radius reduction, not APTs. Realistic
-risks are a secret leaking (public repo, laptop, image layer) or the B2 bucket/keys being exposed.
-bcrypt already means a full `users.csv` leak doesn't directly surrender passwords — that's the
-backstop, so none of this is an emergency.
-
-**Easy wins (mostly zero-code, do first):**
-- **Least-privilege B2 keys** — scope the application key to the single bucket, read/write only
-  (not the account master key). Biggest bang for the buck.
-- **Fly secrets, not image-baked env** — set prod secrets via `fly secrets set`, keep them out of
-  image layers / `image/.env`.
-- **Private bucket + lifecycle rule** to expire old date-partitioned `sensitive_seeds/` uploads
-  (otherwise every old `users.csv` lingers forever).
-- **Strong `STORAGE_SECRET`** (signs NiceGUI session/auth cookies — a weak one lets an attacker
-  forge an authenticated session and bypass login entirely) and **rotate ESPN cookies** periodically.
-- **`gitleaks`/`trufflehog` scan of git history** — public repo insurance that no secret/seed was
-  ever committed.
-
-**Optional next step (some code):** client-side encrypt the seed CSVs before B2 upload (e.g. Fernet
-via `cryptography`, key from a Fly secret like `SEED_ENCRYPTION_KEY`) — encrypt in
-`write_sensitive_seeds`, decrypt in `fetch_resources`. Only meaningful because the key lives in a
-*different* trust boundary than B2; it hardens the "B2 leaked but app secret didn't" case. Skip if
-the key would just sit in the same `.envrc` as the B2 keys.
-
-**Non-goals:** a real secrets manager (Vault/KMS), per-column DB encryption — overkill at this scale.
 
 ---
 
@@ -636,3 +596,37 @@ aggregate analytics use case is built on it.
 **Future analytics (deferred):** reaction "burn of the year" / most-loved leaderboards, activity
 timeline (chatter vs results), per-owner catchphrases/word clouds, LLM season recap (a concrete consumer
 for FF-010's event feed). The v1 leaderboard is the seed; richer aggregates are additive.
+
+---
+
+## FF-002 — Revise sensitive-seed storage security
+
+**Area:** security, infra · **Priority:** Low · **Effort:** S–M · **Status:** Done
+
+**Done when:** B2-stored seeds are protected beyond bcrypt (least-privilege bucket keys, Fly
+secrets, strong `STORAGE_SECRET`, git-history scan) and we've made a deliberate call on
+at-rest encryption.
+
+**What (shipped):** the at-rest call was made — **sensitive seeds are now encrypted in B2** (Fernet,
+keyed by `SEED_ENCRYPTION_KEY`; `backend/crypto.py`). `write_sensitive_seeds` uploads `<name>.csv.enc`;
+`fetch_resources` decrypts back to plaintext local CSVs at boot (dbt seeds read plaintext). The key
+lives in a different trust boundary than the B2 credentials, hardening the "B2 leaked but app secret
+didn't" case. Mandatory single path (no plaintext fallback), with transitional tolerance for legacy
+plaintext partitions until the first encrypted push.
+- **`make rotate-secrets`** (`scripts/rotate_secrets.py`) — one command that indexes every secret
+  (app-managed vs provider-manual), rotates `STORAGE_SECRET` + `SEED_ENCRYPTION_KEY`, rewrites the
+  local env files in place (never echoing values), and re-encrypts + pushes the seeds. First run is
+  the "turn on encryption" step. `--dry-run` / `--keys` / `--no-push` flags.
+- **gitleaks** — pre-commit hook + `make scan-secrets` (full-history). A 2023-era hardcoded GroupMe
+  token was found in history, **confirmed dead (HTTP 401)**, allowlisted in `.gitleaksignore`.
+- **Docs/config** — `docs/security.md` (threat model + owner-operated hardening checklist + rotation
+  usage); `SEED_ENCRYPTION_KEY` added to env examples; `scripts/deploy_app.sh` fixed (drifted B2 var
+  names + new key); BACKEND.md updated.
+
+**Owner-operated (documented, not code — see `docs/security.md` checklist):** least-privilege B2 key
+scoped to the one bucket, Fly secrets (not image-baked), private bucket + lifecycle rule expiring old
+`sensitive_seeds/` partitions, periodic ESPN-cookie rotation. **Non-goals:** a real secrets manager
+(Vault/KMS), per-column DB encryption.
+
+**Activation (owner):** run `make rotate-secrets` once to generate the key + push the first encrypted
+seed set, then `direnv reload` + `./scripts/deploy_app.sh`. Rotating `STORAGE_SECRET` logs everyone out.

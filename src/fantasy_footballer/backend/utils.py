@@ -4,6 +4,7 @@ import json
 import os
 
 import boto3
+from backend.crypto import encrypt_bytes
 
 NUM_NFL_WEEKS = 18
 
@@ -67,13 +68,20 @@ def write_source_data(rows: list[dict], source: str, table: str, year: int, queu
     if queue:
         queue.put(f"File written to b2: {s3_key}")
 
-def write_sensitive_seeds():
-    """Write the sensitive (gitignored) dbt seed files to cloud storage."""
+def write_sensitive_seeds(encryption_key=None):
+    """
+    Encrypt the sensitive (gitignored) dbt seed CSVs and write them to cloud storage as `.enc`.
+
+    Local CSVs stay plaintext (dbt reads them directly); only the B2-at-rest copy is ciphertext.
+    `encryption_key` overrides the SEED_ENCRYPTION_KEY env var (used by rotation to push with the
+    freshly generated key in-process); a missing key is a hard error (no plaintext write path).
+    """
     date_partition = get_date_partition()
     dir_path = "resources/sensitive_seeds"
     s3_client = get_s3_client()
     for _, _, filenames in os.walk(dir_path):
         for dbt_seed_name in filenames:
-            s3_key = f"{dir_path}/{date_partition}/{dbt_seed_name}"
-            file_name = f"{dir_path}/{dbt_seed_name}"
-            s3_client.upload_file(Filename=file_name, Bucket=os.getenv("BUCKET_NAME"), Key=s3_key)
+            with open(f"{dir_path}/{dbt_seed_name}", "rb") as seed_file:
+                ciphertext = encrypt_bytes(seed_file.read(), encryption_key)
+            s3_key = f"{dir_path}/{date_partition}/{dbt_seed_name}.enc"
+            s3_client.put_object(Body=ciphertext, Bucket=os.getenv("BUCKET_NAME"), Key=s3_key)

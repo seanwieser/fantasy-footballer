@@ -1,6 +1,9 @@
 # nicegui
 export STORAGE_SECRET=
 
+# sensitive-seed encryption (Fernet key; generate/rotate via `make rotate-secrets`)
+export SEED_ENCRYPTION_KEY=
+
 # backblaze
 export ENDPOINT=
 export REGION=

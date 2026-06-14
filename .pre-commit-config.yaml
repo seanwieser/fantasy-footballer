@@ -41,6 +41,12 @@ repos:
     hooks:
       - id: isort
         additional_dependencies: [toml]
+  # Public-repo insurance: block secrets from being committed. Allowlist known findings in
+  # .gitleaksignore; `make scan-secrets` runs the same scan over full history.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
   # Stub the gitignored sensitive seeds (only if absent) so the sqlfluff dbt templater below can
   # build its manifest in a public checkout (pre-commit.ci). No-op locally where real seeds exist.
   - repo: local

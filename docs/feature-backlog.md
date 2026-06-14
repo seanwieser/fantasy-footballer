@@ -19,9 +19,9 @@ reference it in conversation, branches, and commits.
 | ID | Title | Area | Priority | Effort | Status |
 |----|-------|------|----------|--------|--------|
 | FF-001 | Owner-uploaded headshots | frontend, backend | Low | M | Idea |
-| FF-002 | Revise sensitive-seed security | security, infra | Low | S–M | Idea |
+| FF-002 | Revise sensitive-seed security | security, infra | Low | S–M | Done |
 | FF-003 | Ingest s002 (FantasyData) source | backend, dbt | Low | L | Doing |
-| FF-004 | One-command fly.io deploy | infra | Med | M | Idea |
+| FF-004 | Fly.io deployment: proper setup + one-command deploy | infra | Med | L | Idea |
 | FF-005 | Fix source-fetch memory crash | backend | Low | M | Idea |
 | FF-006 | Owner-attributed Roster Production (reframed) | frontend, dbt | Low | M | Done |
 | FF-007 | Gallery: video upload / display / metadata | frontend, backend | Low | L | Idea |
@@ -38,6 +38,7 @@ reference it in conversation, branches, and commits.
 | FF-018 | Player spotlight pages + player-centric highlights | frontend, dbt | Med | L | Idea |
 | FF-019 | Glossary page + glossary as the relational concept dimension | frontend, dbt | Med | M | Done |
 | FF-020 | Group-chat (s003) analytics: titles, mood, cross-source metrics | dbt, frontend, backend | Med | L | Idea |
+| FF-021 | Purge stale B2 data (make command) | backend, infra | Low | M | Idea |
 
 ---
 
@@ -73,46 +74,6 @@ fallback image for owners who never upload; whether to version/overwrite.
 
 ---
 
-## FF-002 — Revise sensitive-seed storage security
-
-**Area:** security, infra · **Priority:** Low · **Effort:** S–M · **Status:** Idea
-
-**Done when:** B2-stored seeds are protected beyond bcrypt (least-privilege bucket keys, Fly
-secrets, strong `STORAGE_SECRET`, git-history scan) and we've made a deliberate call on
-at-rest encryption. (The `STORAGE_SECRET` swap is effectively High priority but trivial — do
-it standalone, don't wait on this item.)
-
-**What:** harden how sensitive seeds (`resources/sensitive_seeds/*.csv` — auth password hashes +
-owner PII) are stored, especially the copies pushed to B2. Today they're bcrypt-hashed (good) but
-stored plaintext-at-rest in B2 under date-partitioned keys.
-
-**Threat model:** a 15-person hobby app — optimize for blast-radius reduction, not APTs. Realistic
-risks are a secret leaking (public repo, laptop, image layer) or the B2 bucket/keys being exposed.
-bcrypt already means a full `users.csv` leak doesn't directly surrender passwords — that's the
-backstop, so none of this is an emergency.
-
-**Easy wins (mostly zero-code, do first):**
-- **Least-privilege B2 keys** — scope the application key to the single bucket, read/write only
-  (not the account master key). Biggest bang for the buck.
-- **Fly secrets, not image-baked env** — set prod secrets via `fly secrets set`, keep them out of
-  image layers / `image/.env`.
-- **Private bucket + lifecycle rule** to expire old date-partitioned `sensitive_seeds/` uploads
-  (otherwise every old `users.csv` lingers forever).
-- **Strong `STORAGE_SECRET`** (signs NiceGUI session/auth cookies — a weak one lets an attacker
-  forge an authenticated session and bypass login entirely) and **rotate ESPN cookies** periodically.
-- **`gitleaks`/`trufflehog` scan of git history** — public repo insurance that no secret/seed was
-  ever committed.
-
-**Optional next step (some code):** client-side encrypt the seed CSVs before B2 upload (e.g. Fernet
-via `cryptography`, key from a Fly secret like `SEED_ENCRYPTION_KEY`) — encrypt in
-`write_sensitive_seeds`, decrypt in `fetch_resources`. Only meaningful because the key lives in a
-*different* trust boundary than B2; it hardens the "B2 leaked but app secret didn't" case. Skip if
-the key would just sit in the same `.envrc` as the B2 keys.
-
-**Non-goals:** a real secrets manager (Vault/KMS), per-column DB encryption — overkill at this scale.
-
----
-
 ## FF-003 — Ingest s002 (FantasyData) source
 
 **Area:** backend, dbt · **Priority:** Low · **Effort:** L · **Status:** Doing
@@ -128,19 +89,30 @@ _Source: GH #12 (in progress)._
 
 ---
 
-## FF-004 — One-command fly.io deploy
+## FF-004 — Fly.io deployment: proper setup + one-command deploy
 
-**Area:** infra · **Priority:** Med · **Effort:** M · **Status:** Idea
+**Area:** infra · **Priority:** Med · **Effort:** L · **Status:** Idea
 
-**Done when:** a single `make` target builds the container and pushes it to fly.io, after basic
-production protection (on `main`, up-to-date).
+**Done when:** the app is properly provisioned on Fly (app, volume, secrets, health check) and a
+single `make` target builds the container and ships a release, after basic production protection
+(on `main`, up-to-date).
 
-**What:** a deploy script wrapped in a `make` command that (1) checks the branch is `main` and
-up-to-date, (2) builds the docker container, (3) pushes it to fly.io. The roadmap favors staying
-local for now (see `architecture-roadmap.md`), but having one-command deploy ready de-risks the
-eventual cutover.
+**What:** two parts —
+1. **Proper initial setup (new scope):** the cloud app was only ever stood up as a one-off PoC a long
+   time ago and is **not currently configured for real use**. Do the from-scratch provisioning: create
+   the Fly app + region, a persistent volume for `resources/` (the DuckDB file + fetched seeds/media,
+   so a restart doesn't lose the built warehouse), set all secrets via `fly secrets set`
+   (`./scripts/deploy_app.sh` covers the set; verify with `fly secrets list`), a health check, and
+   right-size memory (relates to FF-005's OOM on source fetch). Validate a clean boot end-to-end:
+   `fetch_resources` decrypts the seeds (needs `SEED_ENCRYPTION_KEY` — see FF-002), ingest + dbt build
+   succeed, login works.
+2. **One-command deploy:** a deploy script wrapped in a `make` target that (1) checks the branch is
+   `main` and up-to-date, (2) builds the docker container, (3) ships the release to Fly.
 
-_Source: GH #18._
+The roadmap favors staying local for now (see `architecture-roadmap.md`), but getting prod actually
+working + one-command deploy de-risks the eventual cutover.
+
+_Source: GH #18; expanded after FF-002 — prod was never properly set up (PoC only)._
 
 ---
 
@@ -351,7 +323,36 @@ FF-007 (media — shotgun videos from the same export, see that item)._
 
 ---
 
-## FF-011 — Unify "league single best/worst week" logic
+## FF-021 — Purge stale B2 data (make command)
+
+**Area:** backend, infra · **Priority:** Low · **Effort:** M · **Status:** Idea
+
+**Done when:** a `make` target prunes superseded data from B2 — keeping the freshest date partition
+per resource/source dir and deleting older ones (incl. legacy pre-encryption plaintext seed
+partitions) — safely, without ever deleting the live copy.
+
+**Why a command, not a B2 lifecycle rule:** the natural answer (a Backblaze lifecycle rule expiring
+old `resources/sensitive_seeds/` uploads) doesn't fit our access pattern. Every push writes a *new*
+file path (`…/<date>/<file>`), so partitions aren't "versions" of one file — an age-based rule can't
+express "keep the latest, delete the rest," and because pushes are **rare**, a delete-after-N-days
+rule risks deleting the only/current copy before the next push. So the keep-latest logic has to be
+explicit and is non-trivial — hence a command we run deliberately.
+
+**What it does:** mirror the "freshest date partition wins" selection that `fetch_resources` /
+`get_fresh_table_paths` already compute (`backend/db.py`), then **delete everything that isn't the
+freshest** for each dir/table — both the `resources/` seed+media partitions and the date-partitioned
+`data/sources/<src>/...` JSON. Owner-operated (B2 mutation): a `--dry-run` that lists what would be
+deleted first, then the real prune. Also clears the one-time backlog of legacy plaintext seed
+partitions left over from before FF-002 encryption.
+
+**Pieces:** a `prune_cloud_storage()` helper in `backend/utils.py` (or a `scripts/` entry) reusing the
+existing freshness logic; a `make purge-stale-data` target (cf. `make purge-imessage`); `--dry-run`
+default-safe. **Open questions:** keep last N partitions vs. only the freshest (a small grace buffer is
+safer); whether source JSON and resources need different retention; confirm nothing reads an older
+partition before deleting.
+
+_Source: FF-002 follow-up — the seed-hygiene lifecycle rule turned out to need explicit keep-latest
+logic given rare pushes._
 
 **Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Done
 
@@ -636,3 +637,37 @@ aggregate analytics use case is built on it.
 **Future analytics (deferred):** reaction "burn of the year" / most-loved leaderboards, activity
 timeline (chatter vs results), per-owner catchphrases/word clouds, LLM season recap (a concrete consumer
 for FF-010's event feed). The v1 leaderboard is the seed; richer aggregates are additive.
+
+---
+
+## FF-002 — Revise sensitive-seed storage security
+
+**Area:** security, infra · **Priority:** Low · **Effort:** S–M · **Status:** Done
+
+**Done when:** B2-stored seeds are protected beyond bcrypt (least-privilege bucket keys, Fly
+secrets, strong `STORAGE_SECRET`, git-history scan) and we've made a deliberate call on
+at-rest encryption.
+
+**What (shipped):** the at-rest call was made — **sensitive seeds are now encrypted in B2** (Fernet,
+keyed by `SEED_ENCRYPTION_KEY`; `backend/encryption.py`). `write_sensitive_seeds` uploads `<name>.csv.enc`;
+`fetch_resources` decrypts back to plaintext local CSVs at boot (dbt seeds read plaintext). The key
+lives in a different trust boundary than the B2 credentials, hardening the "B2 leaked but app secret
+didn't" case. Mandatory single path (no plaintext fallback), with transitional tolerance for legacy
+plaintext partitions until the first encrypted push.
+- **`make rotate-secrets`** (`scripts/rotate_secrets.py`) — one command that indexes every secret
+  (app-managed vs provider-manual), rotates `STORAGE_SECRET` + `SEED_ENCRYPTION_KEY`, rewrites the
+  local env files in place (never echoing values), and re-encrypts + pushes the seeds. First run is
+  the "turn on encryption" step. `--dry-run` / `--keys` / `--no-push` flags.
+- **gitleaks** — pre-commit hook + `make scan-secrets` (full-history). A 2023-era hardcoded GroupMe
+  token was found in history, **confirmed dead (HTTP 401)**, allowlisted in `.gitleaksignore`.
+- **Docs/config** — `docs/security.md` (threat model + owner-operated hardening checklist + rotation
+  usage); `SEED_ENCRYPTION_KEY` added to env examples; `scripts/deploy_app.sh` fixed (drifted B2 var
+  names + new key); BACKEND.md updated.
+
+**Owner-operated (documented, not code — see `docs/security.md` checklist):** least-privilege B2 key
+scoped to the one bucket, Fly secrets (not image-baked), private bucket + lifecycle rule expiring old
+`sensitive_seeds/` partitions, periodic ESPN-cookie rotation. **Non-goals:** a real secrets manager
+(Vault/KMS), per-column DB encryption.
+
+**Activation (owner):** run `make rotate-secrets` once to generate the key + push the first encrypted
+seed set, then `direnv reload` + `./scripts/deploy_app.sh`. Rotating `STORAGE_SECRET` logs everyone out.

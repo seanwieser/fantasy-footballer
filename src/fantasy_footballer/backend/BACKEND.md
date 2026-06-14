@@ -28,7 +28,9 @@ The frontend never does either — it only calls `DbManager.query(sql)` against 
 
 `setup()` runs unless `--dev-mode` **and** seeds already populated (`has_sensitive_seeds_rows`), else:
 1. **`fetch_resources()`** — list B2, pick the freshest date-partition per `resources/` dir, download
-   to local `resources/` with the date stripped from the path (populates seeds + media).
+   to local `resources/` with the date stripped from the path (populates seeds + media). Sensitive
+   seeds are stored encrypted at rest (`*.enc`) and are **decrypted here** (via `SEED_ENCRYPTION_KEY`)
+   to plaintext local CSVs so dbt can seed them.
 2. **`ingest_raw_data_from_cloud(sources)`** — open `resources/fantasy_footballer.duckdb`, register the
    S3 secret (`SECRET_SQL`), and for each source/table `CREATE SCHEMA` + `CREATE OR REPLACE TABLE
    main.<source>.<table> AS SELECT *, '<date>' as meta__date_pulled FROM read_json(<freshest paths>)`.
@@ -150,8 +152,13 @@ To add a source/table see CLAUDE.md → "Adding a new source"; remember to regis
 - **`write_source_data(rows, source, table, year, queue)`** — write rows as JSON to B2 at the source
   path; stamps each row with `meta__source_path` + `meta__date_effective` (these power
   `stg__source_metadata` / `int__source_freshness`).
-- **`write_sensitive_seeds()`** — upload `resources/sensitive_seeds/*.csv` to B2 (date-partitioned).
+- **`write_sensitive_seeds(encryption_key=None)`** — **encrypt** each `resources/sensitive_seeds/*.csv`
+  (Fernet, `SEED_ENCRYPTION_KEY`; `backend/encryption.py`) and upload as `<name>.csv.enc` to B2
+  (date-partitioned). Local CSVs stay plaintext for dbt; only the B2-at-rest copy is ciphertext. No
+  plaintext-write fallback — a missing key is a hard error. `fetch_resources` decrypts on the way back.
 - **`get_date_partition()`** — `YYYY-MM-DD`. Const `NUM_NFL_WEEKS = 18`.
+- **`backend/encryption.py`** — `generate_key` / `encrypt_bytes` / `decrypt_bytes` (Fernet) for the above.
+  Rotate the key + re-push the seeds in one step with `make rotate-secrets` (`scripts/rotate_secrets.py`).
 
 ## Cloud storage (Backblaze B2, S3-compatible)
 
@@ -168,7 +175,8 @@ To add a source/table see CLAUDE.md → "Adding a new source"; remember to regis
 - **ESPN:** `LEAGUE_ID`, `ESPN_S2`, `SWID`.
 - **iMessage (s003, local extract only):** `IMESSAGE_GROUP_NAME` (target chat display name; defaults
   to `Sco Chos Ep.11`), `IMESSAGE_DB_PATH` (optional; defaults to `~/Library/Messages/chat.db`).
-- **App:** `STORAGE_SECRET` (NiceGUI session).
+- **App:** `STORAGE_SECRET` (NiceGUI session), `SEED_ENCRYPTION_KEY` (Fernet key for sensitive seeds
+  at rest). Both are app-generated — rotate with `make rotate-secrets`. See `docs/security.md`.
 - **GroupMe:** `ACCESS_TOKEN`, `GROUP_ID`.
 
 ## `groupme/app.py` (standalone)

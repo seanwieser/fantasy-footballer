@@ -24,8 +24,11 @@ if __name__ in {"__main__", "__mp_main__"}:
     db_manager = DbManager(args.dev_mode)
     app.add_middleware(AuthMiddleware)
     app.on_startup(db_manager.setup)
+    # Reload only in local dev (where src/ exists); off in the container, which has no src/ dir.
+    reload_enabled = os.path.isdir("src/")
     ui.run(title="Sco Chos",
            host="0.0.0.0",
            dark=None,
            storage_secret=os.getenv("STORAGE_SECRET"),
+           reload=reload_enabled,
            uvicorn_reload_dirs="src/")

@@ -1,0 +1,8 @@
+# Allowlisted gitleaks findings. Each entry is a finding fingerprint
+# (<commit>:<file>:<rule>:<line>). See docs/security.md for the full record.
+#
+# Dead GroupMe API token hardcoded in a 2023 commit of main.py (and its pre-commit-ci reformat).
+# Confirmed inactive (live request returns HTTP 401); the value is already public in history, so a
+# history rewrite buys nothing. Allowlisted so `make scan-secrets` stays clean.
+6261020913dc197bd06421d8f9bdf01a6ab6ae4e:src/fantasy_footballer/main.py:generic-api-key:72
+369a2d4699f1444df397419256025ad6727bbb23:src/fantasy_footballer/main.py:generic-api-key:71

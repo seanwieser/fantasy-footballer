@@ -10,6 +10,7 @@ from string import Template
 
 import bcrypt
 import duckdb
+from backend.encryption import decrypt_bytes
 from backend.sources.s001.extract import S001Extractor
 from backend.sources.s003.source import S003Source
 from backend.utils import (get_date_partition, get_s3_client,
@@ -95,8 +96,23 @@ class DbManager:
 
         for path in fresh_paths:
             path_no_date = re.sub("[0-9]{4}-[0-9]{2}-[0-9]{2}/", "", path)
-            if not os.path.exists(os.path.dirname(path_no_date)):
-                os.makedirs(os.path.dirname(path_no_date))
+            is_sensitive_seed = "resources/sensitive_seeds/" in path
+
+            if is_sensitive_seed and path.endswith(".enc"):
+                # Sensitive seeds are encrypted at rest in B2; decrypt to a plaintext local CSV.
+                local_path = path_no_date[:-len(".enc")]
+                os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                cloud_object = s3_client.get_object(Bucket=os.getenv("BUCKET_NAME"), Key=path)
+                with open(local_path, "wb") as seed_file:
+                    seed_file.write(decrypt_bytes(cloud_object["Body"].read()))
+                continue
+
+            if is_sensitive_seed:
+                # Transitional: a legacy plaintext seed predates encryption. Load it, but warn — the
+                # next `make rotate-secrets` push supersedes it with an encrypted `.enc` partition.
+                print(f"WARNING: sensitive seed not encrypted at rest: {path}. Run `make rotate-secrets`.")
+
+            os.makedirs(os.path.dirname(path_no_date), exist_ok=True)
             s3_client.download_file(Bucket=os.getenv("BUCKET_NAME"), Key=path, Filename=path_no_date)
         print("Resources fetched from cloud...")
 

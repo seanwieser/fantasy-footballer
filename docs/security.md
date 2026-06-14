@@ -65,12 +65,16 @@ history rewrite would buy nothing. It is allowlisted in `.gitleaksignore` and re
 These can't be scripted from the app — do them in the provider consoles:
 
 - [ ] **Least-privilege B2 key** — scope the application key to the single bucket, read/write only
-      (not the account master key). Biggest bang for the buck.
+      (not the account master key). Biggest bang for the buck. **[done — app uses a bucket-scoped key]**
+- [x] **Private bucket** — bucket is set to Private (objects aren't URL-fetchable without auth).
+- [ ] **Purge stale B2 partitions** — old date-partitioned uploads (incl. legacy pre-encryption
+      plaintext seeds) linger forever. A Backblaze age-based lifecycle rule doesn't fit: each push is a
+      new file path, not a version, and pushes are rare, so "delete after N days" could remove the live
+      copy. Tracked as **FF-021** (a `make` purge command with explicit keep-latest logic).
 - [ ] **Fly secrets, not image-baked env** — set prod secrets via `fly secrets set` (or
-      `./scripts/deploy_app.sh`); keep them out of image layers / `image/.env`.
-- [ ] **Private bucket + lifecycle rule** — keep the bucket private and add a lifecycle rule expiring
-      old date-partitioned `resources/sensitive_seeds/` uploads (otherwise every old `users.csv` and
-      pre-encryption plaintext partition lingers forever).
-- [ ] **Strong `STORAGE_SECRET`** — rotate via `make rotate-secrets`; never reuse a guessable value.
-- [ ] **Rotate ESPN cookies** periodically.
-- [ ] **gitleaks history scan** — `make scan-secrets` returns clean.
+      `./scripts/deploy_app.sh`); keep them out of image layers / `image/.env`. (Prod isn't properly
+      set up yet — see **FF-004**.)
+- [x] **Strong `STORAGE_SECRET` + `SEED_ENCRYPTION_KEY`** — rotate via `make rotate-secrets`.
+- [ ] **Rotate ESPN cookies** — re-pull from a browser when ingestion auth starts failing (no fixed
+      cadence; the cookies are ESPN-issued).
+- [x] **gitleaks history scan** — `make scan-secrets` returns clean.

@@ -21,7 +21,7 @@ reference it in conversation, branches, and commits.
 | FF-001 | Owner-uploaded headshots | frontend, backend | Low | M | Idea |
 | FF-002 | Revise sensitive-seed security | security, infra | Low | S–M | Done |
 | FF-003 | Ingest s002 (FantasyData) source | backend, dbt | Low | L | Doing |
-| FF-004 | One-command fly.io deploy | infra | Med | M | Idea |
+| FF-004 | Fly.io deployment: proper setup + one-command deploy | infra | Med | L | Idea |
 | FF-005 | Fix source-fetch memory crash | backend | Low | M | Idea |
 | FF-006 | Owner-attributed Roster Production (reframed) | frontend, dbt | Low | M | Done |
 | FF-007 | Gallery: video upload / display / metadata | frontend, backend | Low | L | Idea |
@@ -38,6 +38,7 @@ reference it in conversation, branches, and commits.
 | FF-018 | Player spotlight pages + player-centric highlights | frontend, dbt | Med | L | Idea |
 | FF-019 | Glossary page + glossary as the relational concept dimension | frontend, dbt | Med | M | Done |
 | FF-020 | Group-chat (s003) analytics: titles, mood, cross-source metrics | dbt, frontend, backend | Med | L | Idea |
+| FF-021 | Purge stale B2 data (make command) | backend, infra | Low | M | Idea |
 
 ---
 
@@ -88,19 +89,30 @@ _Source: GH #12 (in progress)._
 
 ---
 
-## FF-004 — One-command fly.io deploy
+## FF-004 — Fly.io deployment: proper setup + one-command deploy
 
-**Area:** infra · **Priority:** Med · **Effort:** M · **Status:** Idea
+**Area:** infra · **Priority:** Med · **Effort:** L · **Status:** Idea
 
-**Done when:** a single `make` target builds the container and pushes it to fly.io, after basic
-production protection (on `main`, up-to-date).
+**Done when:** the app is properly provisioned on Fly (app, volume, secrets, health check) and a
+single `make` target builds the container and ships a release, after basic production protection
+(on `main`, up-to-date).
 
-**What:** a deploy script wrapped in a `make` command that (1) checks the branch is `main` and
-up-to-date, (2) builds the docker container, (3) pushes it to fly.io. The roadmap favors staying
-local for now (see `architecture-roadmap.md`), but having one-command deploy ready de-risks the
-eventual cutover.
+**What:** two parts —
+1. **Proper initial setup (new scope):** the cloud app was only ever stood up as a one-off PoC a long
+   time ago and is **not currently configured for real use**. Do the from-scratch provisioning: create
+   the Fly app + region, a persistent volume for `resources/` (the DuckDB file + fetched seeds/media,
+   so a restart doesn't lose the built warehouse), set all secrets via `fly secrets set`
+   (`./scripts/deploy_app.sh` covers the set; verify with `fly secrets list`), a health check, and
+   right-size memory (relates to FF-005's OOM on source fetch). Validate a clean boot end-to-end:
+   `fetch_resources` decrypts the seeds (needs `SEED_ENCRYPTION_KEY` — see FF-002), ingest + dbt build
+   succeed, login works.
+2. **One-command deploy:** a deploy script wrapped in a `make` target that (1) checks the branch is
+   `main` and up-to-date, (2) builds the docker container, (3) ships the release to Fly.
 
-_Source: GH #18._
+The roadmap favors staying local for now (see `architecture-roadmap.md`), but getting prod actually
+working + one-command deploy de-risks the eventual cutover.
+
+_Source: GH #18; expanded after FF-002 — prod was never properly set up (PoC only)._
 
 ---
 
@@ -311,7 +323,36 @@ FF-007 (media — shotgun videos from the same export, see that item)._
 
 ---
 
-## FF-011 — Unify "league single best/worst week" logic
+## FF-021 — Purge stale B2 data (make command)
+
+**Area:** backend, infra · **Priority:** Low · **Effort:** M · **Status:** Idea
+
+**Done when:** a `make` target prunes superseded data from B2 — keeping the freshest date partition
+per resource/source dir and deleting older ones (incl. legacy pre-encryption plaintext seed
+partitions) — safely, without ever deleting the live copy.
+
+**Why a command, not a B2 lifecycle rule:** the natural answer (a Backblaze lifecycle rule expiring
+old `resources/sensitive_seeds/` uploads) doesn't fit our access pattern. Every push writes a *new*
+file path (`…/<date>/<file>`), so partitions aren't "versions" of one file — an age-based rule can't
+express "keep the latest, delete the rest," and because pushes are **rare**, a delete-after-N-days
+rule risks deleting the only/current copy before the next push. So the keep-latest logic has to be
+explicit and is non-trivial — hence a command we run deliberately.
+
+**What it does:** mirror the "freshest date partition wins" selection that `fetch_resources` /
+`get_fresh_table_paths` already compute (`backend/db.py`), then **delete everything that isn't the
+freshest** for each dir/table — both the `resources/` seed+media partitions and the date-partitioned
+`data/sources/<src>/...` JSON. Owner-operated (B2 mutation): a `--dry-run` that lists what would be
+deleted first, then the real prune. Also clears the one-time backlog of legacy plaintext seed
+partitions left over from before FF-002 encryption.
+
+**Pieces:** a `prune_cloud_storage()` helper in `backend/utils.py` (or a `scripts/` entry) reusing the
+existing freshness logic; a `make purge-stale-data` target (cf. `make purge-imessage`); `--dry-run`
+default-safe. **Open questions:** keep last N partitions vs. only the freshest (a small grace buffer is
+safer); whether source JSON and resources need different retention; confirm nothing reads an older
+partition before deleting.
+
+_Source: FF-002 follow-up — the seed-hygiene lifecycle rule turned out to need explicit keep-latest
+logic given rare pushes._
 
 **Area:** dbt · **Priority:** Low · **Effort:** S · **Status:** Done
 

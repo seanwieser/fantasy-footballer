@@ -4,7 +4,7 @@ import json
 import os
 
 import boto3
-from backend.crypto import encrypt_bytes
+from backend.encryption import encrypt_bytes
 
 NUM_NFL_WEEKS = 18
 

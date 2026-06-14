@@ -153,11 +153,11 @@ To add a source/table see CLAUDE.md → "Adding a new source"; remember to regis
   path; stamps each row with `meta__source_path` + `meta__date_effective` (these power
   `stg__source_metadata` / `int__source_freshness`).
 - **`write_sensitive_seeds(encryption_key=None)`** — **encrypt** each `resources/sensitive_seeds/*.csv`
-  (Fernet, `SEED_ENCRYPTION_KEY`; `backend/crypto.py`) and upload as `<name>.csv.enc` to B2
+  (Fernet, `SEED_ENCRYPTION_KEY`; `backend/encryption.py`) and upload as `<name>.csv.enc` to B2
   (date-partitioned). Local CSVs stay plaintext for dbt; only the B2-at-rest copy is ciphertext. No
   plaintext-write fallback — a missing key is a hard error. `fetch_resources` decrypts on the way back.
 - **`get_date_partition()`** — `YYYY-MM-DD`. Const `NUM_NFL_WEEKS = 18`.
-- **`backend/crypto.py`** — `generate_key` / `encrypt_bytes` / `decrypt_bytes` (Fernet) for the above.
+- **`backend/encryption.py`** — `generate_key` / `encrypt_bytes` / `decrypt_bytes` (Fernet) for the above.
   Rotate the key + re-push the seeds in one step with `make rotate-secrets` (`scripts/rotate_secrets.py`).
 
 ## Cloud storage (Backblaze B2, S3-compatible)

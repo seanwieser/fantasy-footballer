@@ -14,7 +14,7 @@ import re
 import secrets
 import sys
 
-from backend.crypto import generate_key
+from backend.encryption import generate_key
 from backend.utils import write_sensitive_seeds
 
 # var -> human label, for the index table.

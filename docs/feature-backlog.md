@@ -608,7 +608,7 @@ secrets, strong `STORAGE_SECRET`, git-history scan) and we've made a deliberate 
 at-rest encryption.
 
 **What (shipped):** the at-rest call was made — **sensitive seeds are now encrypted in B2** (Fernet,
-keyed by `SEED_ENCRYPTION_KEY`; `backend/crypto.py`). `write_sensitive_seeds` uploads `<name>.csv.enc`;
+keyed by `SEED_ENCRYPTION_KEY`; `backend/encryption.py`). `write_sensitive_seeds` uploads `<name>.csv.enc`;
 `fetch_resources` decrypts back to plaintext local CSVs at boot (dbt seeds read plaintext). The key
 lives in a different trust boundary than the B2 credentials, hardening the "B2 leaked but app secret
 didn't" case. Mandatory single path (no plaintext fallback), with transitional tolerance for legacy

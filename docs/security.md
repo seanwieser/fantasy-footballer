@@ -20,7 +20,7 @@ backstop, so none of this is an emergency.
   uploads `<name>.csv.enc`; `fetch_resources` decrypts back to plaintext local CSVs at boot (dbt seeds
   read plaintext). The key lives in a different trust boundary than the B2 credentials (a Fly secret /
   local `.envrc` line), so it hardens the "B2 leaked but the app secret didn't" case. Code:
-  `backend/crypto.py`, `backend/utils.py`, `backend/db.py`.
+  `backend/encryption.py`, `backend/utils.py`, `backend/db.py`.
 - **Local-only files** (`resources/local/`, e.g. iMessage `owner_handles.csv`) never sync to B2 at all.
 
 ## Secrets inventory

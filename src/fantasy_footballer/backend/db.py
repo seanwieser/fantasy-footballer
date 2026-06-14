@@ -10,7 +10,7 @@ from string import Template
 
 import bcrypt
 import duckdb
-from backend.crypto import decrypt_bytes
+from backend.encryption import decrypt_bytes
 from backend.sources.s001.extract import S001Extractor
 from backend.sources.s003.source import S003Source
 from backend.utils import (get_date_partition, get_s3_client,

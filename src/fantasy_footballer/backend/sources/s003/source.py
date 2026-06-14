@@ -1,4 +1,5 @@
-"""Deployed-side descriptor for source s003 (the league iMessage group chat).
+"""
+Deployed-side descriptor for source s003 (the league iMessage group chat).
 
 The cloud app only needs to *ingest* s003 from B2 at boot — it never extracts it (that runs locally
 on the owner's machine; see `scripts/imessage/`). So only this lightweight descriptor lives in the

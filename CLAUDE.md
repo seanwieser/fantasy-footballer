@@ -301,6 +301,12 @@ A "source" = one upstream data provider (currently just `s001` = ESPN). To add o
 - isort runs in pre-commit.
 - All inline pylint disables should be narrow and commented. There are existing
   examples (`# pylint: disable=broad-exception-caught`) — follow that style.
+- **Be conservative with inline comments — default to none.** Lean on self-documenting code:
+  clear names, small functions, and docstrings (required on modules/functions) carry the intent.
+  Only add an inline comment for genuinely non-obvious *logic* (a subtle invariant, a safety
+  guarantee, a workaround) that the code itself can't convey. **Don't restate** what a name,
+  docstring, type, `properties.yml` description, or a doc map (MODELS.md/BACKEND.md/FRONTEND.md)
+  already says — if you're tempted to narrate what the next few lines plainly do, drop the comment.
 - **Inline comments (code, SQL, and config) describe the current state/intent, not the
   change that produced it.** Diff-narrating phrasing — "now lives in…", "moved from…",
   "removed the X flag" — goes stale the moment the next change lands and the reader has no
@@ -417,6 +423,37 @@ Bundle related backfills/refactors into the chosen PR rather than splitting (ear
   spots print SQL + re-raise; preserve that pattern when adding new DB calls.
 - The `groupme/` module is a standalone script, not part of the NiceGUI app.
   Don't try to integrate it into `main.py`.
+- **`s003` (iMessage group chat) is local-only + append-ingested + privacy-scoped.** Its extract
+  runs on the owner's machine via `make extract-imessage[-full]` (reads the local `chat.db` + the
+  `imessage-exporter` binary) — **never** from `/admin` like `s001`. `extract-imessage` adds an
+  incremental slice; `extract-imessage-full` purges B2 `s003` (via `purge_cloud()`, also exposed as
+  `make purge-imessage`) and re-exports all history for a clean rebuild. **The extraction code lives in
+  `scripts/imessage/` (not the deployed `src/` package)** since it can't run in the cloud; the
+  deployed side is only the thin `backend/sources/s003/source.py` ingest descriptor (`S003Source`),
+  and bs4 is an optional poetry group (`--with imessage`) so neither ships in the image. To isolate one
+  thread we prune a copy of `chat.db` (the `-t` filter is a greedy union, no thread targeting): drop
+  Apple's triggers, then delete every non-target row from `chat`, `chat_message_join`, **and `message`**
+  (pruning `message` is what stops the exporter dumping all other threads into `orphaned.html`), and
+  export the pruned copy with `-p`. **Owner attribution comes from `chat.db`, not the HTML sender** —
+  `imessage-exporter` renders the sender as a macOS *contact name*, so we map each message/tapback by its
+  iMessage GUID to `handle.id` (raw phone/email) → `owner_id`; reactions are read straight from the
+  `message` table's tapback rows (`associated_message_type`/`associated_message_guid`), not parsed from HTML.
+  Ingest is **append** (`INGEST_MODE`): every incremental slice is unioned and `base_s003__*` dedupe
+  on the uids. Raw message text lives only in base/staging; **every model from `int__owner_chat_activity`
+  onward (and the `/group_chat` page) is owner-grain counts, never content**. The `handle.id`→`owner_id`
+  map is the local-only `resources/local/owner_handles.csv` (`handle,owner_id`, plus a `Me` row for the
+  owner's own sent messages; not a dbt seed). It lives in **`resources/local/`** — the never-synced
+  directory — *not* `sensitive_seeds/`, so neither `make push-sensitive-seeds` nor the boot-time
+  `fetch_resources()` ever moves it; the deployed app never needs it (only the local extract does), so B2
+  only ever holds `owner_id`. (Directory convention: `sensitive_seeds/` = sensitive dbt seeds that sync to
+  B2; `resources/local/` = sensitive files that stay on the machine.) The `s003`
+  dbt models only build after the owner's first extract + ingest. **Get league consent before the first
+  extract.**
+  - **Never `select` from a table that holds raw message text** (`main.s003.messages`, `base_s003__messages`,
+    `stg__chat_messages` — anything with a `text`/`bubble` column). When debugging that layer, only run
+    **aggregate** queries (counts, `min`/`max`, distinct `owner_id`, group-bys) that can't surface message
+    content — and have the *owner* run them. Read freely from `int__owner_chat_activity` onward; those are
+    owner-grain counts by construction.
 - `2018` data is special-cased in `MatchupTransformer` (uses `scoreboard` instead
   of `box_scores`). When working with matchup data, account for it.
 - **League Highlights and the H2H Dashboard should stay organized the same way.** The two

@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: chat_activity_leaderboard
+    description: >
+      One row per owner-year of league group-chat engagement (message volume, avg words,
+      attachments, reactions given/received, share of chat). The /group_chat page's only mart —
+      aggregate counts only, no message text. Filter by year for a season leaderboard.
+    columns:
+      - name: year
+        description: Calendar year.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        description: Owner name.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: owner_id
+        description: Owner identifier, hidden in the table and used to cross-link to the owner spotlight.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: message_count
+        description: Messages the owner sent that year.
+        data_type: bigint
+        data_tests:
+          - not_null
+      - name: avg_word_count
+        description: Average words per message.
+        data_type: double
+        data_tests:
+          - not_null
+      - name: attachment_count
+        description: Attachments/stickers the owner sent that year.
+        data_type: bigint
+        data_tests:
+          - not_null
+      - name: reactions_received
+        description: Tapbacks the owner's messages received.
+        data_type: bigint
+        data_tests:
+          - not_null
+      - name: reactions_given
+        description: Tapbacks the owner gave.
+        data_type: bigint
+        data_tests:
+          - not_null
+      - name: share_of_chat_pct
+        description: The owner's share of all messages that year, as a percentage.
+        data_type: double
+        data_tests:
+          - not_null

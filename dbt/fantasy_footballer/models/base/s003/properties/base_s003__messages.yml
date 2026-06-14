@@ -1,0 +1,80 @@
+version: 2
+
+models:
+  - name: base_s003__messages
+    description: >
+      One row per group-chat message (deduped on message_uid across overlapping incremental
+      slices). 1:1 with the s003 messages source: casts + the dedupe only. Holds the raw text;
+      downstream staging/marts surface only aggregates, never the text itself.
+    columns:
+      - name: message_uid
+        description: Stable message id — the iMessage GUID when present, else a hash of timestamp+sender+text.
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: owner_id
+        description: Sender's owner_id (sentinel -1 for any handle not in the local attribution map).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: sent_at
+        description: Message timestamp.
+        data_type: timestamp
+        data_tests:
+          - not_null
+      - name: year
+        description: Calendar year of the message (B2 partition key).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: message_text
+        description: Raw message body. Private to the base/staging layers — never surfaced past the marts.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: word_count
+        description: Whitespace-token count of the message body.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: char_count
+        description: Character length of the message body.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: has_attachment
+        description: Whether the message carried at least one attachment or sticker.
+        data_type: boolean
+        data_tests:
+          - not_null
+      - name: attachment_count
+        description: Number of attachments/stickers on the message.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: service
+        description: Delivery service for sent messages (iMessage/SMS); "Unknown" for received.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: thread_name
+        description: The group chat's display name at export time.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: meta__source_path
+        description: B2 key the row was ingested from.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: meta__date_effective
+        description: Extract (slice) date — used to pick the latest copy on dedupe.
+        data_type: date
+        data_tests:
+          - not_null
+      - name: meta__date_pulled
+        description: Ingest date stamped when the raw table was loaded from B2.
+        data_type: date
+        data_tests:
+          - not_null

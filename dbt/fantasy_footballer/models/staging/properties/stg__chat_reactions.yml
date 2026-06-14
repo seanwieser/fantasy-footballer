@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: stg__chat_reactions
+    description: >
+      One row per tapback with both the reactor and the reacted-to author resolved to owner
+      names — the basis for "reactions given" / "reactions received" rollups.
+    columns:
+      - name: reaction_uid
+        description: Stable reaction id.
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: message_uid
+        description: The message this tapback is on.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: reactor_owner_id
+        description: Reactor's owner_id (sentinel -1 if unmapped).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: reactor_owner_name
+        description: Reactor's owner name ('Unknown' for the sentinel / unmapped handles).
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: reaction_type
+        description: Tapback label.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        description: Calendar year of the parent message.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: message_owner_id
+        description: owner_id of the message author who received the tapback (null if message missing).
+        data_type: int
+      - name: message_owner_name
+        description: Owner name of the message author who received the tapback.
+        data_type: varchar
+        data_tests:
+          - not_null

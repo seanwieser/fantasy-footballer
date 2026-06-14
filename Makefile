@@ -24,6 +24,18 @@ down:
 run-dbt:
 	./scripts/run_dbt_local.sh
 
+# Local-only s003 iMessage extract → B2 (code in scripts/imessage/). Owner-operated; needs Full Disk
+# Access, the imessage-exporter binary, and `poetry install --with imessage`. -full purges B2 and
+# re-exports all history (first run / rebuild); extract-imessage adds an incremental slice.
+extract-imessage:
+	PYTHONPATH=src/fantasy_footballer:scripts poetry run python3 -m imessage
+
+extract-imessage-full:
+	PYTHONPATH=src/fantasy_footballer:scripts poetry run python3 -m imessage --full
+
+purge-imessage:
+	PYTHONPATH=src/fantasy_footballer:scripts poetry run python3 -m imessage --purge
+
 # Upload local sensitive seeds (resources/sensitive_seeds/*.csv) to B2 under today's date partition.
 # Run from repo root so the relative resources/ path resolves; needs B2 creds (.envrc) loaded.
 push-sensitive-seeds:

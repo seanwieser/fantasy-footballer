@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: base_s003__reactions
+    description: >
+      One row per tapback on a group-chat message (deduped on reaction_uid across overlapping
+      incremental slices, latest extract wins so changed reactions update). 1:1 with the s003
+      reactions source: casts + the dedupe only.
+    columns:
+      - name: reaction_uid
+        description: Stable reaction id — hash of message_uid + reactor_owner_id (one live tapback per pair).
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: message_uid
+        description: The message this tapback is on.
+        data_type: varchar
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('base_s003__messages')
+                field: message_uid
+      - name: reactor_owner_id
+        description: Reactor's owner_id (sentinel -1 for any handle not in the local attribution map).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: reaction_type
+        description: Tapback label (Loved, Liked, Laughed at, Emphasized, Disliked, Questioned).
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        description: Calendar year of the parent message (B2 partition key).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: meta__source_path
+        description: B2 key the row was ingested from.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: meta__date_effective
+        description: Extract (slice) date — used to pick the latest copy on dedupe.
+        data_type: date
+        data_tests:
+          - not_null
+      - name: meta__date_pulled
+        description: Ingest date stamped when the raw table was loaded from B2.
+        data_type: date
+        data_tests:
+          - not_null

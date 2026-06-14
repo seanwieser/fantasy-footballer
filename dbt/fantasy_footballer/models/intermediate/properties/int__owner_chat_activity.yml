@@ -1,0 +1,64 @@
+version: 2
+
+models:
+  - name: int__owner_chat_activity
+    description: >
+      One row per owner-year of group-chat engagement: message volume, words, attachments,
+      active weeks, and reactions given/received. Privacy-preserving — counts only, no message
+      text. Sentinel (unmapped) handles are excluded. Feeds the chat_activity_leaderboard mart.
+    columns:
+      - name: owner_id
+        description: Owner identifier.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        description: Owner name.
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: year
+        description: Calendar year.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: message_count
+        description: Messages sent by the owner that year.
+        data_type: bigint
+        data_tests:
+          - not_null
+      - name: total_words
+        description: Total words across the owner's messages that year.
+        data_type: bigint
+        data_tests:
+          - not_null
+      - name: avg_word_count
+        description: Average words per message.
+        data_type: double
+        data_tests:
+          - not_null
+      - name: attachment_count
+        description: Total attachments/stickers the owner sent that year.
+        data_type: bigint
+        data_tests:
+          - not_null
+      - name: active_weeks
+        description: Distinct calendar weeks the owner sent at least one message.
+        data_type: bigint
+        data_tests:
+          - not_null
+      - name: reactions_received
+        description: Tapbacks the owner's messages received that year.
+        data_type: bigint
+        data_tests:
+          - not_null
+      - name: reactions_given
+        description: Tapbacks the owner gave that year.
+        data_type: bigint
+        data_tests:
+          - not_null
+      - name: share_of_chat_pct
+        description: The owner's share of all messages that year, as a percentage.
+        data_type: double
+        data_tests:
+          - not_null

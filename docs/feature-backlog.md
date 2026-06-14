@@ -32,11 +32,12 @@ reference it in conversation, branches, and commits.
 | FF-012 | H2H Dashboard | dbt, frontend | Med | M | Done |
 | FF-013 | Shootout / Slugfest records in League Highlights | dbt | Low | S | Done |
 | FF-014 | Postseason history page | frontend, dbt | Med | M | Done |
-| FF-015 | iMessage group-chat data pipeline + analytics | backend, dbt | Low | L | Idea |
+| FF-015 | iMessage group-chat data pipeline + analytics | backend, dbt, frontend | Low | L | Done |
 | FF-016 | Revise pre-Claude-Code pages/dbt/backend | frontend, dbt, backend | Med | L | Done |
 | FF-017 | Roster-picker value: acquisition cost vs utilized points | dbt, frontend | Med | L | Idea |
 | FF-018 | Player spotlight pages + player-centric highlights | frontend, dbt | Med | L | Idea |
 | FF-019 | Glossary page + glossary as the relational concept dimension | frontend, dbt | Med | M | Done |
+| FF-020 | Group-chat (s003) analytics: titles, mood, cross-source metrics | dbt, frontend, backend | Med | L | Idea |
 
 ---
 
@@ -172,8 +173,16 @@ by Bunny Stream. Sub-pieces (were separate GH issues):
   spotlight, League Highlights, etc. Stretch: simple thumbs up/down voting. _GH #6._
 - **Edit metadata** — an "Edit" button per video calling the TUS/Bunny update API to correct metadata
   after upload. _GH #8._
+- **Auto-source from the group chat (s003)** — most shotgun videos are dropped into the iMessage group
+  chat, so the FF-015 extract could feed them straight into Bunny Stream instead of a manual upload. The
+  extract currently runs `imessage-exporter -c disabled` (no attachments); switching the copy-method to
+  `-c clone` (copies originals as-is, e.g. `.MOV`) or `-c full` (also converts `.MOV`→`.MP4`, needs
+  ffmpeg) writes every group-chat photo/video into the export's `attachments/` folder. Bunny Stream
+  transcodes on ingest, so `-c clone` likely suffices (avoids a local ffmpeg dependency + conversion
+  time). Open piece: classifying which attachments are shotgun videos vs. random memes before
+  auto-uploading. Related: FF-015 (the extract), FF-020 (s003 analytics).
 
-_Source: GH #7 (parent), #5, #6, #8._
+_Source: GH #7 (parent), #5, #6, #8; s003 auto-source added after the FF-015 pipeline landed._
 
 ---
 
@@ -217,50 +226,6 @@ have current state, not a stream.
 **Open questions:** event granularity + schema; where prior state lives (B2 snapshot vs dbt snapshots vs
 a small persisted table); de-duplication / "already notified" tracking; which consumer to build first;
 whether this wants the eventual FastAPI seam (see `architecture-roadmap.md`) as its read API.
-
----
-
-## FF-015 — iMessage group-chat data pipeline + analytics
-
-**Area:** backend, dbt · **Priority:** Low · **Effort:** L · **Status:** Idea
-
-**Done when:** the league's iMessage group-chat history is ingested as a new source (raw export → B2 on
-the same date-partitioned layout as `s001`, staging models exposing messages/reactions at a tidy grain)
-and at least one analytics use case is built on it.
-
-**What:** treat the group chat as a first-class **data source** — the league has years of trash talk,
-trade haggling, and gameday reactions that nothing currently mines. iMessage history is locally
-extractable (the macOS `chat.db` SQLite store, or a one-off export) → upload to B2 → ingest like any
-other source → build staging/intermediate models → surface insights. This is the **ingest + analytics**
-side; pushing alerts *into* the chat is the consumer side tracked in FF-010.
-
-**Pipeline pieces it will need:**
-- An **extractor** for the chat history (`chat.db` SQLite or an export tool), normalized to one row per
-  message (sender owner, timestamp, text, thread/reply, attachments) + one row per **reaction/tapback**
-  (message, reactor, type). Map chat participants → `owner_id`.
-- **Upload to B2** under a new source (e.g. `s003`), same partition pattern as ESPN, then the usual
-  `ingest_raw_data_from_cloud` → `base_s003__messages` / `base_s003__reactions` → staging.
-- **PII / consent care** — chat content is personal; it's owner data, so it lives in the
-  **sensitive/gitignored** path, never the git-tracked seeds (see CLAUDE.md gotchas + the public-repo
-  constraint). Get league buy-in before ingesting (overlaps OD-style discussion).
-
-**Brainstormed analytics use cases (to prioritize later):**
-- **Trash-talk leaderboard** — message volume + most-reacted messages per owner; who runs their mouth.
-- **Reaction tallies** — most-loved / most-laughed / most-disliked messages (tapback counts), "burn of
-  the year."
-- **Activity timeline** — chat volume by week/season, spikes around the draft, trade deadline, big
-  upsets; correlate chatter with on-field results (do winners talk more?).
-- **Trade-negotiation history** — surface trade-proposal threads alongside the actual roster moves
-  (ties into FF-006 ownership-change work).
-- **Catchphrases / nicknames** — per-owner word clouds, recurring slang (feeds OD-001 naming culture).
-- **LLM season recap** — feed chat + results to a model for a weekly/season writeup (a concrete
-  consumer for FF-010's event feed).
-- **Profanity / "curse index"** — playful per-owner counter.
-
-**Why later:** it's a brand-new source (extractor + schemas + B2 layout) and needs a league consent call
-on ingesting personal chat data, so it's a deliberate L. Relates to the dormant `groupme/` puller
-(another chat source we already keep around) and to FF-010 (the events/notification consumer that could
-push *back* into the chat).
 
 ---
 
@@ -335,6 +300,54 @@ normalization for a fair "best player"; whether player highlights get their own 
 spotlights; historical depth (data is 2018+).
 
 _Source: discussed during the FF-016 nav PR._
+
+---
+
+## FF-020 — Group-chat (s003) analytics: titles, mood, cross-source metrics
+
+**Area:** dbt, frontend, backend · **Priority:** Med · **Effort:** L · **Status:** Idea
+
+**Done when:** the s003 group-chat source feeds owner superlatives/titles into the metric catalogs
+(League Highlights + H2H) and an owner-spotlight "chat persona", with any content-derived metrics
+(mood, mentions) gated behind the privacy decision below.
+
+**What:** FF-015 landed the pipeline + a basic `/group_chat` leaderboard. This is the analytics
+build-out — turning chat activity into titles, leaderboards, and cross-source insights, reusing the
+existing catalog/glossary machinery. Be inclusive with ideas now; prune at build time.
+
+**Idea buckets:**
+- **Superlatives / titles** (into the three catalogs — `all_time_record_metrics`,
+  `season_highlight_metrics`, `h2h_metrics`, plus a `glossary_terms` row each): The Yapper / The Ghost
+  (most/fewest messages, share-of-chat %), The Philosopher / One-Liner (avg word count), The Comedian
+  (most `Laughed` received), The Villain (most `Disliked` + `Questioned`), Most Loved, The Hype Man
+  (reactions given), The Lurker (high given / low sent), Meme Lord (attachments), engagement rate
+  (reactions received per message).
+- **Behavioral / timing** (timestamp-only, no content): Night Owl / Early Bird (by hour), Weekend
+  Warrior (weekday vs weekend), gameday chatter spikes.
+- **Cross-source with fantasy (s001) — the novel vein:** "All Talk, No Walk" (chat volume vs season
+  record), talks-more-when-winning / quieter-when-losing, draft-day chatter spike, a league activity
+  timeline by week overlaid with playoffs/draft.
+- **Mood:** (a) *reaction-proxy* mood — positive (`Loved`/`Liked`/`Laughed`/`Emphasized`) vs negative
+  (`Disliked`/`Questioned`) ratio over time; count-safe, recommended v1. (b) *lexicon sentiment* on
+  message text → per-owner/week score; content-derived → privacy decision.
+- **"Word cloud" / mentions:** a literal word cloud surfaces raw text (off-limits under the count-only
+  rule). Privacy-safe reframe: scan text *in staging* against s001 player/team names → most-mentioned
+  player/team (counts only). Most-mentioned owner (first names) is the one path to a *pairwise* H2H chat
+  axis (there are no parsed @mentions otherwise). Content-derived → privacy decision.
+- **Surfacing:** an owner-spotlight "chat persona" card (volume, favorite reaction given, active hours,
+  their superlatives) is the highest-value / lowest-effort home; `/group_chat` grows from the stub.
+
+**Privacy decision (gates the mood + mention ideas):** everything past `int__owner_chat_activity` is
+owner-grain counts, never content. Reaction-proxy mood + timing/volume metrics are fine as-is. Lexicon
+sentiment and entity-mention counts *derive from* text (computed upstream, only numbers emitted) —
+decide whether content-derived numbers are acceptable before building those.
+
+**Scoping note:** natural first PR = superlatives into the three catalogs + the spotlight chat-persona
+card (reuses catalog/glossary machinery, keeps League Highlights ↔ H2H in sync). Cross-source metrics
+are the standout follow-up.
+
+_Source: brainstormed after the FF-015 pipeline landed. Related: FF-019 (glossary machinery),
+FF-007 (media — shotgun videos from the same export, see that item)._
 
 ---
 
@@ -588,3 +601,38 @@ catalogs reference those definitions relationally instead of each re-explaining 
 
 _The redundancy-reduction framing (glossary as the relational table the seeds reference) came from the
 FF-009 luck-labeling discussion._
+
+---
+
+## FF-015 — iMessage group-chat data pipeline + analytics
+
+**Area:** backend, dbt, frontend · **Priority:** Low · **Effort:** L · **Status:** Done
+
+**Done when:** the league's iMessage group-chat history is ingested as a new source and at least one
+aggregate analytics use case is built on it.
+
+**What (shipped):** the league group chat as source **`s003`**, end to end —
+
+- **Local-only extract** (`make extract-imessage` / `extract-imessage-full` → `python3 -m imessage`,
+  code in **`scripts/imessage/`** — kept out of the deployed image; the deployed side is only the thin
+  `S003Source` ingest descriptor): snapshots `chat.db`, **prunes the copy to the one
+  target thread** and exports it with `imessage-exporter -p` (the `-t` filter is a greedy union and
+  can't target a thread), parses the 4.x HTML (`parse.py`, mirroring the exporter's askama templates)
+  into message + reaction rows, and uploads **incremental windowed slices** to B2 (re-exports from the
+  last slice minus a day; full history on first run).
+- **Append-mode ingest** (`INGEST_MODE` + `DbManager.get_all_table_paths`): every slice is unioned and
+  **`base_s003__{messages,reactions}` dedupe on stable uids** (iMessage GUID when present, else a
+  timestamp+sender+text hash; reactions on message+reactor so a changed tapback updates).
+- **dbt:** `base → stg__chat_{messages,reactions} → int__owner_chat_activity →
+  marts/group_chat/chat_activity_leaderboard`. Raw text lives only in base/staging; **every model from
+  the intermediate onward is owner-grain counts**.
+- **Frontend:** the **`/group_chat`** page — a year-filtered engagement leaderboard (messages, avg
+  words, attachments, reactions given/received, share of chat), rows cross-linked to owner spotlights.
+  Member-gated splash tile.
+- **Privacy:** sender→owner attribution via the local-only `resources/sensitive_seeds/owner_handles.csv`
+  (`handle,owner_id`; never uploaded — B2 stores `owner_id`). Needs league consent before the first
+  extract.
+
+**Future analytics (deferred):** reaction "burn of the year" / most-loved leaderboards, activity
+timeline (chatter vs results), per-owner catchphrases/word clouds, LLM season recap (a concrete consumer
+for FF-010's event feed). The v1 leaderboard is the seed; richer aggregates are additive.

@@ -21,6 +21,7 @@ class S001Extractor:
         DraftPickTransformer
     ]
     SOURCE_NAME = "s001"
+    INGEST_MODE = "snapshot"
 
     @staticmethod
     def _extract(years, transformer_classes) -> list[Transformer]:

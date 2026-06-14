@@ -17,6 +17,7 @@ SECTION_TILES = [
     ("Strength of Schedule", "sym_s_calendar_month", "grey", "/strength_of_schedule", 0),
     ("Roster Production", "inventory_2", "cyan", "/roster_production", 0),
     ("Glossary", "menu_book", "blue-grey", "/glossary", 0),
+    ("Group Chat", "forum", "green", "/group_chat", 1),
     ("Gallery", "photo_library", "pink", "/gallery", 1),
     ("Admin", "settings", "blue-grey", "/admin", 2),
 ]

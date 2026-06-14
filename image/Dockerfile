@@ -5,14 +5,14 @@ ENV POETRY_HOME="/opt/poetry" \
     POETRY_VIRTUALENVS_CREATE=false \
     POETRY_VIRTUALENVS_IN_PROJECT=false \
     POETRY_NO_INTERACTION=1 \
-    POETRY_VERSION=1.8.3
+    POETRY_VERSION=2.4.1
 ENV PATH="$PATH:$POETRY_HOME/bin"
 
 RUN pip install "poetry==${POETRY_VERSION}"
 COPY ./pyproject.toml .
 COPY ./poetry.lock .
 
-RUN poetry install --no-interaction --no-ansi
+RUN poetry install --no-interaction --no-ansi --no-root
 
 COPY ./src/fantasy_footballer .
 COPY ./dbt/fantasy_footballer ./dbt/fantasy_footballer/

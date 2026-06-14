@@ -84,6 +84,7 @@ fallback) — shared by the League Highlights page, the H2H dashboard, and the o
 | `/draft_analysis` | `draft_analysis/draft_analysis.py` | 0 | — (composes) | Tabs of two sub-modules ↓. |
 | ↳ snake | `…/draft_analysis/snake_draft_table.py` | — | `snake_draft_table` | Own `SnakeDraftDropDownSelection`. Rows **cross-link** to the owner's spotlight for that draft year (`rowClick` + hidden `owner_id`). |
 | ↳ auction | `…/draft_analysis/auction_draft_table.py` | — | `auction_draft_table` | Own `AuctionDraftDropDownSelection`. Rows **cross-link** to the owner's spotlight for that draft year (`rowClick` + hidden `owner_id`). |
+| `/group_chat` | `group_chat.py` | 1 | `chat_activity_leaderboard` | League iMessage (source s003) engagement leaderboard. Filter pattern (year only; default = latest chat year, `get_chat_years()` reads distinct years from the mart so it's empty-safe before the first extract). Columns: Messages / Avg Words / Attachments / Reactions Received / Reactions Given / Share %. **Aggregate counts only — no message text reaches the page.** Rows **cross-link** to the owner spotlight (`rowClick` + hidden `owner_id`). Member-gated (level 1) since chat data is personal. |
 | `/gallery` | `gallery/home.py` | 1 | media (owner headshots) | `resources/media/owners/<id>.jpg`. |
 | `/admin` | `admin/home.py` | 2 | — | Ingest / transform / add user / shutdown; log streaming via `multiprocessing` queue. |
 

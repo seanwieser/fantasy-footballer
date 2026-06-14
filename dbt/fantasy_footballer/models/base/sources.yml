@@ -258,3 +258,40 @@ sources:
             data_type: date
           - name: meta__date_pulled
             data_type: date
+
+  - name: s003
+    tables:
+      - name: messages
+        description: One row per chat message in the league group thread (raw text + sender owner_id).
+        columns:
+          - name: message_uid
+            data_tests:
+              - not_null
+          - name: owner_id
+            data_tests:
+              - not_null
+          - name: sent_at
+            data_tests:
+              - not_null
+          - name: year
+            data_tests:
+              - not_null
+          - name: meta__date_pulled
+            data_tests:
+              - not_null
+      - name: reactions
+        description: One row per tapback on a message (reactor owner_id + reaction type).
+        columns:
+          - name: reaction_uid
+            data_tests:
+              - not_null
+          - name: message_uid
+            data_tests:
+              - not_null
+          - name: reactor_owner_id
+            data_tests:
+              - not_null
+          - name: meta__date_pulled
+            data_tests:
+              - not_null
+            data_type: date

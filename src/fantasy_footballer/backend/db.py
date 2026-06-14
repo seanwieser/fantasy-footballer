@@ -11,6 +11,7 @@ from string import Template
 import bcrypt
 import duckdb
 from backend.sources.s001.extract import S001Extractor
+from backend.sources.s003.source import S003Source
 from backend.utils import (get_date_partition, get_s3_client,
                            write_sensitive_seeds)
 from dbt.cli.main import dbtRunner, dbtRunnerResult
@@ -19,7 +20,7 @@ DB_NAME = "fantasy_footballer"
 DB_PATH = f"resources/{DB_NAME}.duckdb"
 SENSITIVE_SEEDS_PATH = "resources/sensitive_seeds"
 
-SOURCE_EXTRACTOR_MAP = {e.SOURCE_NAME: e for e in [S001Extractor]}
+SOURCE_EXTRACTOR_MAP = {e.SOURCE_NAME: e for e in [S001Extractor, S003Source]}
 
 SECRET_SQL = f"""
 CREATE OR REPLACE SECRET cloud_storage_secret (
@@ -116,7 +117,10 @@ class DbManager:
                         queue.put(f"Failed to create db schema: {source}")
                     print(create_schema_sql)
 
-                table_paths = DbManager.get_fresh_table_paths(source)
+                if getattr(SOURCE_EXTRACTOR_MAP[source], "INGEST_MODE", "snapshot") == "append":
+                    table_paths = DbManager.get_all_table_paths(source)
+                else:
+                    table_paths = DbManager.get_fresh_table_paths(source)
                 for table in SOURCE_EXTRACTOR_MAP[source].get_table_names():
                     fqtn = f"{DB_NAME}.{source}.{table}"
                     file_paths_str = json.dumps(table_paths[table])
@@ -174,6 +178,22 @@ class DbManager:
                 fresh_table_paths[table].append(f"s3://{os.getenv('BUCKET_NAME')}/{dir_path}/{file_name}")
 
         return fresh_table_paths
+
+    @staticmethod
+    def get_all_table_paths(source):
+        """Fetch every cloud storage path for the source (all slices) — used by append-mode ingest."""
+        s3_client = get_s3_client()
+        objects = s3_client.list_objects_v2(Bucket=os.getenv("BUCKET_NAME"))
+
+        all_table_paths = {table: [] for table in DbManager.get_all_tables_by_source()[source]}
+        for file_info in objects.get("Contents", []):
+            file_name = file_info["Key"].split("/")[-1]
+            if file_name.startswith(source) and file_name.endswith(".json"):
+                file_table = file_name.replace(".json", "").split("_")[1]
+                if file_table in all_table_paths:
+                    all_table_paths[file_table].append(f"s3://{os.getenv('BUCKET_NAME')}/{file_info['Key']}")
+
+        return all_table_paths
 
     @staticmethod
     def add_user(username: str, password: str):

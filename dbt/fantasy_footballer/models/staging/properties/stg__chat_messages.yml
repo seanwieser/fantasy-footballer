@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: stg__chat_messages
+    description: >
+      One row per group-chat message with the sender's owner_name attached and the raw text
+      dropped — only the structural/count fields (word_count, char_count, attachment flags) flow
+      downstream so no model past the base layer carries message content.
+    columns:
+      - name: message_uid
+        description: Stable message id.
+        data_type: varchar
+        data_tests:
+          - not_null
+          - unique
+      - name: owner_id
+        description: Sender's owner_id (sentinel -1 if unmapped).
+        data_type: int
+        data_tests:
+          - not_null
+      - name: owner_name
+        description: Sender's owner name ('Unknown' for the sentinel / unmapped handles).
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: sent_at
+        description: Message timestamp.
+        data_type: timestamp
+        data_tests:
+          - not_null
+      - name: year
+        description: Calendar year of the message.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: word_count
+        description: Whitespace-token count of the message body.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: char_count
+        description: Character length of the message body.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: has_attachment
+        description: Whether the message carried an attachment/sticker.
+        data_type: boolean
+        data_tests:
+          - not_null
+      - name: attachment_count
+        description: Number of attachments/stickers on the message.
+        data_type: int
+        data_tests:
+          - not_null
+      - name: service
+        description: Delivery service for sent messages; "Unknown" for received.
+        data_type: varchar
+        data_tests:
+          - not_null
